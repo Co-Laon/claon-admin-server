@@ -1,0 +1,15 @@
+server:
+  port: 8080
+
+spring:
+  r2dbc:
+    url: r2dbc:postgresql://localhost:5432/claon_admin_db
+    username: claon_admin_user
+    password: claon_admin_password
+    pool:
+      max-size: 100
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true

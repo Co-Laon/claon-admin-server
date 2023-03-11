@@ -1,0 +1,11 @@
+version: "3"
+services:
+  claon_admin_database:
+    container_name: claon_admin_db
+    image: postgres:14
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: "claon_admin_db"
+      POSTGRES_USER: "claon_admin_user"
+      POSTGRES_PASSWORD: "claon_admin_password"
