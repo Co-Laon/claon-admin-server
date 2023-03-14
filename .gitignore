@@ -7,3 +7,6 @@ venv
 
 poetry.lock
 .pytest_cache
+
+Dockerfile
+deploy_*.sh
