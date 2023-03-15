@@ -26,8 +26,8 @@ taskipy = "^1.10.3"
 pytest = "^7.2.2"
 
 [tool.taskipy.tasks]
-local = "API_ENV=local uvicorn claon_admin.main:app --reload"
-prod = "API_ENV=prod uvicorn claon_admin.main:app --reload"
+local = "API_ENV=local uvicorn claon_admin.main:app --host 0.0.0.0 --port 8000 --reload"
+prod = "API_ENV=prod uvicorn claon_admin.main:app --host 0.0.0.0 --port 8000 --reload"
 test = "API_ENV=test python3 -m pytest tests"
 
 [build-system]
