@@ -10,3 +10,5 @@ poetry.lock
 
 Dockerfile
 deploy_*.sh
+
+*.ini
