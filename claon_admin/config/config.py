@@ -3,11 +3,6 @@ from dataclasses import dataclass
 from os import environ
 from urllib.parse import quote
 
-if environ.get("API_ENV") == "prod":
-    config = ConfigParser()
-    with open("db_config_prod.ini") as file:
-        config.read_file(file)
-
 
 @dataclass
 class Config:
@@ -34,6 +29,9 @@ class ProdConfig(Config):
     DEBUG: bool = False
     TEST_MODE: bool = False
     DB_ECHO: bool = True
+    config = ConfigParser()
+    with open("db_config_prod.ini") as file:
+        config.read_file(file)
     IP = config.get("DB", "IP")
     PORT = config.get("DB", "PORT")
     DB_NAME = config.get("DB", "DB_NAME")
@@ -45,7 +43,10 @@ class ProdConfig(Config):
 
 @dataclass
 class TestConfig(Config):
+    DEBUG: bool = True
+    DB_ECHO: bool = True
     TEST_MODE: bool = True
+    DB_URL: str = "sqlite+aiosqlite:///test.db"
 
 
 def conf():
