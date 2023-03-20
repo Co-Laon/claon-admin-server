@@ -9,6 +9,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from claon_admin.config.consts import SESSION_SECRET_KEY
 from claon_admin.container import Container, db
+from claon_admin.router import example
 
 nest_asyncio.apply()
 
@@ -21,12 +22,13 @@ def create_app() -> FastAPI:
     container = Container()
 
     """ Define Container """
-    container.wire()
+    container.wire(modules=[example])
     app.container = container
 
     """ Define Routers """
     api_version = "v1"
     api_prefix = "/api/" + api_version
+    app.include_router(example.router, prefix=api_prefix + "/example")
 
     app.add_middleware(
         CORSMiddleware,

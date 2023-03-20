@@ -12,3 +12,6 @@ Dockerfile
 deploy_*.sh
 
 *.ini
+
+!pytest.ini
+test.db
