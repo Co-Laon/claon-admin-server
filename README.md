@@ -1,4 +1,5 @@
 # claon-admin-server
+[![CI](https://github.com/Co-Laon/claon-admin-server/actions/workflows/ci.yml/badge.svg)](https://github.com/Co-Laon/claon-admin-server/actions/workflows/ci.yml)
 
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-31010/)
 
@@ -13,7 +14,7 @@ install dependencies of this project
 ```bash
 python3 -m pip install --upgrade pip
 pip3 install poetry==1.4.0
-poestry install
+poetry install
 ```
 
 ## Run
