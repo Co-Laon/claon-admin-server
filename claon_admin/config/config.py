@@ -3,6 +3,13 @@ from dataclasses import dataclass
 from os import environ
 from urllib.parse import quote
 
+config = ConfigParser(allow_no_value=True)
+try:
+    with open("db_config_prod.ini") as file:
+        config.read_file(file)
+except FileNotFoundError:
+    pass
+
 
 @dataclass
 class Config:
@@ -29,14 +36,11 @@ class ProdConfig(Config):
     DEBUG: bool = False
     TEST_MODE: bool = False
     DB_ECHO: bool = True
-    config = ConfigParser()
-    with open("db_config_prod.ini") as file:
-        config.read_file(file)
-    IP = config.get("DB", "IP")
-    PORT = config.get("DB", "PORT")
-    DB_NAME = config.get("DB", "DB_NAME")
-    DB_USER_NAME = config.get("DB", "DB_USER_NAME")
-    DB_PASSWORD = config.get("DB", "DB_PASSWORD")
+    IP = config.get("DB", "IP", fallback="localhost")
+    PORT = config.get("DB", "PORT", fallback="5432")
+    DB_NAME = config.get("DB", "DB_NAME", fallback="claon_db")
+    DB_USER_NAME = config.get("DB", "DB_USER_NAME", fallback="claon_user")
+    DB_PASSWORD = config.get("DB", "DB_PASSWORD", fallback="claon_password")
     DB_URL: str = "postgresql+asyncpg://{user_name}:{password}@{ip}:{port}/{db_name}".format(
         user_name=DB_USER_NAME, password=quote(DB_PASSWORD), ip=IP, port=PORT, db_name=DB_NAME)
 
@@ -50,5 +54,5 @@ class TestConfig(Config):
 
 
 def conf():
-    config = dict(prod=ProdConfig, local=LocalConfig, test=TestConfig)
-    return config[environ.get("API_ENV")]()
+    config_dict = dict(prod=ProdConfig, local=LocalConfig, test=TestConfig)
+    return config_dict[environ.get("API_ENV")]()
