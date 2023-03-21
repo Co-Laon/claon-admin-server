@@ -1,6 +1,6 @@
+import asyncio
 import nest_asyncio
 import pytest
-from sqlalchemy.util import asyncio
 
 nest_asyncio.apply()
 
