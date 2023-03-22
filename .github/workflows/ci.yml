@@ -1,0 +1,50 @@
+# This workflow will install Python dependencies, run tests and lint with a single version of Python
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
+
+name: CI
+
+on:
+  push:
+    branches: [ "*" ]
+  pull_request:
+    branches: [ "develop" ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+    
+    - name: Install Upgrade Pip
+      run: |
+        python3 -m pip install --upgrade pip
+    
+    - name: Install Poetry
+      run: pip3 install poetry==1.4.0
+        
+    - name: Install Dependencies using Poetry
+      run: poetry install
+        
+    - name: Test with Pytest
+      run: |
+        poetry run task test
+    
+    - name: Generate Coverage Report
+      run: |
+        poetry add pytest-cov
+        poetry run task testCoverage
+
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+        file: ./coverage.xml
