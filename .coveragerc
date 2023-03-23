@@ -1,0 +1,11 @@
+[run]
+source = 
+    claon_admin
+
+omit = 
+    claon_admin/config/*
+    claon_admin/model/*
+    claon_admin/router/*
+    claon_admin/container.py
+    claon_admin/main.py
+    claon_admin/schema/conn.py
