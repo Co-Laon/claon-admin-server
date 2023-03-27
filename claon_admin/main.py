@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
+from claon_admin.common.error.handler import add_http_exception_handler
 from claon_admin.config.consts import SESSION_SECRET_KEY
 from claon_admin.container import Container, db
 from claon_admin.middleware.log import LoggerMiddleware
@@ -41,6 +42,8 @@ def create_app() -> FastAPI:
 
     app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET_KEY)
     app.add_middleware(LoggerMiddleware)
+
+    add_http_exception_handler(app)
 
     return app
 
