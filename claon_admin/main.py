@@ -9,6 +9,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from claon_admin.config.consts import SESSION_SECRET_KEY
 from claon_admin.container import Container, db
+from claon_admin.middleware.log import LoggerMiddleware
 from claon_admin.router import example
 
 nest_asyncio.apply()
@@ -39,6 +40,7 @@ def create_app() -> FastAPI:
     )
 
     app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET_KEY)
+    app.add_middleware(LoggerMiddleware)
 
     return app
 
