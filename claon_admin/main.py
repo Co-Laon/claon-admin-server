@@ -16,6 +16,7 @@ from claon_admin.router import example, center, auth
 nest_asyncio.apply()
 
 """ Initialize Database """
+# asyncio.run(db.drop_database())
 asyncio.run(db.create_database())
 
 
@@ -30,6 +31,7 @@ def create_app() -> FastAPI:
     """ Define Routers """
     api_version = "v1"
     api_prefix = "/api/" + api_version
+
     app.include_router(example.router, prefix=api_prefix + "/example")
     app.include_router(auth.router, prefix=api_prefix + "/auth")
     app.include_router(center.router, prefix=api_prefix + "/centers")
