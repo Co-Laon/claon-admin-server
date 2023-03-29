@@ -16,7 +16,7 @@ class ExampleRepository:
     @staticmethod
     async def find_by_id(session: AsyncSession, example_id: str):
         result = await session.execute(select(Example).where(Example.id == example_id))
-        return result.scalar_one_or_none()
+        return result.scalars().one_or_none()
 
     @staticmethod
     async def save(session: AsyncSession, example: Example):
