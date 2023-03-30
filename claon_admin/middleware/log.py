@@ -24,12 +24,13 @@ class LoggerMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
 
         idem = ''.join(str(uuid.uuid4()))
-        await set_body(request)
         request_headers = dict(request.headers)
-        request_body = await request.body()
         logger.info(f"[{idem}] [REQUEST] path: {request.url.path}")
-        if request_body and not ("multipart/form-data" in request_headers['content-type']):
-            logger.info(f"[{idem}] [REQUEST] body: {request_body.decode('utf-8')}")
+        if not ("multipart/form-data" in request_headers['content-type']):
+            await set_body(request)
+            request_body = await request.body()
+            if request_body and not ("multipart/form-data" in request_headers['content-type']):
+                logger.info(f"[{idem}] [REQUEST] body: {request_body.decode('utf-8')}")
 
         response = await call_next(request)
 
