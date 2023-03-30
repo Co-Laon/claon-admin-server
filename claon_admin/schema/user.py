@@ -18,7 +18,7 @@ class UserRepository:
     @staticmethod
     async def find_by_username(session: AsyncSession, username: str):
         result = await session.execute(select(User).where(User.username == username))
-        return result.scalar_one_or_none()
+        return result.scalars().one_or_none()
 
     @staticmethod
     async def save(session: AsyncSession, user: User) -> User:
