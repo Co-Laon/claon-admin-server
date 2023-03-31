@@ -1,8 +1,10 @@
 from pytz import timezone
 
-TIME_ZONE_KST = timezone("Asia/Seoul")
+from claon_admin.config.config import config
 
-SESSION_SECRET_KEY = "c00179fb-7b23-4f4b-be74-a64ef187e29a"
+TIME_ZONE_KST = timezone("Asia/Seoul")
 
 KOR_BEGIN_CODE = 0xAC00
 KOR_END_CODE = 0xD7AF
+
+SESSION_SECRET_KEY = config.get("SESSION", "SECRET_KEY")
