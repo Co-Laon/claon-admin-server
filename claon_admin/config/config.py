@@ -13,7 +13,7 @@ except FileNotFoundError:
 config = ConfigParser(allow_no_value=True)
 try:
     with open("{env}_config.ini".format(env=environ.get("API_ENV"))) as file:
-        db_config.read_file(file)
+        config.read_file(file)
 except FileNotFoundError:
     if environ.get("API_ENV") != "test":
         raise FileNotFoundError("Please check config file by environment")
