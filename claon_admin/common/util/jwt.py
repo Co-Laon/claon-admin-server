@@ -1,25 +1,15 @@
 from datetime import datetime, timedelta, timezone
 
-from fastapi import Depends, HTTPException, Header
+from fastapi import Header
 from jose import jwt
-from passlib.context import CryptContext
-from starlette import status
 
+from claon_admin.common.error.exception import UnauthorizedException
+from claon_admin.common.error.exception import ErrorCode
 from claon_admin.config.consts import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, JWT_SECRET_KEY, \
     REFRESH_TOKEN_EXPIRE_MINUTES, JWT_REFRESH_SECRET_KEY
 
-pwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 
-
-def hash_password(password):
-    return pwd_context.hash(password)
-
-
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
-
-
-def create_access_token(data: dict):
+def create_access_token(data: dict) -> str:
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
@@ -29,7 +19,7 @@ def create_access_token(data: dict):
     return encoded_jwt
 
 
-def create_refresh_token(data: dict):
+def create_refresh_token(data: dict) -> str:
     to_encode = data.copy()
     expire = datetime.now(timezone.utc) + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
 
@@ -40,53 +30,60 @@ def create_refresh_token(data: dict):
 
 
 def is_expired(payload: dict):
-    print("****************")
-    print(datetime.now(timezone.utc))
-    print(datetime.fromtimestamp(payload.get("exp"), timezone.utc))
     if datetime.now(timezone.utc) > datetime.fromtimestamp(payload.get("exp"), timezone.utc):
         return True
     return False
 
 
-async def get_token_from_header(
+async def do_jwt_filter(
         authorization: str = Header(None)
-) -> str:
+) -> dict:
+
+    if authorization is None:
+        raise UnauthorizedException(
+            ErrorCode.NOT_ACCESSIBLE,
+            "Authorization 헤더가 비어있습니다."
+        )
+
     try:
         auth_type, tokens = authorization.split(" ")
+
         if auth_type.lower() != "bearer":
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="토큰 헤더가 잘못되었습니다."
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "토큰 헤더의 타입이 잘못되었습니다."
             )
         else:
-            return tokens
+            access_token, refresh_token = tokens.split(":")
+
+            if access_token is None or refresh_token is None:
+                raise UnauthorizedException(
+                    ErrorCode.NOT_ACCESSIBLE,
+                    "토큰을 찾을 수 없습니다."
+                )
+
+            access_payload = jwt.decode(access_token, JWT_SECRET_KEY, algorithms=[ALGORITHM], options={"verify_exp": False})
+            refresh_payload = jwt.decode(refresh_token, JWT_REFRESH_SECRET_KEY, algorithms=[ALGORITHM], options={"verify_exp": False})
+
+            # handle 2 by 2 cases
+            if is_expired(access_payload):
+                if is_expired(refresh_payload):
+                    raise UnauthorizedException(
+                        ErrorCode.NOT_ACCESSIBLE,
+                        "모든 토큰이 만료되었습니다."
+                    )
+                else:
+                    access_token = create_access_token({})
+                    return {"access-token": access_token, "refresh-token": refresh_token}
+            else:
+                if is_expired(refresh_payload):
+                    refresh_token = create_refresh_token({})
+                    return {"access-token": access_token, "refresh-token": refresh_token}
+                else:
+                    return {"access-token": access_token, "refresh-token": refresh_token}
+
     except ValueError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="토큰의 형식이 잘못되었습니다."
+        raise UnauthorizedException(
+            ErrorCode.NOT_ACCESSIBLE,
+            "Authorization 헤더의 형식이 올바르지 않습니다."
         )
-
-
-async def do_authentication_filter(
-        tokens: str = Depends(get_token_from_header)
-) -> dict:
-    access_token, refresh_token = tokens.split(":")
-    if access_token is None or refresh_token is None:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="토큰을 찾을 수 없습니다."
-        )
-
-    access_payload = jwt.decode(access_token, JWT_SECRET_KEY, algorithms=[ALGORITHM], options={"verify_exp": False})
-    refresh_payload = jwt.decode(refresh_token, JWT_REFRESH_SECRET_KEY, algorithms=[ALGORITHM], options={"verify_exp": False})
-
-    if is_expired(access_payload):
-        if is_expired(refresh_payload):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="토큰이 만료되었습니다."
-            )
-        else:
-            return refresh_payload
-    else:
-        return access_payload
