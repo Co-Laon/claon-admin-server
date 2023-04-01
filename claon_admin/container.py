@@ -17,3 +17,4 @@ class Container(containers.DeclarativeContainer):
     """ Service """
     example_service = providers.Factory(ExampleService,
                                         example_repository=example_repository)
+    
