@@ -4,13 +4,13 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from claon_admin.schema.example import Example, ExampleRepository
+from claon_admin.schema.example import Example, ExampleRepository, ExampleProperty
 from claon_admin.service.example import ExampleService
 
 
 @pytest.fixture
 def example_fixture():
-    example = Example(id=str(uuid.uuid4()), name='example')
+    example = Example(id=str(uuid.uuid4()), name='example', prop=ExampleProperty(name='prop', description='desc'))
     return example
 
 
