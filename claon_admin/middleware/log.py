@@ -25,8 +25,9 @@ class LoggerMiddleware(BaseHTTPMiddleware):
 
         idem = ''.join(str(uuid.uuid4()))
         request_headers = dict(request.headers)
-        logger.info(f"[{idem}] [REQUEST] path: {request.url.path}")
-        if not ("multipart/form-data" in request_headers['content-type']):
+        logger.info(f"[{idem}] [REQUEST] [{request.method}] path: {request.url.path}")
+        if request_headers.get('content-type') is not None and not (
+                "multipart/form-data" in request_headers['content-type']):
             await set_body(request)
             request_body = await request.body()
             if request_body and not ("multipart/form-data" in request_headers['content-type']):
