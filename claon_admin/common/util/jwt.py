@@ -9,11 +9,11 @@ from claon_admin.common.error.exception import ErrorCode
 from claon_admin.config.consts import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, JWT_SECRET_KEY, \
     REFRESH_TOKEN_EXPIRE_MINUTES, JWT_REFRESH_SECRET_KEY, TIME_ZONE_KST
 from claon_admin.container import db
-from claon_admin.schema.jwtsample import UserRepository
+from claon_admin.schema.user import UserRepository
 
 
-def create_access_token(nickname: str) -> str:
-    to_encode = {"sub": nickname}
+def create_access_token(user_id: str) -> str:
+    to_encode = {"sub": user_id}
 
     expire = datetime.now(TIME_ZONE_KST) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({'exp': expire})
@@ -23,11 +23,9 @@ def create_access_token(nickname: str) -> str:
     return encoded_jwt
 
 
-def create_refresh_token(nickname: str) -> str:
-    to_encode = {"sub": nickname}
-
+def create_refresh_token() -> str:
     expire = datetime.now(TIME_ZONE_KST) + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({'exp': expire})
+    to_encode = ({'exp': expire})
 
     encoded_jwt = jwt.encode(to_encode, JWT_REFRESH_SECRET_KEY, ALGORITHM)
 
@@ -48,29 +46,29 @@ async def do_jwt_authentication(
     try:
         if access_token is None:
             raise UnauthorizedException(
-                ErrorCode.NOT_ACCESSIBLE,
+                ErrorCode.NOT_SIGN_IN,
                 "Cannot find access token from request header."
             )
 
         if refresh_token is None:
             raise UnauthorizedException(
-                ErrorCode.NOT_ACCESSIBLE,
+                ErrorCode.NOT_SIGN_IN,
                 "Cannot find refresh token from request header."
             )
 
         access_payload = jwt.decode(access_token, JWT_SECRET_KEY, algorithms=[ALGORITHM], options={"verify_exp": False})
         refresh_payload = jwt.decode(refresh_token, JWT_REFRESH_SECRET_KEY, algorithms=[ALGORITHM], options={"verify_exp": False})
 
-        if not await UserRepository.find_by_nickname(session, access_payload.get("sub")):
+        if not await UserRepository.find_by_id(session, access_payload.get("sub")):
             raise UnauthorizedException(
-                ErrorCode.NOT_ACCESSIBLE,
+                ErrorCode.USER_DOES_NOT_EXIST,
                 "Not existing user account."
             )
 
         if is_expired(access_payload):
             if is_expired(refresh_payload):
                 raise UnauthorizedException(
-                    ErrorCode.NOT_ACCESSIBLE,
+                    ErrorCode.INVALID_JWT,
                     "Both access token and refresh token are expired."
                 )
             access_token = create_access_token(access_payload.get("sub"))
@@ -78,7 +76,7 @@ async def do_jwt_authentication(
         else:
             if is_expired(refresh_payload):
                 raise UnauthorizedException(
-                    ErrorCode.NOT_ACCESSIBLE,
+                    ErrorCode.INVALID_JWT,
                     "Refresh token is expired."
                 )
             return {"access-token": access_token, "refresh-token": refresh_token}
