@@ -16,7 +16,6 @@ from claon_admin.router import example, center, auth
 nest_asyncio.apply()
 
 """ Initialize Database """
-# asyncio.run(db.drop_database())
 asyncio.run(db.create_database())
 
 
