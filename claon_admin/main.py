@@ -1,4 +1,5 @@
 import asyncio
+from os import environ
 
 import nest_asyncio
 import uvicorn
@@ -16,7 +17,10 @@ from claon_admin.router import example, center, auth
 nest_asyncio.apply()
 
 """ Initialize Database """
-asyncio.run(db.create_database())
+if environ.get("API_ENV") == "prod":
+    asyncio.run(db.create_database())
+else:
+    asyncio.run(db.create_drop_database())
 
 
 def create_app() -> FastAPI:

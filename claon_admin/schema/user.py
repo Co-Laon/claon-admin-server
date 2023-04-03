@@ -10,7 +10,7 @@ class User(Base):
     __tablename__ = 'tb_user'
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
     email = Column(String(length=32))
-    nickname = Column(String(length=16), unique=True)
+    nickname = Column(String(length=16))
     password = Column(String(length=255))
 
 
