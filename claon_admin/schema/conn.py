@@ -19,6 +19,11 @@ class Database:
         async with self._engine.begin() as conn:
             await conn.run_sync(Base.metadata.drop_all, checkfirst=True)
 
+    async def create_drop_database(self) -> None:
+        async with self._engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+            await conn.run_sync(Base.metadata.create_all)
+
     async def get_db(self) -> AsyncSession:
         async with self.async_session_maker() as session:
             try:
