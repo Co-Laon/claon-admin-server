@@ -36,7 +36,7 @@ python-jose = "^3.3.0"
 local = "API_ENV=local uvicorn claon_admin.main:app --host 0.0.0.0 --port 8000 --reload"
 prod = "API_ENV=prod uvicorn claon_admin.main:app --host 0.0.0.0 --port 8000 --reload"
 test = "API_ENV=test python3 -m pytest tests"
-testCoverage = "API_ENV=test python3 -m pytest --cov-config=.coveragerc --cov=claon_admin/ --cov-report=xml --concurrency=greenlet"
+testCoverage = "API_ENV=test python3 -m pytest --cov-config=.coveragerc --cov=claon_admin/ --cov-report=xml"
 
 [build-system]
 requires = ["poetry-core"]
