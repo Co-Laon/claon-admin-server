@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta
 
-from fastapi import Header, Depends
+from fastapi import Header, Depends, Response
 from jose import jwt
-from requests import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import UnauthorizedException, InternalServerException
@@ -16,23 +15,50 @@ from claon_admin.schema.user import UserRepository
 
 
 def create_access_token(user_id: str) -> str:
-    to_encode = {"sub": user_id}
+    to_encode = {
+        "sub": user_id,
+        "exp": datetime.now(TIME_ZONE_KST) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    }
 
-    expire = datetime.now(TIME_ZONE_KST) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({'exp': expire})
-
-    encoded_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, JWT_ALGORITHM)
-
-    return encoded_jwt
+    return jwt.encode(to_encode, JWT_SECRET_KEY, JWT_ALGORITHM)
 
 
 def create_refresh_token() -> str:
-    expire = datetime.now(TIME_ZONE_KST) + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
-    to_encode = ({'exp': expire})
+    to_encode = {
+        "exp": datetime.now(TIME_ZONE_KST) + timedelta(minutes=REFRESH_TOKEN_EXPIRE_MINUTES)
+    }
 
-    encoded_jwt = jwt.encode(to_encode, JWT_REFRESH_SECRET_KEY, JWT_ALGORITHM)
+    return jwt.encode(to_encode, JWT_REFRESH_SECRET_KEY, JWT_ALGORITHM)
 
-    return encoded_jwt
+
+def resolve_access_token(access_token: str) -> dict:
+    try:
+        return jwt.decode(
+            access_token,
+            JWT_SECRET_KEY,
+            algorithms=[JWT_ALGORITHM],
+            options={"verify_exp": False}
+        )
+    except jwt.JWTError:
+        raise UnauthorizedException(
+            ErrorCode.INVALID_JWT,
+            "Invalid access token."
+        )
+
+
+def resolve_refresh_token(refresh_token: str) -> dict:
+    try:
+        return jwt.decode(
+            refresh_token,
+            JWT_REFRESH_SECRET_KEY,
+            algorithms=[JWT_ALGORITHM],
+            options={"verify_exp": False}
+        )
+    except jwt.JWTError:
+        raise UnauthorizedException(
+            ErrorCode.INVALID_JWT,
+            "Invalid refresh token."
+        )
 
 
 def is_expired(payload: dict):
@@ -41,7 +67,7 @@ def is_expired(payload: dict):
     return False
 
 
-async def do_jwt_authentication(
+async def get_subject(
         response: Response,
         access_token: str = Header(None),
         refresh_token: str = Header(None),
@@ -60,15 +86,15 @@ async def do_jwt_authentication(
                 "Cannot find refresh token from request header."
             )
 
-        access_payload = jwt.decode(access_token, JWT_SECRET_KEY, algorithms=[JWT_ALGORITHM], options={"verify_exp": False})
-        refresh_payload = jwt.decode(refresh_token, JWT_REFRESH_SECRET_KEY, algorithms=[JWT_ALGORITHM], options={"verify_exp": False})
+        access_payload = resolve_access_token(access_token)
+        refresh_payload = resolve_refresh_token(refresh_token)
 
-        if not await UserRepository.exist_by_id(session, access_payload.get("sub")):
+        user = await UserRepository.find_by_id(session, access_payload.get("sub"))
+        if user is None:
             raise UnauthorizedException(
                 ErrorCode.USER_DOES_NOT_EXIST,
                 "Not existing user account."
             )
-        user = await UserRepository.find_by_id(session, access_payload.get("sub"))
 
         if is_expired(access_payload):
             if is_expired(refresh_payload):
@@ -76,8 +102,7 @@ async def do_jwt_authentication(
                     ErrorCode.INVALID_JWT,
                     "Both access token and refresh token are expired."
                 )
-            access_token = create_access_token(access_payload.get("sub"))
-            add_jwt_tokens(response, {"access-token": access_token, "refresh-token": refresh_token})
+            add_jwt_tokens(response, create_access_token(access_payload.get("sub")), create_refresh_token())
 
             return UserProfileDto(
                 profile_image=user.profile_image,
@@ -92,7 +117,6 @@ async def do_jwt_authentication(
                     ErrorCode.INVALID_JWT,
                     "Refresh token is expired."
                 )
-            add_jwt_tokens(response, {"access-token": access_token, "refresh-token": refresh_token})
 
             return UserProfileDto(
                 profile_image=user.profile_image,

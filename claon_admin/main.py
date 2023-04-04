@@ -17,7 +17,7 @@ from claon_admin.router import example, center, auth
 nest_asyncio.apply()
 
 """ Initialize Database """
-if environ.get("API_ENV") == "prod":
+if environ.get("API_ENV") != "test":
     asyncio.run(db.create_database())
 else:
     asyncio.run(db.create_drop_database())

@@ -3,7 +3,8 @@ from fastapi import Response
 
 def add_jwt_tokens(
         response: Response,
-        jwt_tokens: dict
+        access_token: str,
+        refresh_token: str
 ):
-    response.headers["access-token"] = jwt_tokens.get("access-token")
-    response.headers["refresh-token"] = jwt_tokens.get("refresh-token")
+    response.headers["access-token"] = access_token
+    response.headers["refresh-token"] = refresh_token
