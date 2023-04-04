@@ -11,3 +11,4 @@ omit =
     claon_admin/main.py
     claon_admin/schema/conn.py
     claon_admin/common/*
+

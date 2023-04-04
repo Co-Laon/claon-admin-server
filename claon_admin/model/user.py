@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Optional, List
 
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, validator, EmailStr
 
 from claon_admin.config.consts import KOR_BEGIN_CODE, KOR_END_CODE
 from claon_admin.model.enum import SignUpRole
@@ -139,4 +139,4 @@ class LectorRequestDto(BaseModel):
     def validate_proof_list(cls, value):
         if len(value) > 5:
             raise ValueError('증빙자료는 5개 이하로 입력 해주세요.')
-        return value\
+        return value
