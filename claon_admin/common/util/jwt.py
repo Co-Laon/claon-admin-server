@@ -1,14 +1,17 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timedelta
 
 from fastapi import Header, Depends
 from jose import jwt
+from requests import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.common.error.exception import UnauthorizedException
+from claon_admin.common.error.exception import UnauthorizedException, InternalServerException
 from claon_admin.common.error.exception import ErrorCode
+from claon_admin.common.util.header import add_jwt_tokens
 from claon_admin.config.consts import ACCESS_TOKEN_EXPIRE_MINUTES, ALGORITHM, JWT_SECRET_KEY, \
     REFRESH_TOKEN_EXPIRE_MINUTES, JWT_REFRESH_SECRET_KEY, TIME_ZONE_KST
 from claon_admin.container import db
+from claon_admin.model.user import UserProfileDto
 from claon_admin.schema.user import UserRepository
 
 
@@ -39,10 +42,11 @@ def is_expired(payload: dict):
 
 
 async def do_jwt_authentication(
+        response: Response,
         access_token: str = Header(None),
         refresh_token: str = Header(None),
         session: AsyncSession = Depends(db.get_db)
-) -> dict:
+) -> UserProfileDto:
     try:
         if access_token is None:
             raise UnauthorizedException(
@@ -59,11 +63,12 @@ async def do_jwt_authentication(
         access_payload = jwt.decode(access_token, JWT_SECRET_KEY, algorithms=[ALGORITHM], options={"verify_exp": False})
         refresh_payload = jwt.decode(refresh_token, JWT_REFRESH_SECRET_KEY, algorithms=[ALGORITHM], options={"verify_exp": False})
 
-        if not await UserRepository.find_by_id(session, access_payload.get("sub")):
+        if not await UserRepository.exist_by_id(session, access_payload.get("sub")):
             raise UnauthorizedException(
                 ErrorCode.USER_DOES_NOT_EXIST,
                 "Not existing user account."
             )
+        user = await UserRepository.find_by_id(session, access_payload.get("sub"))
 
         if is_expired(access_payload):
             if is_expired(refresh_payload):
@@ -72,17 +77,32 @@ async def do_jwt_authentication(
                     "Both access token and refresh token are expired."
                 )
             access_token = create_access_token(access_payload.get("sub"))
-            return {"access-token": access_token, "refresh-token": refresh_token}
+            add_jwt_tokens(response, {"access-token": access_token, "refresh-token": refresh_token})
+
+            return UserProfileDto(
+                profile_image=user.profile_image,
+                nickname=user.nickname,
+                email=user.email,
+                instagram_nickname=user.instagram_nickname,
+                role=user.role
+            )
         else:
             if is_expired(refresh_payload):
                 raise UnauthorizedException(
                     ErrorCode.INVALID_JWT,
                     "Refresh token is expired."
                 )
-            return {"access-token": access_token, "refresh-token": refresh_token}
+            add_jwt_tokens(response, {"access-token": access_token, "refresh-token": refresh_token})
 
-    except ValueError:
-        raise UnauthorizedException(
-            ErrorCode.NOT_ACCESSIBLE,
-            "Related headers are not valid."
+            return UserProfileDto(
+                profile_image=user.profile_image,
+                nickname=user.nickname,
+                email=user.email,
+                instagram_nickname=user.instagram_nickname,
+                role=user.role
+            )
+    except Exception:
+        raise InternalServerException(
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            "Unexpected error occurred when getting and parsing tokens."
         )
