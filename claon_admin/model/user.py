@@ -4,7 +4,7 @@ from typing import Optional, List
 from pydantic import BaseModel, validator, EmailStr
 
 from claon_admin.config.consts import KOR_BEGIN_CODE, KOR_END_CODE
-from claon_admin.model.enum import SignUpRole
+from claon_admin.model.enum import Role
 
 
 class SignInRequestDto(BaseModel):
@@ -20,7 +20,7 @@ class UserProfileDto(BaseModel):
     nickname: str
     email: EmailStr
     instagram_nickname: Optional[str]
-    role: Optional[SignUpRole]
+    role: Optional[Role]
 
     @validator('nickname')
     def validate_nickname(cls, value):
