@@ -117,3 +117,27 @@ async def test_exist_by_invalid_id(session: AsyncSession, user_fixture: User):
 
     # then
     assert not result
+
+
+@pytest.mark.asyncio
+async def test_exist_by_not_existing_nickname(session: AsyncSession, user_fixture: User):
+    # given
+    nickname = "not_existing_nickname"
+
+    # when
+    result = await user_repository.exist_by_nickname(session, nickname)
+
+    # then
+    assert not result
+
+
+@pytest.mark.asyncio
+async def test_exist_by_existing_nickname(session: AsyncSession, user_fixture: User):
+    # given
+    nickname = user_fixture.nickname
+
+    # when
+    result = await user_repository.exist_by_nickname(session, nickname)
+
+    # then
+    assert result

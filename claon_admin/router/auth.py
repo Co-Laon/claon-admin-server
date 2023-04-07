@@ -1,20 +1,24 @@
+from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Depends
 from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.container import db
+from claon_admin.container import Container, db
 from claon_admin.model.center import CenterRequestDto
 from claon_admin.model.enum import OAuthProvider
 from claon_admin.model.user import SignInRequestDto, LectorRequestDto, JwtResponseDto, UserProfileResponseDto, \
     IsDuplicatedNicknameResponseDto
+from claon_admin.service.user import UserService
 
 router = APIRouter()
 
 
 @cbv(router)
 class AuthRouter:
-    def __init__(self):
-        pass
+    @inject
+    def __init__(self,
+                 user_service: UserService = Depends(Provide[Container.user_service])):
+        self.user_service = user_service
 
     @router.post('/{provider}/sign-in', response_model=JwtResponseDto)
     async def sign_in(self,
@@ -39,4 +43,4 @@ class AuthRouter:
     async def is_duplicated_nickname(self,
                                      nickname: str,
                                      session: AsyncSession = Depends(db.get_db)):
-        pass
+        return await self.user_service.check_nickname_duplication(session, nickname)

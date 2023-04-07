@@ -103,6 +103,11 @@ class UserRepository:
         return result.scalar()
 
     @staticmethod
+    async def exist_by_nickname(session: AsyncSession, nickname: str):
+        result = await session.execute(select(exists().where(User.nickname == nickname)))
+        return result.scalar()
+
+    @staticmethod
     async def save(session: AsyncSession, user: User):
         session.add(user)
         await session.flush()
