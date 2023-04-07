@@ -22,6 +22,7 @@ center_wall_repository = CenterWallRepository()
 @pytest.fixture(scope="session")
 async def user_fixture(session: AsyncSession):
     user = User(
+        oauth_id="oauth_id",
         nickname="nickname",
         profile_img="profile_img",
         sns="sns",

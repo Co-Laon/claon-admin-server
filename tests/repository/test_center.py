@@ -2,11 +2,9 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.model.enum import WallType
-from claon_admin.schema.user import User
 from claon_admin.schema.center import (
-    Center,
     CenterRepository,
-    CenterApprovedFileRepository, CenterApprovedFile, CenterHold, CenterWall, CenterHoldRepository, CenterWallRepository
+    CenterApprovedFileRepository, CenterHoldRepository, CenterWallRepository
 )
 
 center_repository = CenterRepository()

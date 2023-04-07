@@ -12,3 +12,8 @@ class RequestUser(BaseModel):
     email: str
     instagram_nickname: Optional[str]
     role: Optional[Role]
+
+
+class OAuthUserInfoDto(BaseModel):
+    oauth_id: str
+    sns_email: str

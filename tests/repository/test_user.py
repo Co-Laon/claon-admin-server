@@ -5,7 +5,6 @@ from claon_admin.schema.user import (
     UserRepository,
     LectorRepository,
     User,
-    Lector,
     LectorApprovedFileRepository, LectorApprovedFile
 )
 
@@ -184,3 +183,35 @@ async def test_save_all_lector_approved_files(
 
     # then
     assert lector_approved_files == [lector_approved_file_fixture]
+
+
+@pytest.mark.asyncio
+async def test_find_by_oauth_id_and_sns(session: AsyncSession, user_fixture: User):
+    # given
+    user_oauth_id = user_fixture.oauth_id
+    user_sns = user_fixture.sns
+
+    # when
+    result = await user_repository.find_by_oauth_id_and_sns(session, user_oauth_id, user_sns)
+
+    # then
+    assert result.oauth_id == user_fixture.oauth_id
+    assert result.nickname == user_fixture.nickname
+    assert result.profile_img == user_fixture.profile_img
+    assert result.sns == user_fixture.sns
+    assert result.email == user_fixture.email
+    assert result.instagram_name == user_fixture.instagram_name
+    assert result.role == user_fixture.role
+
+
+@pytest.mark.asyncio
+async def test_find_by_invalid_oauth_id_and_sns(session: AsyncSession, user_fixture: User):
+    # given
+    user_oauth_id = "wrong_id"
+    user_sns = user_fixture.sns
+
+    # when
+    result = await user_repository.find_by_oauth_id_and_sns(session, user_oauth_id, user_sns)
+
+    # then
+    assert not result

@@ -1,6 +1,6 @@
 from datetime import date
 from typing import List
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -10,13 +10,17 @@ from claon_admin.model.auth import RequestUser
 from claon_admin.model.center import CenterRequestDto, CenterFeeDto, CenterHoldDto, CenterWallDto, \
     CenterOperatingTimeDto
 from claon_admin.model.enum import WallType, Role
-from claon_admin.model.user import LectorRequestDto, UserProfileDto, LectorContestDto, LectorCertificateDto, \
-    LectorCareerDto
+from claon_admin.model.user import LectorRequestDto, UserProfileResponseDto, LectorContestDto, LectorCertificateDto, \
+    LectorCareerDto, UserProfileDto
 from claon_admin.schema.center import CenterRepository, Center, CenterHoldRepository, CenterWallRepository, \
     CenterApprovedFileRepository, CenterHold, CenterWall, CenterApprovedFile, CenterImage, OperatingTime, Utility, \
     CenterFee, CenterFeeImage
 from claon_admin.schema.user import User, UserRepository, LectorRepository, Lector, LectorApprovedFileRepository, \
     LectorApprovedFile, Contest, Certificate, Career
+from claon_admin.infra.provider import GoogleUserInfoProvider, OAuthUserInfoProviderSupplier
+from claon_admin.model.auth import OAuthUserInfoDto
+from claon_admin.model.enum import OAuthProvider
+from claon_admin.model.user import SignInRequestDto, JwtResponseDto
 from claon_admin.service.user import UserService
 
 
@@ -42,7 +46,12 @@ def mock_repo():
 
 
 @pytest.fixture
-def user_service(mock_repo: dict):
+def mock_supplier():
+    return AsyncMock(OAuthUserInfoProviderSupplier)
+
+
+@pytest.fixture
+def user_service(mock_repo: dict, mock_supplier):
     return UserService(
         mock_repo["user"],
         mock_repo["lector"],
@@ -50,14 +59,15 @@ def user_service(mock_repo: dict):
         mock_repo["center"],
         mock_repo["center_approved_file"],
         mock_repo["center_hold"],
-        mock_repo["center_wall"]
+        mock_repo["center_wall"],
+        mock_supplier
     )
 
 
 @pytest.fixture
 def lector_request_dto(session: AsyncSession, mock_user):
     yield LectorRequestDto(
-        profile=UserProfileDto.from_entity(mock_user),
+        profile=UserProfileResponseDto.from_entity(mock_user),
         is_setter=True,
         contest_list=[
             LectorContestDto(
@@ -87,7 +97,13 @@ def lector_request_dto(session: AsyncSession, mock_user):
 @pytest.fixture
 async def center_request_dto(session: AsyncSession, mock_user):
     yield CenterRequestDto(
-        profile=UserProfileDto.from_entity(mock_user),
+        profile=UserProfileDto(
+            profile_image=mock_user.profile_img,
+            nickname=mock_user.nickname,
+            email=mock_user.email,
+            instagram_nickname=mock_user.instagram_name,
+            role=mock_user.role
+        ),
         profile_image="https://test.profile.png",
         name="test center",
         address="test_address",
@@ -110,6 +126,7 @@ async def center_request_dto(session: AsyncSession, mock_user):
 @pytest.fixture
 def mock_user():
     yield User(
+        oauth_id="oauth_id",
         nickname="nickname",
         profile_img="profile_img",
         sns="sns",
@@ -274,7 +291,7 @@ async def test_sign_up_lector(
         lector_request_dto
 ):
     # given
-    profile = UserProfileDto.from_entity(mock_user)
+    profile = UserProfileResponseDto.from_entity(mock_user)
     mock_repo["user"].exist_by_nickname.side_effect = [False]
     mock_repo["lector"].save.side_effect = [mock_lector]
     mock_repo["lector_approved_file"].save_all.side_effect = [mock_lector_approved_files]
@@ -357,3 +374,35 @@ async def test_exist_by_existing_nickname(
 
     # then
     assert result.is_duplicated is True
+
+
+@pytest.mark.asyncio
+@patch("claon_admin.service.user.create_refresh_token")
+async def test_sign_in(
+        mock_create_refresh_token,
+        session: AsyncSession,
+        mock_repo: dict,
+        mock_user,
+        mock_supplier,
+        user_service: UserService):
+    # given
+    mock_repo["user"].find_by_oauth_id_and_sns.side_effect = [mock_user]
+    mock_repo["user"].save.side_effect = [mock_user]
+
+    sign_in_request_dto = SignInRequestDto(id_token="test_id_token")
+    provider_name = OAuthProvider.GOOGLE
+
+    oauth_user_info_dto = OAuthUserInfoDto(oauth_id="oauth_id", sns_email="test_sns")
+    mock_provider = AsyncMock(spec=GoogleUserInfoProvider)
+    mock_provider.get_user_info.return_value = oauth_user_info_dto
+
+    mock_supplier.get_provider.return_value = mock_provider
+
+    mock_create_refresh_token.return_value = "test_refresh_token"
+
+    # when
+    result: JwtResponseDto = await user_service.sign_in(session, provider_name, sign_in_request_dto)
+
+    # then
+    assert result.access_token is not None
+    assert result.refresh_token is not None

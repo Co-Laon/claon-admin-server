@@ -1,7 +1,11 @@
+from dataclasses import asdict
 from typing import Optional
 
+from claon_admin.config.config import conf
 from claon_admin.config.consts import REFRESH_TOKEN_EXPIRE_MINUTES
-from claon_admin.container import redis
+from claon_admin.config.redis import Redis
+
+redis = Redis(host=asdict(conf())['REDIS_HOST'], port=asdict(conf())['REDIS_PORT'])
 
 
 def save_refresh_token(refresh_token: str, user_id: str):
