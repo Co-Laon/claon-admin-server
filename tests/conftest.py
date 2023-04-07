@@ -40,11 +40,11 @@ async def session(db):
 @pytest.fixture(scope="session")
 async def user_fixture(session: AsyncSession):
     user = User(
-        nickname='test_nick',
-        profile_img='test_profile',
-        sns='test_sns',
-        email='test@test.com',
-        instagram_name='test_insta',
+        nickname="test_nick",
+        profile_img="test_profile",
+        sns="test_sns",
+        email="test@test.com",
+        instagram_name="test_insta",
         role=Role.LECTOR,
     )
 
