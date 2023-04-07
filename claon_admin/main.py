@@ -12,12 +12,12 @@ from claon_admin.common.error.handler import add_http_exception_handler
 from claon_admin.config.consts import SESSION_SECRET_KEY
 from claon_admin.container import Container, db
 from claon_admin.middleware.log import LoggerMiddleware
-from claon_admin.router import example, center, auth
+from claon_admin.router import example, center, auth, admin
 
 nest_asyncio.apply()
 
 """ Initialize Database """
-if environ.get("API_ENV") == "prod":
+if environ.get("API_ENV") != "test":
     asyncio.run(db.create_database())
 else:
     asyncio.run(db.create_drop_database())
@@ -38,6 +38,7 @@ def create_app() -> FastAPI:
     app.include_router(example.router, prefix=api_prefix + "/example")
     app.include_router(auth.router, prefix=api_prefix + "/auth")
     app.include_router(center.router, prefix=api_prefix + "/centers")
+    app.include_router(admin.router, prefix=api_prefix + "/admin")
 
     app.add_middleware(
         CORSMiddleware,

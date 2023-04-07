@@ -2,12 +2,8 @@ from enum import Enum
 
 
 class Role(Enum):
+    ADMIN = "admin"
     USER = "user"
-    LECTOR = "lector"
-    CENTER_ADMIN = "center_admin"
-
-
-class SignUpRole(Enum):
     LECTOR = "lector"
     CENTER_ADMIN = "center_admin"
 

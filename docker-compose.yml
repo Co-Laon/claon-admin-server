@@ -9,3 +9,11 @@ services:
       POSTGRES_DB: "claon_db"
       POSTGRES_USER: "claon_user"
       POSTGRES_PASSWORD: "claon_password"
+  redis:
+    image: redis:6.0.5
+    container_name: claon_admin_redis
+    labels:
+      - "name=redis"
+      - "mode=standalone"
+    ports:
+      - "6379:6379"
