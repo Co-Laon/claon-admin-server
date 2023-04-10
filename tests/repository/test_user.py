@@ -12,11 +12,12 @@ from claon_admin.schema.user import (
     Contest,
     Certificate,
     Career,
-    LectorApprovedFile
+    LectorApprovedFile, LectorApprovedFileRepository
 )
 
 user_repository = UserRepository()
 lector_repository = LectorRepository()
+lector_approved_file_repository = LectorApprovedFileRepository()
 
 
 @pytest.fixture(scope="session")
@@ -25,43 +26,52 @@ async def lector_fixture(session: AsyncSession, user_fixture: User):
         user=user_fixture,
         is_setter=True,
         total_experience=3,
-        contest=Contest(year=2021, title='test_title', name='test_name'),
-        certificate=Certificate(acquisition_date=date.fromisoformat('2012-10-15'), rate=4, name='test_certificate'),
-        career=Career(start_date=date.fromisoformat('2016-01-01'),
-                      end_date=date.fromisoformat('2020-01-01'),
-                      name='test_career'),
+        contest=Contest(year=2021, title="test_title", name="test_name"),
+        certificate=Certificate(acquisition_date=date.fromisoformat("2012-10-15"), rate=4, name="test_certificate"),
+        career=Career(start_date=date.fromisoformat("2016-01-01"),
+                      end_date=date.fromisoformat("2020-01-01"),
+                      name="test_career"),
         approved=True
     )
-    lector_approved_files = LectorApprovedFile(url='https://test.com/test.pdf')
-    lector.approved_files.append(lector_approved_files)
 
     await lector_repository.save(session, lector)
     yield lector
+
+
+@pytest.fixture(scope="session")
+async def lector_approved_fixture(session: AsyncSession, user_fixture: User, lector_fixture: Lector):
+    lector_approved_files = LectorApprovedFile(
+        url='https://test.com/test.pdf'
+    )
+    lector_approved_files.lector = lector_fixture
+    lector_approved_files.user = user_fixture
+
+    await lector_approved_file_repository.save(session, lector_approved_files)
+    yield lector_approved_files
 
 
 @pytest.mark.asyncio
 async def test_save(session: AsyncSession, user_fixture: User, lector_fixture: Lector):
     # then
     assert user_fixture.role == Role.LECTOR
-    assert user_fixture.nickname == 'test_nick'
-    assert user_fixture.profile_img == 'test_profile'
-    assert user_fixture.sns == 'test_sns'
-    assert user_fixture.email == 'test@test.com'
-    assert user_fixture.instagram_name == 'test_insta'
+    assert user_fixture.nickname == "test_nick"
+    assert user_fixture.profile_img == "test_profile"
+    assert user_fixture.sns == "test_sns"
+    assert user_fixture.email == "test@test.com"
+    assert user_fixture.instagram_name == "test_insta"
     assert lector_fixture.user.id == user_fixture.id
     assert lector_fixture.is_setter
     assert lector_fixture.total_experience == 3
     assert lector_fixture.contest.year == 2021
-    assert lector_fixture.contest.title == 'test_title'
-    assert lector_fixture.contest.name == 'test_name'
-    assert lector_fixture.certificate.acquisition_date == '2012-10-15'
+    assert lector_fixture.contest.title == "test_title"
+    assert lector_fixture.contest.name == "test_name"
+    assert lector_fixture.certificate.acquisition_date == "2012-10-15"
     assert lector_fixture.certificate.rate == 4
-    assert lector_fixture.certificate.name == 'test_certificate'
-    assert lector_fixture.career.start_date == '2016-01-01'
-    assert lector_fixture.career.end_date == '2020-01-01'
-    assert lector_fixture.career.name == 'test_career'
+    assert lector_fixture.certificate.name == "test_certificate"
+    assert lector_fixture.career.start_date == "2016-01-01"
+    assert lector_fixture.career.end_date == "2020-01-01"
+    assert lector_fixture.career.name == "test_career"
     assert lector_fixture.approved
-    assert lector_fixture.approved_files[0].url == 'https://test.com/test.pdf'
 
 
 @pytest.mark.asyncio
@@ -75,12 +85,12 @@ async def test_find_by_valid_id(session: AsyncSession, user_fixture: User, lecto
     # then
     assert result.id == user_id
     assert result.role == Role.LECTOR
-    assert result.nickname == 'test_nick'
-    assert result.profile_img == 'test_profile'
-    assert result.sns == 'test_sns'
-    assert result.email == 'test@test.com'
-    assert result.instagram_name == 'test_insta'
-    assert lector_fixture.user.id == result.id
+    assert result.nickname == "test_nick"
+    assert result.profile_img == "test_profile"
+    assert result.sns == "test_sns"
+    assert result.email == "test@test.com"
+    assert result.instagram_name == "test_insta"
+    assert result.id == lector_fixture.user.id
 
 
 @pytest.mark.asyncio
@@ -117,3 +127,17 @@ async def test_exist_by_invalid_id(session: AsyncSession, user_fixture: User):
 
     # then
     assert not result
+
+
+@pytest.mark.asyncio
+async def test_save_for_lector_approved_file(
+        session: AsyncSession,
+        user_fixture: User,
+        lector_fixture: Lector,
+        lector_approved_fixture: LectorApprovedFile):
+    # then
+    assert lector_approved_fixture.lector == lector_fixture
+    assert lector_approved_fixture.lector.id == lector_fixture.id
+    assert lector_approved_fixture.user.id == user_fixture.id
+    assert lector_approved_fixture.user == user_fixture
+    assert lector_approved_fixture.url == "https://test.com/test.pdf"

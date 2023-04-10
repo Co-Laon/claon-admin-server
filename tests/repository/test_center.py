@@ -4,22 +4,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from claon_admin.schema.user import User, UserRepository
 from claon_admin.schema.center import (
     Center,
+    CenterRepository,
     CenterImage,
     OperatingTime,
     Utility,
     CenterFee,
+    CenterFeeImage,
     CenterHold,
     CenterWall,
-    CenterRepository,
-    CenterFeeImage,
-    CenterApprovedFile
+    CenterApprovedFile,
+    CenterApprovedFileRepository
 )
 
 user_repository = UserRepository()
 center_repository = CenterRepository()
+center_approved_file_repository = CenterApprovedFileRepository()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 async def center_fixture(session: AsyncSession, user_fixture: User):
     center = Center(
         user=user_fixture,
@@ -42,16 +44,26 @@ async def center_fixture(session: AsyncSession, user_fixture: User):
     center.holds.append(center_hold)
     center_wall = CenterWall(name="Test Wall", type="Test Type")
     center.walls.append(center_wall)
-    center_approved_files = CenterApprovedFile(url="https://example.com/approved.jpg")
-    center.approved_files.append(center_approved_files)
 
     center = await center_repository.save(session, center)
     yield center
 
 
+@pytest.fixture(scope="session")
+async def center_approved_files_fixture(session: AsyncSession, user_fixture: User, center_fixture: Center):
+    center_approved_files = CenterApprovedFile(
+        url="https://example.com/approved.jpg"
+    )
+    center_approved_files.user = user_fixture
+    center_approved_files.center = center_fixture
+
+    center_approved_files = await center_approved_file_repository.save(session, center_approved_files)
+    yield center_approved_files
+
+
 @pytest.mark.asyncio
-async def test_save(session: AsyncSession, user_fixture, center_fixture):
-    assert user_fixture.id == center_fixture.user.id
+def test_save(session: AsyncSession, user_fixture: User, center_fixture: Center):
+    # then
     assert center_fixture.name == "Test Center"
     assert center_fixture.profile_img == "https://example.com/image.jpg"
     assert center_fixture.address == "Test Address"
@@ -72,4 +84,17 @@ async def test_save(session: AsyncSession, user_fixture, center_fixture):
     assert center_fixture.holds[0].color == "#ffffff"
     assert center_fixture.walls[0].name == "Test Wall"
     assert center_fixture.walls[0].type == "Test Type"
-    assert center_fixture.approved_files[0].url == "https://example.com/approved.jpg"
+
+
+@pytest.mark.asyncio
+def test_save_for_center_approved_files(
+        session: AsyncSession,
+        user_fixture: User,
+        center_fixture: Center,
+        center_approved_files_fixture: CenterApprovedFile):
+    # then
+    assert center_approved_files_fixture.center == center_fixture
+    assert center_approved_files_fixture.center_id == center_fixture.id
+    assert center_approved_files_fixture.user == user_fixture
+    assert center_approved_files_fixture.user_id == user_fixture.id
+    assert center_approved_files_fixture.url == "https://example.com/approved.jpg"
