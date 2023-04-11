@@ -51,7 +51,6 @@ class UserService:
                 for e in dto.hold_list
             ],
             walls=[CenterWall(name=e.name, type=e.wall_type.value) for e in dto.wall_list],
-            approved_files=[CenterApprovedFile(url=e) for e in dto.proof_list],
             approved=False
         ))
 

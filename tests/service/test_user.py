@@ -66,7 +66,7 @@ def center_request_dto_fixture(session: AsyncSession, user_fixture: User):
         fee_list=[CenterFeeDto(name="test_fee_name", price=1000, count=10)],
         hold_list=[CenterHoldDto(name="test_hold", difficulty="#ffffff", is_color=True)],
         wall_list=[CenterWallDto(name="test_wall", wall_type=WallType.ENDURANCE)],
-        proof_list=["https://test.proof.png"]
+        proof_list=["proof.pdf"]
     )
 
     yield center_request_dto
