@@ -1,4 +1,5 @@
 import json
+from typing import List
 from uuid import uuid4
 
 from sqlalchemy import String, Column, ForeignKey, Boolean
@@ -6,7 +7,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, backref
 
 from claon_admin.schema.conn import Base
-from claon_admin.schema.user import User
 
 
 class OperatingTime:
@@ -27,7 +27,8 @@ class CenterImage:
 
 
 class CenterFee:
-    def __init__(self, price: int, count: int):
+    def __init__(self, name: str, price: int, count: int):
+        self.name = name
         self.price = price
         self.count = count
 
@@ -63,47 +64,47 @@ class Center(Base):
     @property
     def center_img(self):
         data = json.loads(self._center_img)
-        return CenterImage(data['url'])
+        return [CenterImage(e['url']) for e in data]
 
     @center_img.setter
-    def center_img(self, value: CenterImage):
-        self._center_img = json.dumps(value.__dict__)
+    def center_img(self, values: List[CenterImage]):
+        self._center_img = json.dumps([value.__dict__ for value in values], default=str)
 
     @property
     def operating_time(self):
         data = json.loads(self._operating_time)
-        return OperatingTime(data['day_of_week'], data['start_time'], data['end_time'])
+        return [OperatingTime(e['day_of_week'], e['start_time'], e['end_time']) for e in data]
 
     @operating_time.setter
-    def operating_time(self, value: OperatingTime):
-        self._operating_time = json.dumps(value.__dict__)
+    def operating_time(self, values: List[OperatingTime]):
+        self._operating_time = json.dumps([value.__dict__ for value in values], default=str)
 
     @property
     def utility(self):
         data = json.loads(self._utility)
-        return Utility(data['name'])
+        return [Utility(e['name']) for e in data]
 
     @utility.setter
-    def utility(self, value: Utility):
-        self._utility = json.dumps(value.__dict__)
+    def utility(self, values: List[Utility]):
+        self._utility = json.dumps([value.__dict__ for value in values], default=str)
 
     @property
     def fee(self):
         data = json.loads(self._fee)
-        return CenterFee(data['price'], data['count'])
+        return [CenterFee(e['name'], e['price'], e['count']) for e in data]
 
     @fee.setter
-    def fee(self, value: CenterFee):
-        self._fee = json.dumps(value.__dict__)
+    def fee(self, values: List[CenterFee]):
+        self._fee = json.dumps([value.__dict__ for value in values], default=str)
 
     @property
     def fee_img(self):
         data = json.loads(self._fee_img)
-        return CenterFeeImage(data['url'])
+        return [CenterFeeImage(e['url']) for e in data]
 
     @fee_img.setter
-    def fee_img(self, value: CenterFeeImage):
-        self._fee_img = json.dumps(value.__dict__)
+    def fee_img(self, values: List[CenterFeeImage]):
+        self._fee_img = json.dumps([value.__dict__ for value in values], default=str)
 
 
 class CenterHold(Base):
@@ -112,7 +113,8 @@ class CenterHold(Base):
     center_id = Column(String(length=255), ForeignKey('tb_center.id'))
     center = relationship("Center", back_populates="holds")
     name = Column(String(length=10))
-    color = Column(String())
+    difficulty = Column(String())
+    is_color = Column(Boolean())
 
 
 class CenterWall(Base):

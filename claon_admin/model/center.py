@@ -6,6 +6,7 @@ from pydantic import BaseModel, validator
 from claon_admin.config.consts import KOR_BEGIN_CODE, KOR_END_CODE
 from claon_admin.model.enum import WallType
 from claon_admin.model.user import UserProfileDto
+from claon_admin.schema.center import Center
 
 
 class CenterOperatingTimeDto(BaseModel):
@@ -59,6 +60,7 @@ class CenterFeeDto(BaseModel):
 class CenterHoldDto(BaseModel):
     difficulty: str
     name: str
+    is_color: bool
 
     @validator('difficulty')
     def validate_difficulty(cls, value):
@@ -107,6 +109,38 @@ class CenterResponseDto(BaseModel):
     hold_list: List[CenterHoldDto]
     wall_list: List[CenterWallDto]
 
+    @classmethod
+    def from_entity(cls, entity: Center):
+        return CenterResponseDto(
+            profile_image=entity.profile_img,
+            name=entity.name,
+            address=entity.address,
+            detail_address=entity.detail_address,
+            tel=entity.tel,
+            web_url=entity.web_url,
+            instagram_name=entity.instagram_name,
+            youtube_code=str(entity.youtube_url).split("/")[-1],
+            image_list=[e.url for e in entity.center_img],
+            utility_list=[e.name for e in entity.utility],
+            fee_image_list=[e.url for e in entity.fee_img],
+            operating_time_list=[
+                CenterOperatingTimeDto(day_of_week=e.day_of_week, start_time=e.start_time, end_time=e.end_time)
+                for e in entity.operating_time
+            ],
+            fee_list=[
+                CenterFeeDto(name=e.name, price=e.price, count=e.count)
+                for e in entity.fee
+            ],
+            hold_list=[
+                CenterHoldDto(difficulty=e.difficulty, name=e.name, is_color=e.is_color)
+                for e in entity.holds
+            ],
+            wall_list=[
+                CenterWallDto(wall_type=e.type, name=e.name)
+                for e in entity.walls
+            ]
+        )
+
 
 class CenterRequestDto(BaseModel):
     profile: UserProfileDto
@@ -130,7 +164,7 @@ class CenterRequestDto(BaseModel):
     @validator('name')
     def validate_name(cls, value):
         for c in value:
-            if not (('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
+            if not ((c == ' ') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
                 raise ValueError('암장명은 한글, 영문, 숫자로만 입력 해주세요.')
         if len(value) < 2 or len(value) > 50:
@@ -149,7 +183,7 @@ class CenterRequestDto(BaseModel):
             return value
 
         for c in value:
-            if not (('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
+            if not ((c == '_') or (c == '.') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
                 raise ValueError('인스타그램 닉네임은 한글, 영문, 숫자로만 입력 해주세요.')
         if len(value) < 3 or len(value) > 30:
@@ -163,6 +197,7 @@ class CenterRequestDto(BaseModel):
 
         if value[0] != "@":
             raise ValueError('유튜브 채널 코드는 @로 시작 해주세요.')
+        return value
 
     @validator('image_list')
     def validate_image_list(cls, value):

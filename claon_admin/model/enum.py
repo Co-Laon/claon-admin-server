@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class Role(Enum):
+    PENDING = "pending"
     ADMIN = "admin"
     USER = "user"
     LECTOR = "lector"

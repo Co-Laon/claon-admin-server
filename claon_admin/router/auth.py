@@ -3,6 +3,7 @@ from fastapi import APIRouter, Depends
 from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from claon_admin.common.util.jwt import get_subject
 from claon_admin.container import Container, db
 from claon_admin.model.center import CenterRequestDto
 from claon_admin.model.enum import OAuthProvider
@@ -30,14 +31,16 @@ class AuthRouter:
     @router.post('/center/sign-up', response_model=UserProfileResponseDto)
     async def center_sign_up(self,
                              dto: CenterRequestDto,
-                             session: AsyncSession = Depends(db.get_db)):
-        pass
+                             session: AsyncSession = Depends(db.get_db),
+                             subject: UserProfileResponseDto = Depends(get_subject)):
+        return await self.user_service.sign_up_center(session, dto)
 
     @router.post('/lector/sign-up', response_model=UserProfileResponseDto)
     async def lector_sign_up(self,
                              dto: LectorRequestDto,
-                             session: AsyncSession = Depends(db.get_db)):
-        pass
+                             session: AsyncSession = Depends(db.get_db),
+                             subject: UserProfileResponseDto = Depends(get_subject)):
+        return await self.user_service.sign_up_lector(session, dto)
 
     @router.get('/nickname/{nickname}/is-duplicated', response_model=IsDuplicatedNicknameResponseDto)
     async def is_duplicated_nickname(self,
