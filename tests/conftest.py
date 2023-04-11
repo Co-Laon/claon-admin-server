@@ -117,7 +117,6 @@ async def center_fixture(session: AsyncSession, user_fixture: User):
         fee_img=[CenterFeeImage(url="https://test.fee.png")],
         holds=[CenterHold(name="test_hold", difficulty="#ffffff", is_color=True)],
         walls=[CenterWall(name="test_wall", type=WallType.ENDURANCE.value)],
-        approved_files=[CenterApprovedFile(url="https://test.proof.png")],
         approved=False
     )
 

@@ -1,3 +1,5 @@
+from datetime import date
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -5,11 +7,13 @@ from claon_admin.schema.user import (
     UserRepository,
     LectorRepository,
     User,
-    Lector
+    Lector,
+    LectorApprovedFileRepository
 )
 
 user_repository = UserRepository()
 lector_repository = LectorRepository()
+lector_approved_file_repository = LectorApprovedFileRepository()
 
 
 @pytest.mark.asyncio
@@ -144,3 +148,14 @@ async def test_exist_user_by_existing_nickname(session: AsyncSession, user_fixtu
 
     # then
     assert result
+
+
+async def test_save_for_lector_approved_file(
+        session: AsyncSession,
+        user_fixture: User,
+        lector_fixture: Lector
+):
+    # then
+    assert lector_fixture.approved_files[0].lector_id == lector_fixture.id
+    assert lector_fixture.approved_files[0].lector == lector_fixture
+    assert lector_fixture.approved_files[0].url == 'https://test.com/test.pdf'

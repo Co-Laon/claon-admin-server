@@ -42,7 +42,7 @@ class Center(Base):
     __tablename__ = 'tb_center'
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
     user_id = Column(String(length=255), ForeignKey("tb_user.id"))
-    user = relationship("User", backref=backref("centers"))
+    user = relationship("User")
     name = Column(String(length=30), nullable=False)
     profile_img = Column(String(255), nullable=False)
     address = Column(String(length=255), nullable=False)
@@ -58,7 +58,6 @@ class Center(Base):
     _fee_img = Column(String(length=255))
     holds = relationship("CenterHold", back_populates="center")
     walls = relationship("CenterWall", back_populates="center")
-    approved_files = relationship("CenterApprovedFile", back_populates="center")
     approved = Column(Boolean, default=False, nullable=False)
 
     @property
@@ -129,8 +128,10 @@ class CenterWall(Base):
 class CenterApprovedFile(Base):
     __tablename__ = 'tb_center_approved_file'
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
-    center_id = Column(String(length=255), ForeignKey('tb_center.id'))
-    center = relationship("Center", back_populates="approved_files")
+    user_id = Column(String(length=255), ForeignKey('tb_user.id'))
+    user = relationship("User")
+    center_id = Column(String(length=255), ForeignKey('tb_center.id'), nullable=False)
+    center = relationship("Center")
     url = Column(String(length=255))
 
 
@@ -141,3 +142,12 @@ class CenterRepository:
         session.add(center)
         await session.flush()
         return center
+
+
+class CenterApprovedFileRepository:
+
+    @staticmethod
+    async def save(session: AsyncSession, center_approved_file: CenterApprovedFile):
+        session.add(center_approved_file)
+        await session.flush()
+        return center_approved_file
