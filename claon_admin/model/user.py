@@ -160,7 +160,6 @@ class LectorResponseDto(BaseModel):
     contest_list: List[LectorContestDto]
     certificate_list: List[LectorCertificateDto]
     career_list: List[LectorCareerDto]
-    proof_list: List[str]
     approved: bool
 
     @classmethod
@@ -172,6 +171,5 @@ class LectorResponseDto(BaseModel):
             contest_list=entity.contest,
             certificate_list=entity.certificate,
             career_list=entity.career,
-            proof_list=[e.url for e in entity.approved_files],
             approved=entity.approved
         )

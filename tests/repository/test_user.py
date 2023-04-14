@@ -1,5 +1,3 @@
-from datetime import date
-
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -38,7 +36,6 @@ async def test_save_lector(session: AsyncSession, user_fixture: User, lector_fix
     assert lector_fixture.career[0]['start_date'] == '2016-01-01'
     assert lector_fixture.career[0]['end_date'] == '2020-01-01'
     assert lector_fixture.career[0]['name'] == 'career'
-    assert lector_fixture.approved_files[0].url == 'https://test.com/test.pdf'
     assert lector_fixture.approved
 
 
@@ -150,12 +147,12 @@ async def test_exist_user_by_existing_nickname(session: AsyncSession, user_fixtu
     assert result
 
 
+@pytest.mark.asyncio
 async def test_save_for_lector_approved_file(
         session: AsyncSession,
-        user_fixture: User,
-        lector_fixture: Lector
-):
+        lector_fixture: Lector,
+        lector_approved_file_fixture):
     # then
-    assert lector_fixture.approved_files[0].lector_id == lector_fixture.id
-    assert lector_fixture.approved_files[0].lector == lector_fixture
-    assert lector_fixture.approved_files[0].url == 'https://test.com/test.pdf'
+    assert lector_approved_file_fixture.lector == lector_fixture
+    assert lector_approved_file_fixture.lector.id == lector_fixture.id
+    assert lector_approved_file_fixture.url == "https://test.com/test.pdf"

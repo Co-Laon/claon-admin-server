@@ -53,7 +53,6 @@ class Lector(Base):
     _contest = Column(Text)
     _certificate = Column(Text)
     _career = Column(Text)
-    approved_files = relationship("LectorApprovedFile", back_populates="lector")
     approved = Column(Boolean, default=False, nullable=False)
 
     @property

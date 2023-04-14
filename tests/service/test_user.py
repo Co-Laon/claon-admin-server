@@ -11,8 +11,20 @@ from claon_admin.model.enum import WallType, Role
 from claon_admin.model.user import LectorRequestDto, UserProfileDto, LectorContestDto, LectorCertificateDto, \
     LectorCareerDto
 from claon_admin.schema.center import CenterRepository, Center
-from claon_admin.schema.user import User, UserRepository, LectorRepository, Lector
+from claon_admin.schema.user import User, UserRepository, LectorRepository, Lector, LectorApprovedFileRepository
 from claon_admin.service.user import UserService
+
+mock_user_repository = AsyncMock(spec=UserRepository)
+mock_lector_repository = AsyncMock(spec=LectorRepository)
+mock_center_repository = AsyncMock(spec=CenterRepository)
+mock_lector_approved_file_repository = AsyncMock(spec=LectorApprovedFileRepository)
+
+user_service = UserService(
+    mock_user_repository,
+    mock_lector_repository,
+    mock_center_repository,
+    mock_lector_approved_file_repository
+)
 
 
 @pytest.fixture(scope="function")
@@ -80,15 +92,10 @@ async def test_sign_up_center(
         center_request_dto_fixture: CenterRequestDto
 ):
     # given
-    mock_user_repository = AsyncMock(spec=UserRepository)
-    mock_lector_repository = AsyncMock(spec=LectorRepository)
-    mock_center_repository = AsyncMock(spec=CenterRepository)
-
     mock_user_repository.find_by_nickname.side_effect = [user_fixture]
     mock_center_repository.save.side_effect = [center_fixture]
 
     # when
-    user_service = UserService(mock_user_repository, mock_lector_repository, mock_center_repository)
     result = await user_service.sign_up_center(session, center_request_dto_fixture)
 
     # then
@@ -115,16 +122,11 @@ async def test_sign_up_existing_center(
         center_request_dto_fixture: CenterRequestDto):
 
     # given
-    mock_user_repository = AsyncMock(spec=UserRepository)
-    mock_lector_repository = AsyncMock(spec=LectorRepository)
-    mock_center_repository = AsyncMock(spec=CenterRepository)
     center_request_dto_fixture.profile.role = Role.CENTER_ADMIN
-
-    # when
-    user_service = UserService(mock_user_repository, mock_lector_repository, mock_center_repository)
 
     # then
     with pytest.raises(BadRequestException):
+        # when
         await user_service.sign_up_center(session, center_request_dto_fixture)
 
 
@@ -136,17 +138,11 @@ async def test_sign_up_lector(
         lector_request_dto_fixture: LectorRequestDto
 ):
     # given
-    mock_user_repository = AsyncMock(spec=UserRepository)
-    mock_lector_repository = AsyncMock(spec=LectorRepository)
-    mock_center_repository = AsyncMock(spec=CenterRepository)
-
     profile = UserProfileDto.from_entity(user_fixture)
-
     mock_user_repository.find_by_nickname.side_effect = [user_fixture]
     mock_lector_repository.save.side_effect = [lector_fixture]
 
     # when
-    user_service = UserService(mock_user_repository, mock_lector_repository, mock_center_repository)
     result = await user_service.sign_up_lector(session, lector_request_dto_fixture)
 
     # then
@@ -159,16 +155,11 @@ async def test_sign_up_existing_lector(
         lector_request_dto_fixture: LectorRequestDto):
 
     # given
-    mock_user_repository = AsyncMock(spec=UserRepository)
-    mock_lector_repository = AsyncMock(spec=LectorRepository)
-    mock_center_repository = AsyncMock(spec=CenterRepository)
     lector_request_dto_fixture.profile.role = Role.LECTOR
-
-    # when
-    user_service = UserService(mock_user_repository, mock_lector_repository, mock_center_repository)
 
     # then
     with pytest.raises(BadRequestException):
+        # when
         await user_service.sign_up_lector(session, lector_request_dto_fixture)
 
 
@@ -177,13 +168,9 @@ async def test_exist_by_not_existing_nickname(
         session: AsyncSession
 ):
     # given
-    mock_user_repository = AsyncMock(spec=UserRepository)
-    mock_lector_repository = AsyncMock(spec=LectorRepository)
-    mock_center_repository = AsyncMock(spec=CenterRepository)
     mock_user_repository.exist_by_nickname.side_effect = [False]
 
     # when
-    user_service = UserService(mock_user_repository, mock_lector_repository, mock_center_repository)
     result = await user_service.check_nickname_duplication(session, "not_existing_nickname")
 
     # then
@@ -194,13 +181,9 @@ async def test_exist_by_existing_nickname(
         session: AsyncSession
 ):
     # given
-    mock_user_repository = AsyncMock(spec=UserRepository)
-    mock_lector_repository = AsyncMock(spec=LectorRepository)
-    mock_center_repository = AsyncMock(spec=CenterRepository)
     mock_user_repository.exist_by_nickname.side_effect = [True]
 
     # when
-    user_service = UserService(mock_user_repository, mock_lector_repository, mock_center_repository)
     result = await user_service.check_nickname_duplication(session, "existing_nickname")
 
     # then

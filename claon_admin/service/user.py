@@ -7,17 +7,19 @@ from claon_admin.model.user import IsDuplicatedNicknameResponseDto, LectorReques
 from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterFee, \
     CenterFeeImage, CenterHold, CenterWall, CenterApprovedFile
 from claon_admin.schema.user import UserRepository, LectorRepository, Lector, Contest, Certificate, Career, \
-    LectorApprovedFile
+    LectorApprovedFile, LectorApprovedFileRepository
 
 
 class UserService:
     def __init__(self,
                  user_repository: UserRepository,
                  lector_repository: LectorRepository,
-                 center_repository: CenterRepository):
+                 center_repository: CenterRepository,
+                 lector_approved_file_repository: LectorApprovedFileRepository):
         self.user_repository = user_repository
         self.lector_repository = lector_repository
         self.center_repository = center_repository
+        self.lector_approved_file_repository = lector_approved_file_repository
 
     async def sign_up_center(self, session: AsyncSession, dto: CenterRequestDto):
         if dto.profile.role != Role.PENDING:
@@ -82,9 +84,11 @@ class UserService:
                 Career(start_date=e.start_date, end_date=e.end_date, name=e.name)
                 for e in dto.career_list
             ],
-            approved_files=[LectorApprovedFile(url=e) for e in dto.proof_list],
             approved=False
         ))
+
+        [await self.lector_approved_file_repository.save(session, LectorApprovedFile(lector=lector, url=e))
+         for e in dto.proof_list]
 
         return LectorResponseDto.from_entity(lector)
 
