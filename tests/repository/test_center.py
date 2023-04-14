@@ -62,7 +62,7 @@ async def center_approved_files_fixture(session: AsyncSession, user_fixture: Use
 
 
 @pytest.mark.asyncio
-def test_save(session: AsyncSession, user_fixture: User, center_fixture: Center):
+async def test_save(session: AsyncSession, user_fixture: User, center_fixture: Center):
     # then
     assert center_fixture.name == "Test Center"
     assert center_fixture.profile_img == "https://example.com/image.jpg"
@@ -87,7 +87,7 @@ def test_save(session: AsyncSession, user_fixture: User, center_fixture: Center)
 
 
 @pytest.mark.asyncio
-def test_save_for_center_approved_files(
+async def test_save_for_center_approved_files(
         session: AsyncSession,
         user_fixture: User,
         center_fixture: Center,

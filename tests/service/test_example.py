@@ -11,7 +11,7 @@ from claon_admin.service.example import ExampleService
 @pytest.fixture
 def example_fixture():
     example = Example(id=str(uuid.uuid4()), name='example', prop=ExampleProperty(name='prop', description='desc'))
-    return example
+    yield example
 
 
 async def test_example_find_by_id(session, example_fixture):
