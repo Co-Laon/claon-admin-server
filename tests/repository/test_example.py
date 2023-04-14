@@ -5,7 +5,7 @@ from claon_admin.schema.example import Example, ExampleRepository
 example_repository = ExampleRepository()
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 async def example_fixture(session):
     example = await example_repository.save(session, Example(name='example'))
     yield example
