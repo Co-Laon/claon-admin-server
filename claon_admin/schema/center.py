@@ -1,9 +1,10 @@
 import json
+from typing import List
 from uuid import uuid4
 
-from sqlalchemy import String, Column, ForeignKey, Boolean
+from sqlalchemy import String, Column, ForeignKey, Boolean, Text, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, selectinload
 
 from claon_admin.schema.conn import Base
 
@@ -26,7 +27,8 @@ class CenterImage:
 
 
 class CenterFee:
-    def __init__(self, price: int, count: int):
+    def __init__(self, name: str, price: int, count: int):
+        self.name = name
         self.price = price
         self.count = count
 
@@ -49,59 +51,59 @@ class Center(Base):
     web_url = Column(String(length=500))
     instagram_name = Column(String())
     youtube_url = Column(String(length=500))
-    _center_img = Column(String(length=255))
-    _operating_time = Column(String(length=255))
-    _utility = Column(String(length=255))
-    _fee = Column(String(length=255))
-    _fee_img = Column(String(length=255))
+    _center_img = Column(Text)
+    _operating_time = Column(Text)
+    _utility = Column(Text)
+    _fee = Column(Text)
+    _fee_img = Column(Text)
     holds = relationship("CenterHold", back_populates="center")
     walls = relationship("CenterWall", back_populates="center")
     approved = Column(Boolean, default=False, nullable=False)
 
     @property
     def center_img(self):
-        data = json.loads(self._center_img)
-        return CenterImage(data['url'])
+        values = json.loads(self._center_img)
+        return [CenterImage(value['url']) for value in values]
 
     @center_img.setter
-    def center_img(self, value: CenterImage):
-        self._center_img = json.dumps(value.__dict__)
+    def center_img(self, values: List[CenterImage]):
+        self._center_img = json.dumps([value.__dict__ for value in values], default=str)
 
     @property
     def operating_time(self):
-        data = json.loads(self._operating_time)
-        return OperatingTime(data['day_of_week'], data['start_time'], data['end_time'])
+        values = json.loads(self._operating_time)
+        return [OperatingTime(value['day_of_week'], value['start_time'], value['end_time']) for value in values]
 
     @operating_time.setter
-    def operating_time(self, value: OperatingTime):
-        self._operating_time = json.dumps(value.__dict__)
+    def operating_time(self, values: List[OperatingTime]):
+        self._operating_time = json.dumps([value.__dict__ for value in values], default=str)
 
     @property
     def utility(self):
-        data = json.loads(self._utility)
-        return Utility(data['name'])
+        values = json.loads(self._utility)
+        return [Utility(value['name']) for value in values]
 
     @utility.setter
-    def utility(self, value: Utility):
-        self._utility = json.dumps(value.__dict__)
+    def utility(self, values: List[Utility]):
+        self._utility = json.dumps([value.__dict__ for value in values], default=str)
 
     @property
     def fee(self):
-        data = json.loads(self._fee)
-        return CenterFee(data['price'], data['count'])
+        values = json.loads(self._fee)
+        return [CenterFee(value['name'], value['price'], value['count']) for value in values]
 
     @fee.setter
-    def fee(self, value: CenterFee):
-        self._fee = json.dumps(value.__dict__)
+    def fee(self, values: List[CenterFee]):
+        self._fee = json.dumps([value.__dict__ for value in values], default=str)
 
     @property
     def fee_img(self):
         data = json.loads(self._fee_img)
-        return CenterFeeImage(data['url'])
+        return [CenterFeeImage(e['url']) for e in data]
 
     @fee_img.setter
-    def fee_img(self, value: CenterFeeImage):
-        self._fee_img = json.dumps(value.__dict__)
+    def fee_img(self, values: List[CenterFeeImage]):
+        self._fee_img = json.dumps([value.__dict__ for value in values], default=str)
 
 
 class CenterHold(Base):
@@ -110,7 +112,8 @@ class CenterHold(Base):
     center_id = Column(String(length=255), ForeignKey('tb_center.id'))
     center = relationship("Center", back_populates="holds")
     name = Column(String(length=10))
-    color = Column(String())
+    difficulty = Column(String(length=10))
+    is_color = Column(Boolean, default=False, nullable=False)
 
 
 class CenterWall(Base):
@@ -133,6 +136,12 @@ class CenterApprovedFile(Base):
 
 
 class CenterRepository:
+    @staticmethod
+    async def find_by_id(session: AsyncSession, center_id: int):
+        result = await session.execute(select(Center).where(Center.id == center_id)
+                                       .options(selectinload(Center.holds))
+                                       .options(selectinload(Center.walls)))
+
 
     @staticmethod
     async def save(session: AsyncSession, center: Center):
@@ -148,3 +157,37 @@ class CenterApprovedFileRepository:
         session.add(center_approved_file)
         await session.flush()
         return center_approved_file
+
+    @staticmethod
+    async def save_all(session: AsyncSession, center_approved_files: List[CenterApprovedFile]):
+        session.add_all(center_approved_files)
+        await session.flush()
+        return center_approved_files
+
+
+class CenterHoldRepository:
+    @staticmethod
+    async def save(session: AsyncSession, center_hold: CenterHold):
+        session.add(center_hold)
+        await session.flush()
+        return center_hold
+
+    @staticmethod
+    async def save_all(session: AsyncSession, center_holds: List[CenterHold]):
+        session.add_all(center_holds)
+        await session.flush()
+        return center_holds
+
+
+class CenterWallRepository:
+    @staticmethod
+    async def save(session: AsyncSession, center_wall: CenterWall):
+        session.add(center_wall)
+        await session.flush()
+        return center_wall
+
+    @staticmethod
+    async def save_all(session: AsyncSession, center_walls: List[CenterWall]):
+        session.add_all(center_walls)
+        await session.flush()
+        return center_walls

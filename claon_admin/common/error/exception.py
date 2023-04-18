@@ -4,6 +4,8 @@ from enum import Enum
 class ErrorCode(Enum):
     # 400 Bad Request
     ROW_ALREADY_EXIST = 40000
+    USER_ALREADY_SIGNED_UP = 40001
+    DUPLICATED_NICKNAME = 40002
 
     # 401 Unauthorized Error
     NOT_ACCESSIBLE = 40100

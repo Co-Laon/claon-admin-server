@@ -1,8 +1,9 @@
 import json
 from datetime import date
+from typing import List
 from uuid import uuid4
 
-from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, Integer, select, exists
+from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, Integer, select, exists, Text
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship
 
@@ -48,38 +49,37 @@ class Lector(Base):
     user_id = Column(String(length=255), ForeignKey("tb_user.id"), unique=True)
     user = relationship("User")
     is_setter = Column(Boolean, default=False, nullable=False)
-    total_experience = Column(Integer, nullable=False, default=0)
-    _contest = Column(String(length=255))
-    _certificate = Column(String(length=255))
-    _career = Column(String(length=255))
+    _contest = Column(Text)
+    _certificate = Column(Text)
+    _career = Column(Text)
     approved = Column(Boolean, default=False, nullable=False)
 
     @property
     def contest(self):
-        data = json.loads(self._contest)
-        return Contest(data['year'], data['title'], data['name'])
+        values = json.loads(self._contest)
+        return [Contest(value['year'], value['title'], value['name']) for value in values]
 
     @contest.setter
-    def contest(self, value: Contest):
-        self._contest = json.dumps(value.__dict__, default=str)
+    def contest(self, values: List[Contest]):
+        self._contest = json.dumps([value.__dict__ for value in values], default=str)
 
     @property
     def certificate(self):
-        data = json.loads(self._certificate)
-        return Certificate(data['acquisition_date'], data['rate'], data['name'])
+        values = json.loads(self._certificate)
+        return [Certificate(value['acquisition_date'], value['rate'], value['name']) for value in values]
 
     @certificate.setter
-    def certificate(self, value: Certificate):
-        self._certificate = json.dumps(value.__dict__, default=str)
+    def certificate(self, values: List[Certificate]):
+        self._certificate = json.dumps([value.__dict__ for value in values], default=str)
 
     @property
     def career(self):
-        data = json.loads(self._career)
-        return Career(data['start_date'], data['end_date'], data['name'])
+        values = json.loads(self._career)
+        return [Career(value['start_date'], value['end_date'], value['name']) for value in values]
 
     @career.setter
-    def career(self, value: Career):
-        self._career = json.dumps(value.__dict__, default=str)
+    def career(self, values: List[Career]):
+        self._career = json.dumps([value.__dict__ for value in values], default=str)
 
 
 class LectorApprovedFile(Base):
@@ -97,8 +97,18 @@ class UserRepository:
         return result.scalars().one_or_none()
 
     @staticmethod
+    async def find_by_nickname(session: AsyncSession, nickname: str):
+        result = await session.execute(select(User).where(User.nickname == nickname))
+        return result.scalars().one_or_none()
+
+    @staticmethod
     async def exist_by_id(session: AsyncSession, user_id: str):
         result = await session.execute(select(exists().where(User.id == user_id)))
+        return result.scalar()
+
+    @staticmethod
+    async def exist_by_nickname(session: AsyncSession, nickname: str):
+        result = await session.execute(select(exists().where(User.nickname == nickname)))
         return result.scalar()
 
     @staticmethod
@@ -118,7 +128,13 @@ class LectorRepository:
 
 class LectorApprovedFileRepository:
     @staticmethod
-    async def save(session: AsyncSession, approved_files: LectorApprovedFile):
-        session.add(approved_files)
+    async def save(session: AsyncSession, approved_file: LectorApprovedFile):
+        session.add(approved_file)
+        await session.flush()
+        return approved_file
+
+    @staticmethod
+    async def save_all(session: AsyncSession, approved_files: List[LectorApprovedFile]):
+        session.add_all(approved_files)
         await session.flush()
         return approved_files

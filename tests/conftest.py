@@ -1,14 +1,11 @@
 import asyncio
 import nest_asyncio
 import pytest
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.model.enum import Role
-from claon_admin.schema.user import User, UserRepository
-
+pytest_plugins = [
+    "tests.repository.fixtures"
+]
 nest_asyncio.apply()
-
-user_repository = UserRepository()
 
 
 @pytest.fixture(scope="session")
@@ -35,18 +32,3 @@ async def session(db):
     finally:
         await session.rollback()
         await session.close()
-
-
-@pytest.fixture(scope="session")
-async def user_fixture(session: AsyncSession):
-    user = User(
-        nickname="test_nick",
-        profile_img="test_profile",
-        sns="test_sns",
-        email="test@test.com",
-        instagram_name="test_insta",
-        role=Role.LECTOR,
-    )
-
-    user = await user_repository.save(session, user)
-    yield user
