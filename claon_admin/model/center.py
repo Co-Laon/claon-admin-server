@@ -6,7 +6,7 @@ from pydantic import BaseModel, validator
 from claon_admin.config.consts import KOR_BEGIN_CODE, KOR_END_CODE
 from claon_admin.model.enum import WallType
 from claon_admin.model.user import UserProfileDto
-from claon_admin.schema.center import Center
+from claon_admin.schema.center import Center, CenterHold, CenterWall
 
 
 class CenterOperatingTimeDto(BaseModel):
@@ -110,34 +110,36 @@ class CenterResponseDto(BaseModel):
     wall_list: List[CenterWallDto]
 
     @classmethod
-    def from_entity(cls, entity: Center):
+    def from_entity(cls, center: Center, holds: List[CenterHold], walls: List[CenterWall]):
         return CenterResponseDto(
-            profile_image=entity.profile_img,
-            name=entity.name,
-            address=entity.address,
-            detail_address=entity.detail_address,
-            tel=entity.tel,
-            web_url=entity.web_url,
-            instagram_name=entity.instagram_name,
-            youtube_code=str(entity.youtube_url).split("/")[-1],
-            image_list=[e.url for e in entity.center_img],
-            utility_list=[e.name for e in entity.utility],
-            fee_image_list=[e.url for e in entity.fee_img],
+            profile_image=center.profile_img,
+            name=center.name,
+            address=center.address,
+            detail_address=center.detail_address,
+            tel=center.tel,
+            web_url=center.web_url,
+            instagram_name=center.instagram_name,
+            youtube_code=str(center.youtube_url).split("/")[-1],
+            image_list=[e.url for e in center.center_img],
+            utility_list=[e.name for e in center.utility],
+            fee_image_list=[e.url for e in center.fee_img],
             operating_time_list=[
                 CenterOperatingTimeDto(day_of_week=e.day_of_week, start_time=e.start_time, end_time=e.end_time)
-                for e in entity.operating_time
+                for e in center.operating_time
             ],
             fee_list=[
                 CenterFeeDto(name=e.name, price=e.price, count=e.count)
-                for e in entity.fee
+                for e in center.fee
             ],
             hold_list=[
                 CenterHoldDto(difficulty=e.difficulty, name=e.name, is_color=e.is_color)
-                for e in entity.holds
+                for e in holds
             ],
             wall_list=[
-                CenterWallDto(wall_type=e.type, name=e.name)
-                for e in entity.walls
+                CenterWallDto(
+                    wall_type=WallType.BOULDERING if e.type == "bouldering" else WallType.ENDURANCE,
+                    name=e.name
+                ) for e in walls
             ]
         )
 
@@ -164,7 +166,7 @@ class CenterRequestDto(BaseModel):
     @validator('name')
     def validate_name(cls, value):
         for c in value:
-            if not ((c == ' ') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
+            if not (('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
                 raise ValueError('암장명은 한글, 영문, 숫자로만 입력 해주세요.')
         if len(value) < 2 or len(value) > 50:

@@ -34,14 +34,14 @@ class AuthRouter:
                              dto: CenterRequestDto,
                              session: AsyncSession = Depends(db.get_db),
                              subject: RequestUser = Depends(get_subject)):
-        return await self.user_service.sign_up_center(session, dto)
+        return await self.user_service.sign_up_center(session, subject, dto)
 
     @router.post('/lector/sign-up', response_model=LectorResponseDto)
     async def lector_sign_up(self,
                              dto: LectorRequestDto,
                              session: AsyncSession = Depends(db.get_db),
                              subject: RequestUser = Depends(get_subject)):
-        return await self.user_service.sign_up_lector(session, dto)
+        return await self.user_service.sign_up_lector(session, subject, dto)
 
     @router.get('/nickname/{nickname}/is-duplicated', response_model=IsDuplicatedNicknameResponseDto)
     async def is_duplicated_nickname(self,

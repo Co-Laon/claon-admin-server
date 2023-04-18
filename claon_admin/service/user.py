@@ -1,11 +1,13 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException, ErrorCode
+from claon_admin.model.auth import RequestUser
 from claon_admin.model.center import CenterRequestDto, CenterResponseDto
 from claon_admin.model.enum import Role
 from claon_admin.model.user import IsDuplicatedNicknameResponseDto, LectorRequestDto, LectorResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterFee, \
-    CenterFeeImage, CenterHold, CenterWall, CenterApprovedFile
+    CenterFeeImage, CenterHold, CenterWall, CenterApprovedFile, CenterHoldRepository, CenterWallRepository, \
+    CenterApprovedFileRepository
 from claon_admin.schema.user import UserRepository, LectorRepository, Lector, Contest, Certificate, Career, \
     LectorApprovedFile, LectorApprovedFileRepository
 
@@ -14,23 +16,38 @@ class UserService:
     def __init__(self,
                  user_repository: UserRepository,
                  lector_repository: LectorRepository,
+                 lector_approved_file_repository: LectorApprovedFileRepository,
                  center_repository: CenterRepository,
-                 lector_approved_file_repository: LectorApprovedFileRepository):
+                 center_approved_file_repository: CenterApprovedFileRepository,
+                 center_hold_repository: CenterHoldRepository,
+                 center_wall_repository: CenterWallRepository):
         self.user_repository = user_repository
         self.lector_repository = lector_repository
-        self.center_repository = center_repository
         self.lector_approved_file_repository = lector_approved_file_repository
+        self.center_repository = center_repository
+        self.center_approved_file_repository = center_approved_file_repository
+        self.center_hold_repository = center_hold_repository
+        self.center_wall_repository = center_wall_repository
 
-    async def sign_up_center(self, session: AsyncSession, dto: CenterRequestDto):
-        if dto.profile.role != Role.PENDING:
+    async def check_nickname_duplication(self, session: AsyncSession, nickname: str):
+        is_duplicated = await self.user_repository.exist_by_nickname(session, nickname)
+        return IsDuplicatedNicknameResponseDto(is_duplicated=is_duplicated)
+
+    async def sign_up_center(self, session: AsyncSession, subject: RequestUser, dto: CenterRequestDto):
+        if subject.role != Role.PENDING:
             raise BadRequestException(
                 ErrorCode.USER_ALREADY_SIGNED_UP,
-                "Current user is already signed up."
+                "이미 회원가입이 완료된 계정입니다."
             )
 
-        user = await self.user_repository.find_by_nickname(session, dto.profile.nickname)
+        if await self.user_repository.exist_by_nickname(session, dto.profile.nickname):
+            raise BadRequestException(
+                ErrorCode.DUPLICATED_NICKNAME,
+                "이미 존재하는 닉네임입니다."
+            )
+
+        user = await self.user_repository.find_by_id(session, subject.id)
         center = await self.center_repository.save(session, Center(
-            user_id=user.id,
             user=user,
             name=dto.name,
             profile_img=dto.profile_image,
@@ -48,33 +65,46 @@ class UserService:
             utility=[Utility(name=e) for e in dto.utility_list],
             fee=[CenterFee(name=e.name, price=e.price, count=e.count) for e in dto.fee_list],
             fee_img=[CenterFeeImage(url=e) for e in dto.fee_image_list],
-            holds=[
-                CenterHold(name=e.name, difficulty=e.difficulty, is_color=e.is_color)
-                for e in dto.hold_list
-            ],
-            walls=[CenterWall(name=e.name, type=e.wall_type.value) for e in dto.wall_list],
             approved=False
         ))
 
-        return CenterResponseDto.from_entity(center)
+        holds = await self.center_hold_repository.save_all(
+            session,
+            [CenterHold(center=center, name=e.name, difficulty=e.difficulty, is_color=e.is_color)
+             for e in dto.hold_list]
+        )
 
-    async def sign_up_lector(self, session: AsyncSession, dto: LectorRequestDto):
-        if dto.profile.role != Role.PENDING:
+        walls = await self.center_wall_repository.save_all(
+            session,
+            [CenterWall(center=center, name=e.name, type=e.wall_type.value)
+             for e in dto.wall_list]
+        )
+
+        await self.center_approved_file_repository.save_all(
+            session,
+            [CenterApprovedFile(user=user, center=center, url=e)
+             for e in dto.proof_list]
+        )
+
+        return CenterResponseDto.from_entity(center, holds, walls)
+
+    async def sign_up_lector(self, session: AsyncSession, subject: RequestUser, dto: LectorRequestDto):
+        if subject.role != Role.PENDING:
             raise BadRequestException(
                 ErrorCode.USER_ALREADY_SIGNED_UP,
-                "Current user is already signed up."
+                "이미 회원가입이 완료된 계정입니다."
             )
 
-        total_experience = 0
-        for career in dto.career_list:
-            total_experience += (career.end_date - career.start_date).total_seconds()
-        user = await self.user_repository.find_by_nickname(session, dto.profile.nickname)
+        if await self.user_repository.exist_by_nickname(session, dto.profile.nickname):
+            raise BadRequestException(
+                ErrorCode.DUPLICATED_NICKNAME,
+                "이미 존재하는 닉네임입니다."
+            )
 
+        user = await self.user_repository.find_by_id(session, subject.id)
         lector = await self.lector_repository.save(session, Lector(
-            user_id=user.id,
             user=user,
             is_setter=dto.is_setter,
-            total_experience=total_experience // (365 * 24 * 60 * 60),
             contest=[Contest(year=e.year, title=e.title, name=e.name) for e in dto.contest_list],
             certificate=[
                 Certificate(acquisition_date=e.acquisition_date, rate=e.rate, name=e.name)
@@ -87,12 +117,10 @@ class UserService:
             approved=False
         ))
 
-        [await self.lector_approved_file_repository.save(session, LectorApprovedFile(lector=lector, url=e))
-         for e in dto.proof_list]
+        await self.lector_approved_file_repository.save_all(
+            session,
+            [LectorApprovedFile(lector=lector, url=e)
+             for e in dto.proof_list]
+        )
 
         return LectorResponseDto.from_entity(lector)
-
-    async def check_nickname_duplication(self, session: AsyncSession, nickname: str):
-        if await self.user_repository.exist_by_nickname(session, nickname):
-            return IsDuplicatedNicknameResponseDto(is_duplicated=True)
-        return IsDuplicatedNicknameResponseDto(is_duplicated=False)

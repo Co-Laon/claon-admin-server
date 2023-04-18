@@ -2,9 +2,9 @@ import json
 from typing import List
 from uuid import uuid4
 
-from sqlalchemy import String, Column, ForeignKey, Boolean
+from sqlalchemy import String, Column, ForeignKey, Boolean, Text, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, selectinload
 
 from claon_admin.schema.conn import Base
 
@@ -51,19 +51,19 @@ class Center(Base):
     web_url = Column(String(length=500))
     instagram_name = Column(String())
     youtube_url = Column(String(length=500))
-    _center_img = Column(String(length=255))
-    _operating_time = Column(String(length=255))
-    _utility = Column(String(length=255))
-    _fee = Column(String(length=255))
-    _fee_img = Column(String(length=255))
+    _center_img = Column(Text)
+    _operating_time = Column(Text)
+    _utility = Column(Text)
+    _fee = Column(Text)
+    _fee_img = Column(Text)
     holds = relationship("CenterHold", back_populates="center")
     walls = relationship("CenterWall", back_populates="center")
     approved = Column(Boolean, default=False, nullable=False)
 
     @property
     def center_img(self):
-        data = json.loads(self._center_img)
-        return [CenterImage(e['url']) for e in data]
+        values = json.loads(self._center_img)
+        return [CenterImage(value['url']) for value in values]
 
     @center_img.setter
     def center_img(self, values: List[CenterImage]):
@@ -71,8 +71,8 @@ class Center(Base):
 
     @property
     def operating_time(self):
-        data = json.loads(self._operating_time)
-        return [OperatingTime(e['day_of_week'], e['start_time'], e['end_time']) for e in data]
+        values = json.loads(self._operating_time)
+        return [OperatingTime(value['day_of_week'], value['start_time'], value['end_time']) for value in values]
 
     @operating_time.setter
     def operating_time(self, values: List[OperatingTime]):
@@ -80,8 +80,8 @@ class Center(Base):
 
     @property
     def utility(self):
-        data = json.loads(self._utility)
-        return [Utility(e['name']) for e in data]
+        values = json.loads(self._utility)
+        return [Utility(value['name']) for value in values]
 
     @utility.setter
     def utility(self, values: List[Utility]):
@@ -89,8 +89,8 @@ class Center(Base):
 
     @property
     def fee(self):
-        data = json.loads(self._fee)
-        return [CenterFee(e['name'], e['price'], e['count']) for e in data]
+        values = json.loads(self._fee)
+        return [CenterFee(value['name'], value['price'], value['count']) for value in values]
 
     @fee.setter
     def fee(self, values: List[CenterFee]):
@@ -112,8 +112,8 @@ class CenterHold(Base):
     center_id = Column(String(length=255), ForeignKey('tb_center.id'))
     center = relationship("Center", back_populates="holds")
     name = Column(String(length=10))
-    difficulty = Column(String())
-    is_color = Column(Boolean())
+    difficulty = Column(String(length=10))
+    is_color = Column(Boolean, default=False, nullable=False)
 
 
 class CenterWall(Base):
@@ -136,6 +136,12 @@ class CenterApprovedFile(Base):
 
 
 class CenterRepository:
+    @staticmethod
+    async def find_by_id(session: AsyncSession, center_id: int):
+        result = await session.execute(select(Center).where(Center.id == center_id)
+                                       .options(selectinload(Center.holds))
+                                       .options(selectinload(Center.walls)))
+
 
     @staticmethod
     async def save(session: AsyncSession, center: Center):
@@ -151,3 +157,37 @@ class CenterApprovedFileRepository:
         session.add(center_approved_file)
         await session.flush()
         return center_approved_file
+
+    @staticmethod
+    async def save_all(session: AsyncSession, center_approved_files: List[CenterApprovedFile]):
+        session.add_all(center_approved_files)
+        await session.flush()
+        return center_approved_files
+
+
+class CenterHoldRepository:
+    @staticmethod
+    async def save(session: AsyncSession, center_hold: CenterHold):
+        session.add(center_hold)
+        await session.flush()
+        return center_hold
+
+    @staticmethod
+    async def save_all(session: AsyncSession, center_holds: List[CenterHold]):
+        session.add_all(center_holds)
+        await session.flush()
+        return center_holds
+
+
+class CenterWallRepository:
+    @staticmethod
+    async def save(session: AsyncSession, center_wall: CenterWall):
+        session.add(center_wall)
+        await session.flush()
+        return center_wall
+
+    @staticmethod
+    async def save_all(session: AsyncSession, center_walls: List[CenterWall]):
+        session.add_all(center_walls)
+        await session.flush()
+        return center_walls

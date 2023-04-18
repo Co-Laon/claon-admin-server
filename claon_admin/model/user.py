@@ -1,4 +1,5 @@
-from datetime import date
+import re
+from datetime import date, datetime
 from typing import Optional, List
 
 from pydantic import BaseModel, validator, EmailStr
@@ -38,7 +39,7 @@ class UserProfileDto(BaseModel):
         for c in value:
             if not ((c == '_') or (c == '.') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
-                raise ValueError('인스타그램 닉네임은 한글, 영문, 숫자로만 입력 해주세요.')
+                raise ValueError('인스타그램 닉네임은 한글, 영문, 숫자 및 유효 특수문자로만 입력 해주세요.')
         if value is not None and (len(value) < 3 or len(value) > 30):
             raise ValueError('인스타그램 닉네임은 3자 이상 30자 이하로 입력 해주세요.')
         return value
@@ -82,7 +83,7 @@ class LectorContestDto(BaseModel):
     @validator('title')
     def validate_title(cls, value):
         for c in value:
-            if not ((c == ' ') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
+            if not (('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
                 raise ValueError('수상명은 한글, 영문, 숫자로만 입력 해주세요.')
         if len(value) < 1 or len(value) > 50:
@@ -92,7 +93,7 @@ class LectorContestDto(BaseModel):
     @validator('name')
     def validate_name(cls, value):
         for c in value:
-            if not ((c == ' ') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
+            if not (('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
                 raise ValueError('대회명은 한글, 영문, 숫자로만 입력 해주세요.')
         if len(value) < 1 or len(value) > 50:
@@ -114,7 +115,7 @@ class LectorCertificateDto(BaseModel):
     @validator('name')
     def validate_name(cls, value):
         for c in value:
-            if not ((c == ' ') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
+            if not (('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
                 raise ValueError('자격증명은 한글, 영문, 숫자로만 입력 해주세요.')
         if len(value) < 1 or len(value) > 50:
@@ -130,7 +131,7 @@ class LectorCareerDto(BaseModel):
     @validator('name')
     def validate_name(cls, value):
         for c in value:
-            if not ((c == ' ') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
+            if not (('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
                 raise ValueError('경력명은 한글, 영문, 숫자로만 입력 해주세요.')
         if len(value) < 1 or len(value) > 50:
@@ -154,9 +155,9 @@ class LectorRequestDto(BaseModel):
 
 
 class LectorResponseDto(BaseModel):
-    id: str
     profile: UserProfileDto
     is_setter: bool
+    total_experience: int
     contest_list: List[LectorContestDto]
     certificate_list: List[LectorCertificateDto]
     career_list: List[LectorCareerDto]
@@ -164,12 +165,26 @@ class LectorResponseDto(BaseModel):
 
     @classmethod
     def from_entity(cls, entity: Lector):
+        total_experience = 0
+        for career in entity.career:
+            total_experience += (
+                    datetime.strptime(career.end_date, "%Y-%m-%d") - datetime.strptime(career.start_date, "%Y-%m-%d")
+            ).total_seconds()
+
         return LectorResponseDto(
-            id=entity.id,
             profile=UserProfileDto.from_entity(entity.user),
             is_setter=entity.is_setter,
-            contest_list=entity.contest,
-            certificate_list=entity.certificate,
-            career_list=entity.career,
+            total_experience=total_experience // (365 * 24 * 60 * 60),
+            contest_list=[LectorContestDto(year=e.year, title=e.title, name=e.name) for e in entity.contest],
+            certificate_list=[LectorCertificateDto(
+                acquisition_date=e.acquisition_date,
+                rate=e.rate,
+                name=e.name
+            ) for e in entity.certificate],
+            career_list=[LectorCareerDto(
+                start_date=e.start_date,
+                end_date=e.end_date,
+                name=e.name
+            ) for e in entity.career],
             approved=entity.approved
         )

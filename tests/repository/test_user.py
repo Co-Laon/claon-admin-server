@@ -6,7 +6,7 @@ from claon_admin.schema.user import (
     LectorRepository,
     User,
     Lector,
-    LectorApprovedFileRepository
+    LectorApprovedFileRepository, LectorApprovedFile
 )
 
 user_repository = UserRepository()
@@ -15,32 +15,33 @@ lector_approved_file_repository = LectorApprovedFileRepository()
 
 
 @pytest.mark.asyncio
-async def test_save_lector(session: AsyncSession, user_fixture: User, lector_fixture: Lector):
+async def test_save_lector(
+        session: AsyncSession,
+        user_fixture,
+        lector_fixture
+):
     # then
     assert lector_fixture.user.id == user_fixture.id
-
-    assert user_fixture.nickname == 'nickname'
-    assert user_fixture.profile_img == 'profile_img'
-    assert user_fixture.sns == 'sns'
-    assert user_fixture.email == 'test@test.com'
-    assert user_fixture.instagram_name == 'instagram_name'
-
+    assert lector_fixture.user == user_fixture
     assert lector_fixture.is_setter
-    assert lector_fixture.total_experience == 3
-    assert lector_fixture.contest[0]['year'] == 2021
-    assert lector_fixture.contest[0]['title'] == 'title'
-    assert lector_fixture.contest[0]['name'] == 'name'
-    assert lector_fixture.certificate[0]['acquisition_date'] == '2012-10-15'
-    assert lector_fixture.certificate[0]['rate'] == 4
-    assert lector_fixture.certificate[0]['name'] == 'certificate'
-    assert lector_fixture.career[0]['start_date'] == '2016-01-01'
-    assert lector_fixture.career[0]['end_date'] == '2020-01-01'
-    assert lector_fixture.career[0]['name'] == 'career'
-    assert lector_fixture.approved
+    assert lector_fixture.contest[0].year == 2021
+    assert lector_fixture.contest[0].title == 'title'
+    assert lector_fixture.contest[0].name == 'name'
+    assert lector_fixture.certificate[0].acquisition_date == '2012-10-15'
+    assert lector_fixture.certificate[0].rate == 4
+    assert lector_fixture.certificate[0].name == 'certificate'
+    assert lector_fixture.career[0].start_date == '2016-01-01'
+    assert lector_fixture.career[0].end_date == '2020-01-01'
+    assert lector_fixture.career[0].name == 'career'
+    assert lector_fixture.approved is False
 
 
 @pytest.mark.asyncio
-async def test_find_user_by_valid_id(session: AsyncSession, user_fixture: User, lector_fixture: Lector):
+async def test_find_user_by_valid_id(
+        session: AsyncSession,
+        user_fixture,
+        lector_fixture
+):
     # given
     user_id = user_fixture.id
 
@@ -58,7 +59,9 @@ async def test_find_user_by_valid_id(session: AsyncSession, user_fixture: User, 
 
 
 @pytest.mark.asyncio
-async def test_find_user_by_invalid_id(session: AsyncSession, user_fixture: User):
+async def test_find_user_by_invalid_id(
+        session: AsyncSession,
+        user_fixture):
     # given
     wrong_id = "wrong_id"
 
@@ -70,7 +73,9 @@ async def test_find_user_by_invalid_id(session: AsyncSession, user_fixture: User
 
 
 @pytest.mark.asyncio
-async def test_exist_user_by_valid_id(session: AsyncSession, user_fixture: User):
+async def test_exist_user_by_valid_id(
+        session: AsyncSession,
+        user_fixture):
     # given
     user_id = user_fixture.id
 
@@ -82,7 +87,9 @@ async def test_exist_user_by_valid_id(session: AsyncSession, user_fixture: User)
 
 
 @pytest.mark.asyncio
-async def test_exist_user_by_invalid_id(session: AsyncSession, user_fixture: User):
+async def test_exist_user_by_invalid_id(
+        session: AsyncSession,
+        user_fixture):
     # given
     wrong_id = "wrong_id"
 
@@ -94,7 +101,9 @@ async def test_exist_user_by_invalid_id(session: AsyncSession, user_fixture: Use
 
 
 @pytest.mark.asyncio
-async def test_find_user_by_not_existing_nickname(session: AsyncSession, user_fixture: User):
+async def test_find_user_by_not_existing_nickname(
+        session: AsyncSession,
+        user_fixture):
     # given
     nickname = "not_existing_nickname"
 
@@ -106,7 +115,9 @@ async def test_find_user_by_not_existing_nickname(session: AsyncSession, user_fi
 
 
 @pytest.mark.asyncio
-async def test_find_user_by_existing_nickname(session: AsyncSession, user_fixture: User):
+async def test_find_user_by_existing_nickname(
+        session: AsyncSession,
+        user_fixture):
     # given
     nickname = user_fixture.nickname
 
@@ -124,7 +135,9 @@ async def test_find_user_by_existing_nickname(session: AsyncSession, user_fixtur
 
 
 @pytest.mark.asyncio
-async def test_exist_user_by_not_existing_nickname(session: AsyncSession, user_fixture: User):
+async def test_exist_user_by_not_existing_nickname(
+        session: AsyncSession,
+        user_fixture):
     # given
     nickname = "not_existing_nickname"
 
@@ -136,7 +149,9 @@ async def test_exist_user_by_not_existing_nickname(session: AsyncSession, user_f
 
 
 @pytest.mark.asyncio
-async def test_exist_user_by_existing_nickname(session: AsyncSession, user_fixture: User):
+async def test_exist_user_by_existing_nickname(
+        session: AsyncSession,
+        user_fixture):
     # given
     nickname = user_fixture.nickname
 
@@ -148,11 +163,24 @@ async def test_exist_user_by_existing_nickname(session: AsyncSession, user_fixtu
 
 
 @pytest.mark.asyncio
-async def test_save_for_lector_approved_file(
+async def test_save_lector_approved_file(
         session: AsyncSession,
-        lector_fixture: Lector,
-        lector_approved_file_fixture):
+        lector_fixture,
+        lector_approved_file_fixture: LectorApprovedFile
+):
     # then
     assert lector_approved_file_fixture.lector == lector_fixture
-    assert lector_approved_file_fixture.lector.id == lector_fixture.id
     assert lector_approved_file_fixture.url == "https://test.com/test.pdf"
+
+
+@pytest.mark.asyncio
+async def test_save_all_lector_approved_files(
+        session: AsyncSession,
+        lector_fixture,
+        lector_approved_file_fixture: LectorApprovedFile
+):
+    # when
+    lector_approved_files = await lector_approved_file_repository.save_all(session, [lector_approved_file_fixture])
+
+    # then
+    assert lector_approved_files == [lector_approved_file_fixture]

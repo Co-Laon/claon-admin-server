@@ -6,15 +6,21 @@ from claon_admin.schema.user import User
 from claon_admin.schema.center import (
     Center,
     CenterRepository,
-    CenterApprovedFileRepository
+    CenterApprovedFileRepository, CenterApprovedFile, CenterHold, CenterWall, CenterHoldRepository, CenterWallRepository
 )
 
 center_repository = CenterRepository()
 center_approved_file_repository = CenterApprovedFileRepository()
+center_hold_repository = CenterHoldRepository()
+center_wall_repository = CenterWallRepository()
 
 
 @pytest.mark.asyncio
-async def test_save(session: AsyncSession, user_fixture, center_fixture):
+async def test_save_center(
+        session: AsyncSession,
+        user_fixture,
+        center_fixture
+):
     # then
     assert center_fixture.user.id == user_fixture.id
     assert center_fixture.user == user_fixture
@@ -35,23 +41,82 @@ async def test_save(session: AsyncSession, user_fixture, center_fixture):
     assert center_fixture.fee[0].price == 1000
     assert center_fixture.fee[0].count == 10
     assert center_fixture.fee_img[0].url == "https://test.fee.png"
-    assert center_fixture.holds[0].name == "test_hold"
-    assert center_fixture.holds[0].difficulty == "#ffffff"
-    assert center_fixture.holds[0].is_color
-    assert center_fixture.walls[0].name == "test_wall"
-    assert center_fixture.walls[0].type == WallType.ENDURANCE.value
     assert center_fixture.approved is False
 
 
 @pytest.mark.asyncio
-async def test_save_for_center_approved_files(
+async def test_save_center_approved_files(
         session: AsyncSession,
-        user_fixture: User,
-        center_fixture: Center,
-        center_approved_file_fixture):
+        user_fixture,
+        center_fixture,
+        center_approved_file_fixture
+):
     # then
     assert center_approved_file_fixture.center == center_fixture
     assert center_approved_file_fixture.center_id == center_fixture.id
     assert center_approved_file_fixture.user == user_fixture
     assert center_approved_file_fixture.user_id == user_fixture.id
     assert center_approved_file_fixture.url == "https://example.com/approved.jpg"
+
+
+@pytest.mark.asyncio
+async def test_save_all_center_approved_files(
+        session: AsyncSession,
+        user_fixture,
+        center_fixture,
+        center_approved_file_fixture
+):
+    # when
+    center_approved_files = await center_approved_file_repository.save_all(session, [center_approved_file_fixture])
+
+    # then
+    assert center_approved_files == [center_approved_file_fixture]
+
+
+@pytest.mark.asyncio
+async def test_save_center_hold(
+        session: AsyncSession,
+        center_fixture,
+        center_holds_fixture
+):
+    assert center_holds_fixture.center == center_fixture
+    assert center_holds_fixture.name == "hold_name"
+    assert center_holds_fixture.difficulty == "hard"
+    assert center_holds_fixture.is_color is False
+
+
+@pytest.mark.asyncio
+async def test_save_all_center_holds(
+        session: AsyncSession,
+        center_fixture,
+        center_holds_fixture
+):
+    # when
+    center_holds = await center_hold_repository.save_all(session, [center_holds_fixture])
+
+    # then
+    assert center_holds == [center_holds_fixture]
+
+
+@pytest.mark.asyncio
+async def test_save_center_wall(
+        session: AsyncSession,
+        center_fixture,
+        center_walls_fixture
+):
+    assert center_walls_fixture.center == center_fixture
+    assert center_walls_fixture.name == "wall"
+    assert center_walls_fixture.type == WallType.ENDURANCE.value
+
+
+@pytest.mark.asyncio
+async def test_save_all_center_walls(
+        session: AsyncSession,
+        center_fixture,
+        center_walls_fixture
+):
+    # when
+    center_walls = await center_hold_repository.save_all(session, [center_walls_fixture])
+
+    # then
+    assert center_walls == [center_walls_fixture]

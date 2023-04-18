@@ -49,7 +49,6 @@ class Lector(Base):
     user_id = Column(String(length=255), ForeignKey("tb_user.id"), unique=True)
     user = relationship("User")
     is_setter = Column(Boolean, default=False, nullable=False)
-    total_experience = Column(Integer, nullable=False, default=0)
     _contest = Column(Text)
     _certificate = Column(Text)
     _career = Column(Text)
@@ -57,7 +56,8 @@ class Lector(Base):
 
     @property
     def contest(self):
-        return json.loads(self._contest)
+        values = json.loads(self._contest)
+        return [Contest(value['year'], value['title'], value['name']) for value in values]
 
     @contest.setter
     def contest(self, values: List[Contest]):
@@ -65,7 +65,8 @@ class Lector(Base):
 
     @property
     def certificate(self):
-        return json.loads(self._certificate)
+        values = json.loads(self._certificate)
+        return [Certificate(value['acquisition_date'], value['rate'], value['name']) for value in values]
 
     @certificate.setter
     def certificate(self, values: List[Certificate]):
@@ -73,7 +74,8 @@ class Lector(Base):
 
     @property
     def career(self):
-        return json.loads(self._career)
+        values = json.loads(self._career)
+        return [Career(value['start_date'], value['end_date'], value['name']) for value in values]
 
     @career.setter
     def career(self, values: List[Career]):
@@ -126,7 +128,13 @@ class LectorRepository:
 
 class LectorApprovedFileRepository:
     @staticmethod
-    async def save(session: AsyncSession, approved_files: LectorApprovedFile):
-        session.add(approved_files)
+    async def save(session: AsyncSession, approved_file: LectorApprovedFile):
+        session.add(approved_file)
+        await session.flush()
+        return approved_file
+
+    @staticmethod
+    async def save_all(session: AsyncSession, approved_files: List[LectorApprovedFile]):
+        session.add_all(approved_files)
         await session.flush()
         return approved_files
