@@ -221,7 +221,6 @@ async def test_sign_up_center(
     # given
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
     mock_repo["user"].exist_by_nickname.side_effect = [False]
-    mock_repo["user"].find_by_id.side_effect = [mock_user]
     mock_repo["center"].save.side_effect = [mock_center]
     mock_repo["center_hold"].save_all.side_effect = [mock_center_holds]
     mock_repo["center_wall"].save_all.side_effect = [mock_center_walls]
@@ -277,7 +276,6 @@ async def test_sign_up_lector(
     # given
     profile = UserProfileDto.from_entity(mock_user)
     mock_repo["user"].exist_by_nickname.side_effect = [False]
-    mock_repo["user"].find_by_id.side_effect = [mock_user]
     mock_repo["lector"].save.side_effect = [mock_lector]
     mock_repo["lector_approved_file"].save_all.side_effect = [mock_lector_approved_files]
 

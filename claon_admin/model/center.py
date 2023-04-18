@@ -166,7 +166,7 @@ class CenterRequestDto(BaseModel):
     @validator('name')
     def validate_name(cls, value):
         for c in value:
-            if not (('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
+            if not ((c == ' ') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
                 raise ValueError('암장명은 한글, 영문, 숫자로만 입력 해주세요.')
         if len(value) < 2 or len(value) > 50:

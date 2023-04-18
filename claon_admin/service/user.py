@@ -46,9 +46,8 @@ class UserService:
                 "이미 존재하는 닉네임입니다."
             )
 
-        user = await self.user_repository.find_by_id(session, subject.id)
         center = await self.center_repository.save(session, Center(
-            user=user,
+            user_id=subject.id,
             name=dto.name,
             profile_img=dto.profile_image,
             address=dto.address,
@@ -82,7 +81,7 @@ class UserService:
 
         await self.center_approved_file_repository.save_all(
             session,
-            [CenterApprovedFile(user=user, center=center, url=e)
+            [CenterApprovedFile(user_id=subject.id, center=center, url=e)
              for e in dto.proof_list]
         )
 
@@ -101,9 +100,8 @@ class UserService:
                 "이미 존재하는 닉네임입니다."
             )
 
-        user = await self.user_repository.find_by_id(session, subject.id)
         lector = await self.lector_repository.save(session, Lector(
-            user=user,
+            user_id=subject.id,
             is_setter=dto.is_setter,
             contest=[Contest(year=e.year, title=e.title, name=e.name) for e in dto.contest_list],
             certificate=[

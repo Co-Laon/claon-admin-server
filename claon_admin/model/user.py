@@ -83,7 +83,7 @@ class LectorContestDto(BaseModel):
     @validator('title')
     def validate_title(cls, value):
         for c in value:
-            if not (('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
+            if not ((c == ' ') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
                 raise ValueError('수상명은 한글, 영문, 숫자로만 입력 해주세요.')
         if len(value) < 1 or len(value) > 50:
@@ -93,7 +93,7 @@ class LectorContestDto(BaseModel):
     @validator('name')
     def validate_name(cls, value):
         for c in value:
-            if not (('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
+            if not ((c == ' ') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
                 raise ValueError('대회명은 한글, 영문, 숫자로만 입력 해주세요.')
         if len(value) < 1 or len(value) > 50:
@@ -115,7 +115,7 @@ class LectorCertificateDto(BaseModel):
     @validator('name')
     def validate_name(cls, value):
         for c in value:
-            if not (('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
+            if not ((c == ' ') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
                 raise ValueError('자격증명은 한글, 영문, 숫자로만 입력 해주세요.')
         if len(value) < 1 or len(value) > 50:
@@ -131,7 +131,7 @@ class LectorCareerDto(BaseModel):
     @validator('name')
     def validate_name(cls, value):
         for c in value:
-            if not (('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
+            if not ((c == ' ') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
                 raise ValueError('경력명은 한글, 영문, 숫자로만 입력 해주세요.')
         if len(value) < 1 or len(value) > 50:
