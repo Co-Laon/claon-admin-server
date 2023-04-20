@@ -29,6 +29,7 @@ class CenterWallDto(BaseModel):
 
 
 class CenterResponseDto(BaseModel):
+    center_id: str
     profile_image: str
     name: str
     address: str
