@@ -3,9 +3,10 @@ from datetime import date
 from typing import List
 from uuid import uuid4
 
-from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, Integer, select, exists, Text
+from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, select, exists, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship
+from sqlalchemy.dialects.postgresql import TEXT
 
 from claon_admin.model.enum import Role
 from claon_admin.schema.conn import Base
@@ -35,12 +36,19 @@ class Career:
 class User(Base):
     __tablename__ = 'tb_user'
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
-    nickname = Column(String(length=20), nullable=False, unique=True)
-    profile_img = Column(String(length=255), nullable=False)
+    oauth_id = Column(String(length=255), nullable=False)
+    nickname = Column(String(length=40), nullable=False, unique=True)
+    profile_img = Column(TEXT, nullable=False)
     sns = Column(String(length=500), nullable=False, unique=True)
     email = Column(String(length=500), unique=True)
     instagram_name = Column(String(length=255), unique=True)
     role = Column(Enum(Role), nullable=False)
+
+    def is_signed_up(self):
+        if self.role == Role.PENDING:
+            return False
+        else:
+            return True
 
 
 class Lector(Base):
@@ -49,9 +57,9 @@ class Lector(Base):
     user_id = Column(String(length=255), ForeignKey("tb_user.id"), unique=True)
     user = relationship("User")
     is_setter = Column(Boolean, default=False, nullable=False)
-    _contest = Column(Text)
-    _certificate = Column(Text)
-    _career = Column(Text)
+    _contest = Column(TEXT)
+    _certificate = Column(TEXT)
+    _career = Column(TEXT)
     approved = Column(Boolean, default=False, nullable=False)
 
     @property
@@ -116,6 +124,11 @@ class UserRepository:
         session.add(user)
         await session.flush()
         return user
+
+    @staticmethod
+    async def find_by_oauth_id_and_sns(session: AsyncSession, oauth_id: str, sns: str):
+        result = await session.execute(select(User).where(and_(User.oauth_id == oauth_id, User.sns == sns)))
+        return result.scalars().one_or_none()
 
 
 class LectorRepository:
