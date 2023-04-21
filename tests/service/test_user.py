@@ -55,7 +55,7 @@ def user_service(mock_repo: dict):
 
 
 @pytest.fixture
-def lector_request_dto(session: AsyncSession, mock_user):
+def lector_request_dto(session: AsyncSession, mock_user: User):
     yield LectorRequestDto(
         profile=UserProfileDto.from_entity(mock_user),
         is_setter=True,
@@ -85,7 +85,7 @@ def lector_request_dto(session: AsyncSession, mock_user):
 
 
 @pytest.fixture
-async def center_request_dto(session: AsyncSession, mock_user):
+async def center_request_dto(session: AsyncSession, mock_user: User):
     yield CenterRequestDto(
         profile=UserProfileDto.from_entity(mock_user),
         profile_image="https://test.profile.png",
@@ -120,8 +120,9 @@ def mock_user():
 
 
 @pytest.fixture
-def mock_lector(mock_user: User):
+def mock_lector(mock_user: User, mock_lector_approved_files: LectorApprovedFile):
     yield Lector(
+        id="test_id",
         user=mock_user,
         is_setter=True,
         contest=[Contest(year=2021, title="title", name="name")],
@@ -139,6 +140,7 @@ def mock_lector(mock_user: User):
                 name="career"
             )
         ],
+        approved_files=[mock_lector_approved_files],
         approved=False
     )
 
@@ -154,6 +156,7 @@ def mock_lector_approved_files():
 @pytest.fixture
 def mock_center(mock_user: User):
     yield Center(
+        id="test_id",
         user=mock_user,
         name="test center",
         profile_img="https://test.profile.png",
@@ -317,8 +320,8 @@ async def test_sign_up_existing_lector(
         session: AsyncSession,
         mock_repo: dict,
         user_service: UserService,
-        lector_request_dto):
-
+        lector_request_dto
+):
     # given
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.LECTOR)
 
@@ -357,3 +360,224 @@ async def test_exist_by_existing_nickname(
 
     # then
     assert result.is_duplicated is True
+
+
+async def test_approve_center(
+        session: AsyncSession,
+        mock_repo: dict,
+        user_service: UserService,
+        mock_center: Center
+):
+    # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    center_id = mock_center.id
+
+    mock_center.approved = True
+    mock_center.user.role = Role.CENTER_ADMIN
+    mock_repo["center"].approve_by_id.side_effect = [mock_center]
+
+    # when
+    result = await user_service.approve_center(center_id, session, request_user)
+
+    # then
+    assert result.approved
+    assert result.profile.role == mock_center.user.role
+
+
+async def test_approve_center_with_non_admin(
+        session: AsyncSession,
+        mock_repo: dict,
+        user_service: UserService,
+        mock_center: Center
+):
+    # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    center_id = mock_center.id
+
+    # then
+    with pytest.raises(BadRequestException):
+        # when
+        await user_service.approve_center(center_id, session, request_user)
+
+
+async def test_approve_not_existing_center(
+        session: AsyncSession,
+        mock_repo: dict,
+        user_service: UserService,
+        mock_lector: Lector
+):
+    # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    lector_id = "not_existing_id"
+
+    mock_repo["lector"].exists_by_id.side_effect = [None]
+
+    # then
+    with pytest.raises(BadRequestException):
+        # when
+        await user_service.approve_lector(lector_id, session, request_user)
+
+
+async def test_approve_lector(
+        session: AsyncSession,
+        mock_repo: dict,
+        user_service: UserService,
+        mock_lector: Lector
+):
+    # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    lector_id = mock_lector.id
+
+    mock_lector.approved = True
+    mock_lector.user.role = Role.LECTOR
+    mock_repo["lector"].approve_by_id.side_effect = [mock_lector]
+
+    # when
+    result = await user_service.approve_lector(lector_id, session, request_user)
+
+    # then
+    assert result.approved
+    assert result.profile.role == mock_lector.user.role
+
+
+async def test_approve_lector_with_non_admin(
+        session: AsyncSession,
+        mock_repo: dict,
+        user_service: UserService,
+        mock_lector: Lector
+):
+    # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    lector_id = mock_lector.id
+
+    # then
+    with pytest.raises(BadRequestException):
+        # when
+        await user_service.approve_lector(lector_id, session, request_user)
+
+
+async def test_approve_not_existing_lector(
+        session: AsyncSession,
+        mock_repo: dict,
+        user_service: UserService,
+        mock_lector: Lector
+):
+    # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    lector_id = "not_existing_id"
+
+    mock_repo["lector"].exists_by_id.side_effect = [None]
+
+    # then
+    with pytest.raises(BadRequestException):
+        # when
+        await user_service.approve_lector(lector_id, session, request_user)
+
+
+async def test_reject_center(
+        session: AsyncSession,
+        mock_repo: dict,
+        user_service: UserService,
+        mock_center: Center,
+        mock_center_approved_files: CenterApprovedFile
+):
+    # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    center_id = mock_center.id
+
+    mock_repo["center"].find_by_id.side_effect = [mock_center]
+
+    # when
+    result = await user_service.reject_center(center_id, session, request_user)
+
+    # then
+    assert result is None
+
+
+async def test_reject_center_with_non_admin(
+        session: AsyncSession,
+        mock_repo: dict,
+        user_service: UserService,
+        mock_center: Center
+):
+    # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    center_id = mock_center.id
+
+    # then
+    with pytest.raises(BadRequestException):
+        # when
+        await user_service.reject_center(center_id, session, request_user)
+
+
+async def test_reject_not_existing_center(
+        session: AsyncSession,
+        mock_repo: dict,
+        user_service: UserService,
+        mock_center: Center
+):
+    # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    center_id = "not_existing_id"
+
+    mock_repo["center"].find_by_id.side_effect = [None]
+
+    # then
+    with pytest.raises(BadRequestException):
+        # when
+        await user_service.reject_center(center_id, session, request_user)
+
+
+async def test_reject_lector(
+        session: AsyncSession,
+        mock_repo: dict,
+        user_service: UserService,
+        mock_lector: Lector,
+        mock_lector_approved_files: LectorApprovedFile
+):
+    # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    lector_id = mock_lector.id
+
+    mock_repo["lector"].find_by_id.side_effect = [mock_lector]
+    mock_repo["lector"].delete.side_effect = [mock_lector]
+
+    # when
+    result = await user_service.reject_lector(lector_id, session, request_user)
+
+    # then
+    assert result is mock_lector
+
+
+async def test_reject_lector_with_non_admin(
+        session: AsyncSession,
+        mock_repo: dict,
+        user_service: UserService,
+        mock_lector: Lector
+):
+    # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    lector_id = mock_lector.id
+
+    # then
+    with pytest.raises(BadRequestException):
+        # when
+        await user_service.reject_lector(lector_id, session, request_user)
+
+
+async def test_reject_not_existing_lector(
+        session: AsyncSession,
+        mock_repo: dict,
+        user_service: UserService,
+        mock_lector: Lector
+):
+    # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    lector_id = "not_existing_id"
+
+    mock_repo["lector"].find_by_id.side_effect = [None]
+
+    # then
+    with pytest.raises(BadRequestException):
+        # when
+        await user_service.reject_lector(lector_id, session, request_user)

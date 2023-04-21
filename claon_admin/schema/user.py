@@ -3,9 +3,9 @@ from datetime import date
 from typing import List
 from uuid import uuid4
 
-from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, Integer, select, exists, Text
+from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, Integer, select, exists, Text, update, delete
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, selectinload
 
 from claon_admin.model.enum import Role
 from claon_admin.schema.conn import Base
@@ -52,6 +52,7 @@ class Lector(Base):
     _contest = Column(Text)
     _certificate = Column(Text)
     _career = Column(Text)
+    approved_files = relationship("LectorApprovedFile", back_populates="lector", cascade="all, delete-orphan")
     approved = Column(Boolean, default=False, nullable=False)
 
     @property
@@ -114,7 +115,7 @@ class UserRepository:
     @staticmethod
     async def save(session: AsyncSession, user: User):
         session.add(user)
-        await session.flush()
+        await session.merge(user)
         return user
 
 
@@ -122,6 +123,35 @@ class LectorRepository:
     @staticmethod
     async def save(session: AsyncSession, lector: Lector):
         session.add(lector)
+        await session.merge(lector)
+        return lector
+
+    @staticmethod
+    async def delete(session: AsyncSession, lector: Lector):
+        await session.delete(lector)
+
+    @staticmethod
+    async def find_by_id(session: AsyncSession, lector_id: str):
+        result = await session.execute(select(Lector).where(Lector.id == lector_id))
+        return result.scalars().one_or_none()
+
+    @staticmethod
+    async def exists_by_id(session: AsyncSession, lector_id: str):
+        result = await session.execute(select(exists().where(Lector.id == lector_id)))
+        return result.scalar()
+
+    @staticmethod
+    async def approve_by_id(session: AsyncSession, lector_id: str, role: Role):
+        result = await session.execute(
+            select(Lector)
+            .where(Lector.id == lector_id)
+            .options(selectinload(Lector.user))
+        )
+        lector = result.scalars().one()
+
+        lector.approved = True
+        lector.user.role = role
+
         await session.flush()
         return lector
 
@@ -130,11 +160,16 @@ class LectorApprovedFileRepository:
     @staticmethod
     async def save(session: AsyncSession, approved_file: LectorApprovedFile):
         session.add(approved_file)
-        await session.flush()
+        await session.merge(approved_file)
         return approved_file
 
     @staticmethod
     async def save_all(session: AsyncSession, approved_files: List[LectorApprovedFile]):
         session.add_all(approved_files)
-        await session.flush()
+        [await session.merge(e) for e in approved_files]
         return approved_files
+
+    @staticmethod
+    async def find_all_by_lector_id(session: AsyncSession, lector_id: str):
+        result = await session.execute(select(LectorApprovedFile).where(LectorApprovedFile.lector_id == lector_id))
+        return result.scalars().all()

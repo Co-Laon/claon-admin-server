@@ -1,10 +1,10 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from claon_admin.model.enum import Role
 from claon_admin.schema.user import (
     UserRepository,
     LectorRepository,
-    User,
     Lector,
     LectorApprovedFileRepository, LectorApprovedFile
 )
@@ -34,6 +34,95 @@ async def test_save_lector(
     assert lector_fixture.career[0].end_date == '2020-01-01'
     assert lector_fixture.career[0].name == 'career'
     assert lector_fixture.approved is False
+
+
+@pytest.mark.asyncio
+async def test_delete_lector(
+        session: AsyncSession,
+        lector_fixture: Lector,
+        lector_approved_file_fixture: LectorApprovedFile
+):
+    # when
+    await lector_repository.delete(session, lector_fixture)
+
+    # then
+    assert await lector_repository.find_by_id(session, lector_fixture.id) is None
+    assert await lector_approved_file_repository.find_all_by_lector_id(session, lector_fixture.id) == []
+
+
+@pytest.mark.asyncio
+async def test_find_lector_by_id(
+        session: AsyncSession,
+        lector_fixture: Lector
+):
+    # given
+    lector_id = lector_fixture.id
+
+    # when
+    result = await lector_repository.find_by_id(session, lector_id)
+
+    # then
+    assert result == lector_fixture
+
+
+@pytest.mark.asyncio
+async def test_find_lector_by_non_existing_id(
+        session: AsyncSession
+):
+    # given
+    lector_id = "non_existing_id"
+
+    # when
+    result = await lector_repository.find_by_id(session, lector_id)
+
+    # then
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_exists_lector_by_id(
+        session: AsyncSession,
+        lector_fixture: Lector
+):
+    # given
+    lector_id = lector_fixture.id
+
+    # when
+    result = await lector_repository.exists_by_id(session, lector_id)
+
+    # then
+    assert result
+
+
+@pytest.mark.asyncio
+async def test_exists_lector_by_non_existing_id(
+        session: AsyncSession
+):
+    # given
+    lector_id = "non_existing_id"
+
+    # when
+    result = await lector_repository.exists_by_id(session, lector_id)
+
+    # then
+    assert result is False
+
+
+@pytest.mark.asyncio
+async def test_approve_lector_by_id(
+        session: AsyncSession,
+        lector_fixture: Lector
+):
+    # given
+    lector_id = lector_fixture.id
+    role = Role.LECTOR
+
+    # when
+    result = await lector_repository.approve_by_id(session, lector_id, role)
+
+    # then
+    assert result.approved
+    assert result.user.role == role
 
 
 @pytest.mark.asyncio
@@ -181,6 +270,19 @@ async def test_save_all_lector_approved_files(
 ):
     # when
     lector_approved_files = await lector_approved_file_repository.save_all(session, [lector_approved_file_fixture])
+
+    # then
+    assert lector_approved_files == [lector_approved_file_fixture]
+
+
+@pytest.mark.asyncio
+async def test_find_all_lector_approved_files_by_lector_id(
+        session: AsyncSession,
+        lector_fixture,
+        lector_approved_file_fixture: LectorApprovedFile
+):
+    # when
+    lector_approved_files = await lector_approved_file_repository.find_all_by_lector_id(session, lector_fixture.id)
 
     # then
     assert lector_approved_files == [lector_approved_file_fixture]

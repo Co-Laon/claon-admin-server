@@ -1,14 +1,12 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.model.enum import WallType
-from claon_admin.schema.user import User
-from claon_admin.schema.center import (
-    Center,
-    CenterRepository,
-    CenterApprovedFileRepository, CenterApprovedFile, CenterHold, CenterWall, CenterHoldRepository, CenterWallRepository
-)
+from claon_admin.model.enum import WallType, Role
+from claon_admin.schema.user import UserRepository
+from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, CenterWallRepository, \
+    CenterHoldRepository, Center, CenterApprovedFile, CenterHold, CenterWall
 
+user_repository = UserRepository()
 center_repository = CenterRepository()
 center_approved_file_repository = CenterApprovedFileRepository()
 center_hold_repository = CenterHoldRepository()
@@ -45,6 +43,96 @@ async def test_save_center(
 
 
 @pytest.mark.asyncio
+async def test_find_center_by_id(
+        session: AsyncSession,
+        center_fixture: Center
+):
+    # given
+    center_id = center_fixture.id
+
+    # when
+    result = await center_repository.find_by_id(session, center_id)
+
+    # then
+    assert result == center_fixture
+
+
+@pytest.mark.asyncio
+async def test_find_center_by_non_existing_id(
+        session: AsyncSession
+):
+    # given
+    center_id = "non_existing_id"
+
+    # when
+    result = await center_repository.find_by_id(session, center_id)
+
+    # then
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_exists_center_by_id(
+        session: AsyncSession,
+        center_fixture: Center
+):
+    # given
+    center_id = center_fixture.id
+
+    # when
+    result = await center_repository.exists_by_id(session, center_id)
+
+    # then
+    assert result
+
+
+@pytest.mark.asyncio
+async def test_exists_center_by_non_existing_id(
+        session: AsyncSession
+):
+    # given
+    center_id = "non_existing_id"
+
+    # when
+    result = await center_repository.exists_by_id(session, center_id)
+
+    # then
+    assert result is False
+
+
+@pytest.mark.asyncio
+async def test_approve_center_by_id(
+        session: AsyncSession,
+        center_fixture: Center
+):
+    # given
+    center_id = center_fixture.id
+    role = Role.CENTER_ADMIN
+
+    # when
+    result = await center_repository.approve_by_id(session, center_id, role)
+
+    # then
+    assert result.approved
+    assert result.user.role == role
+
+
+@pytest.mark.asyncio
+async def test_delete_center(
+        session: AsyncSession,
+        center_fixture: Center
+):
+    # when
+    await center_repository.delete(session, center_fixture)
+
+    # then
+    assert await center_repository.find_by_id(session, center_fixture.id) is None
+    assert await center_hold_repository.find_all_by_center_id(session, center_fixture.id) == []
+    assert await center_wall_repository.find_all_by_center_id(session, center_fixture.id) == []
+    assert await center_approved_file_repository.find_all_by_center_id(session, center_fixture.id) == []
+
+
+@pytest.mark.asyncio
 async def test_save_center_approved_files(
         session: AsyncSession,
         user_fixture,
@@ -68,6 +156,19 @@ async def test_save_all_center_approved_files(
 ):
     # when
     center_approved_files = await center_approved_file_repository.save_all(session, [center_approved_file_fixture])
+
+    # then
+    assert center_approved_files == [center_approved_file_fixture]
+
+
+@pytest.mark.asyncio
+async def test_find_all_center_approved_files_by_center_id(
+        session: AsyncSession,
+        center_fixture: Center,
+        center_approved_file_fixture: CenterApprovedFile
+):
+    # when
+    center_approved_files = await center_approved_file_repository.find_all_by_center_id(session, center_fixture.id)
 
     # then
     assert center_approved_files == [center_approved_file_fixture]
@@ -99,6 +200,19 @@ async def test_save_all_center_holds(
 
 
 @pytest.mark.asyncio
+async def test_find_all_center_holds_by_center_id(
+        session: AsyncSession,
+        center_fixture: Center,
+        center_holds_fixture: CenterHold
+):
+    # when
+    center_holds = await center_hold_repository.find_all_by_center_id(session, center_fixture.id)
+
+    # then
+    assert center_holds == [center_holds_fixture]
+
+
+@pytest.mark.asyncio
 async def test_save_center_wall(
         session: AsyncSession,
         center_fixture,
@@ -117,6 +231,19 @@ async def test_save_all_center_walls(
 ):
     # when
     center_walls = await center_hold_repository.save_all(session, [center_walls_fixture])
+
+    # then
+    assert center_walls == [center_walls_fixture]
+
+
+@pytest.mark.asyncio
+async def test_find_all_center_walls_by_center_id(
+        session: AsyncSession,
+        center_fixture: Center,
+        center_walls_fixture: CenterWall
+):
+    # when
+    center_walls = await center_wall_repository.find_all_by_center_id(session, center_fixture.id)
 
     # then
     assert center_walls == [center_walls_fixture]

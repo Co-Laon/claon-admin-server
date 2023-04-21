@@ -155,6 +155,7 @@ class LectorRequestDto(BaseModel):
 
 
 class LectorResponseDto(BaseModel):
+    lector_id: str
     profile: UserProfileDto
     is_setter: bool
     total_experience: int
@@ -172,6 +173,7 @@ class LectorResponseDto(BaseModel):
             ).total_seconds()
 
         return LectorResponseDto(
+            lector_id=entity.id,
             profile=UserProfileDto.from_entity(entity.user),
             is_setter=entity.is_setter,
             total_experience=total_experience // (365 * 24 * 60 * 60),

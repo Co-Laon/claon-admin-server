@@ -19,7 +19,7 @@ center_hold_repository = CenterHoldRepository()
 center_wall_repository = CenterWallRepository()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(autouse=True)
 async def user_fixture(session: AsyncSession):
     user = User(
         nickname="nickname",
@@ -32,9 +32,10 @@ async def user_fixture(session: AsyncSession):
 
     user = await user_repository.save(session, user)
     yield user
+    await session.rollback()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(autouse=True)
 async def lector_fixture(session: AsyncSession, user_fixture):
     lector = Lector(
         user=user_fixture,
@@ -59,9 +60,10 @@ async def lector_fixture(session: AsyncSession, user_fixture):
 
     lector = await lector_repository.save(session, lector)
     yield lector
+    await session.rollback()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(autouse=True)
 async def center_fixture(
         session: AsyncSession,
         user_fixture
@@ -86,9 +88,10 @@ async def center_fixture(
 
     center = await center_repository.save(session, center)
     yield center
+    await session.rollback()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(autouse=True)
 async def lector_approved_file_fixture(session: AsyncSession, lector_fixture):
     lector_approved_file = LectorApprovedFile(
         lector=lector_fixture,
@@ -97,9 +100,10 @@ async def lector_approved_file_fixture(session: AsyncSession, lector_fixture):
 
     lector_approved_file = await lector_approved_file_repository.save(session, lector_approved_file)
     yield lector_approved_file
+    await session.rollback()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(autouse=True)
 async def center_approved_file_fixture(session: AsyncSession, user_fixture, center_fixture):
     center_approved_file = CenterApprovedFile(
         user=user_fixture,
@@ -109,9 +113,10 @@ async def center_approved_file_fixture(session: AsyncSession, user_fixture, cent
 
     center_approved_file = await center_approved_file_repository.save(session, center_approved_file)
     yield center_approved_file
+    await session.rollback()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(autouse=True)
 async def center_holds_fixture(session: AsyncSession, center_fixture):
     center_hold = CenterHold(
         center=center_fixture,
@@ -122,9 +127,10 @@ async def center_holds_fixture(session: AsyncSession, center_fixture):
 
     center_hold = await center_hold_repository.save(session, center_hold)
     yield center_hold
+    await session.rollback()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(autouse=True)
 async def center_walls_fixture(session: AsyncSession, center_fixture):
     center_wall = CenterWall(
         center=center_fixture,
@@ -134,3 +140,4 @@ async def center_walls_fixture(session: AsyncSession, center_fixture):
 
     center_wall = await center_wall_repository.save(session, center_wall)
     yield center_wall
+    await session.rollback()

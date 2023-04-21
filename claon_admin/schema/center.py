@@ -2,10 +2,11 @@ import json
 from typing import List
 from uuid import uuid4
 
-from sqlalchemy import String, Column, ForeignKey, Boolean, Text, select
+from sqlalchemy import String, Column, ForeignKey, Boolean, Text, select, exists
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, backref, selectinload
 
+from claon_admin.model.enum import Role
 from claon_admin.schema.conn import Base
 
 
@@ -56,8 +57,9 @@ class Center(Base):
     _utility = Column(Text)
     _fee = Column(Text)
     _fee_img = Column(Text)
-    holds = relationship("CenterHold", back_populates="center")
-    walls = relationship("CenterWall", back_populates="center")
+    holds = relationship("CenterHold", back_populates="center", cascade="all, delete-orphan")
+    walls = relationship("CenterWall", back_populates="center", cascade="all, delete-orphan")
+    approved_files = relationship("CenterApprovedFile", back_populates="center", cascade="all, delete-orphan")
     approved = Column(Boolean, default=False, nullable=False)
 
     @property
@@ -137,17 +139,42 @@ class CenterApprovedFile(Base):
 
 class CenterRepository:
     @staticmethod
-    async def find_by_id(session: AsyncSession, center_id: int):
+    async def save(session: AsyncSession, center: Center):
+        session.add(center)
+        await session.merge(center)
+        return center
+
+    @staticmethod
+    async def find_by_id(session: AsyncSession, center_id: str):
         result = await session.execute(select(Center).where(Center.id == center_id)
                                        .options(selectinload(Center.holds))
                                        .options(selectinload(Center.walls)))
 
+        return result.scalars().one_or_none()
 
     @staticmethod
-    async def save(session: AsyncSession, center: Center):
-        session.add(center)
+    async def exists_by_id(session: AsyncSession, center_id: str):
+        result = await session.execute(select(exists().where(Center.id == center_id)))
+        return result.scalar()
+
+    @staticmethod
+    async def approve_by_id(session: AsyncSession, center_id: str, role: Role):
+        result = await session.execute(
+            select(Center)
+            .where(Center.id == center_id)
+            .options(selectinload(Center.user))
+        )
+        center = result.scalars().one()
+
+        center.approved = True
+        center.user.role = role
+
         await session.flush()
         return center
+
+    @staticmethod
+    async def delete(session: AsyncSession, center: Center):
+        return await session.delete(center)
 
 
 class CenterApprovedFileRepository:
@@ -155,39 +182,54 @@ class CenterApprovedFileRepository:
     @staticmethod
     async def save(session: AsyncSession, center_approved_file: CenterApprovedFile):
         session.add(center_approved_file)
-        await session.flush()
+        await session.merge(center_approved_file)
         return center_approved_file
 
     @staticmethod
     async def save_all(session: AsyncSession, center_approved_files: List[CenterApprovedFile]):
         session.add_all(center_approved_files)
-        await session.flush()
+        [await session.merge(e) for e in center_approved_files]
         return center_approved_files
+
+    @staticmethod
+    async def find_all_by_center_id(session: AsyncSession, center_id: str):
+        result = await session.execute(select(CenterApprovedFile).where(CenterApprovedFile.center_id == center_id))
+        return result.scalars().all()
 
 
 class CenterHoldRepository:
     @staticmethod
     async def save(session: AsyncSession, center_hold: CenterHold):
         session.add(center_hold)
-        await session.flush()
+        await session.merge(center_hold)
         return center_hold
 
     @staticmethod
     async def save_all(session: AsyncSession, center_holds: List[CenterHold]):
         session.add_all(center_holds)
-        await session.flush()
+        [await session.merge(e) for e in center_holds]
         return center_holds
+
+    @staticmethod
+    async def find_all_by_center_id(session: AsyncSession, center_id: str):
+        result = await session.execute(select(CenterHold).where(CenterHold.center_id == center_id))
+        return result.scalars().all()
 
 
 class CenterWallRepository:
     @staticmethod
     async def save(session: AsyncSession, center_wall: CenterWall):
         session.add(center_wall)
-        await session.flush()
+        await session.merge(center_wall)
         return center_wall
 
     @staticmethod
     async def save_all(session: AsyncSession, center_walls: List[CenterWall]):
         session.add_all(center_walls)
-        await session.flush()
+        [await session.merge(e) for e in center_walls]
         return center_walls
+
+    @staticmethod
+    async def find_all_by_center_id(session: AsyncSession, center_id: str):
+        result = await session.execute(select(CenterWall).where(CenterWall.center_id == center_id))
+        return result.scalars().all()

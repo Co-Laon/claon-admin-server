@@ -85,7 +85,10 @@ class UserService:
              for e in dto.proof_list]
         )
 
-        return CenterResponseDto.from_entity(center, holds, walls)
+        center.holds = holds
+        center.walls = walls
+
+        return CenterResponseDto.from_entity(center)
 
     async def sign_up_lector(self, session: AsyncSession, subject: RequestUser, dto: LectorRequestDto):
         if subject.role != Role.PENDING:
@@ -122,3 +125,69 @@ class UserService:
         )
 
         return LectorResponseDto.from_entity(lector)
+
+    async def approve_lector(self, lector_id: str, session: AsyncSession, subject: RequestUser):
+        if subject.role != Role.ADMIN:
+            raise BadRequestException(
+                ErrorCode.NONE_ADMIN_ACCOUNT,
+                "어드민 권한이 없습니다."
+            )
+
+        if not await self.lector_repository.exists_by_id(session, lector_id):
+            raise BadRequestException(
+                ErrorCode.ENTITY_NOT_FOUND,
+                "선택한 강사의 정보가 존재하지 않습니다."
+            )
+
+        lector = await self.lector_repository.approve_by_id(session, lector_id, Role.LECTOR)
+        return LectorResponseDto.from_entity(lector)
+
+    async def reject_lector(self, lector_id: str, session: AsyncSession, subject: RequestUser):
+        if subject.role != Role.ADMIN:
+            raise BadRequestException(
+                ErrorCode.NONE_ADMIN_ACCOUNT,
+                "어드민 권한이 없습니다."
+            )
+
+        lector = await self.lector_repository.find_by_id(session, lector_id)
+
+        if lector is None:
+            raise BadRequestException(
+                ErrorCode.ENTITY_NOT_FOUND,
+                "선택한 강사의 정보가 존재하지 않습니다."
+            )
+
+        return await self.lector_repository.delete(session, lector)
+
+    async def approve_center(self, center_id: str, session: AsyncSession, subject: RequestUser):
+        if subject.role != Role.ADMIN:
+            raise BadRequestException(
+                ErrorCode.NONE_ADMIN_ACCOUNT,
+                "어드민 권한이 없습니다."
+            )
+
+        if not await self.center_repository.exists_by_id(session, center_id):
+            raise BadRequestException(
+                ErrorCode.ENTITY_NOT_FOUND,
+                "선택한 센터의 정보가 존재하지 않습니다."
+            )
+
+        center = await self.center_repository.approve_by_id(session, center_id, Role.LECTOR)
+        return CenterResponseDto.from_entity(center)
+
+    async def reject_center(self, center_id: str, session: AsyncSession, subject: RequestUser):
+        if subject.role != Role.ADMIN:
+            raise BadRequestException(
+                ErrorCode.NONE_ADMIN_ACCOUNT,
+                "어드민 권한이 없습니다."
+            )
+
+        center = await self.center_repository.find_by_id(session, center_id)
+
+        if center is None:
+            raise BadRequestException(
+                ErrorCode.ENTITY_NOT_FOUND,
+                "선택한 강사의 정보가 존재하지 않습니다."
+            )
+
+        await self.center_repository.delete(session, center)
