@@ -5,7 +5,7 @@ from pydantic import BaseModel, validator
 
 from claon_admin.config.consts import KOR_BEGIN_CODE, KOR_END_CODE
 from claon_admin.model.enum import WallType
-from claon_admin.model.user import UserProfileDto
+from claon_admin.model.user import UserProfileDto, UserProfileResponseDto
 from claon_admin.schema.center import Center, CenterHold, CenterWall
 
 
@@ -94,7 +94,7 @@ class CenterNameResponseDto(BaseModel):
 
 class CenterResponseDto(BaseModel):
     center_id: str
-    profile: UserProfileDto
+    profile: UserProfileResponseDto
     profile_image: str
     name: str
     address: str
@@ -116,7 +116,7 @@ class CenterResponseDto(BaseModel):
     def from_entity(cls, entity: Center):
         return CenterResponseDto(
             center_id=entity.id,
-            profile=UserProfileDto.from_entity(entity.user),
+            profile=UserProfileResponseDto.from_entity(entity.user),
             profile_image=entity.profile_img,
             name=entity.name,
             address=entity.address,
