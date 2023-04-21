@@ -4,8 +4,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from claon_admin.model.enum import WallType
 from claon_admin.schema.center import (
     CenterRepository,
-    CenterApprovedFileRepository, CenterHoldRepository, CenterWallRepository
+    CenterApprovedFileRepository, CenterHoldRepository, CenterWallRepository, Center, CenterHold, CenterWall
 )
+from claon_admin.schema.user import User
 
 center_repository = CenterRepository()
 center_approved_file_repository = CenterApprovedFileRepository()
@@ -60,8 +61,8 @@ async def test_save_center_approved_files(
 @pytest.mark.asyncio
 async def test_save_all_center_approved_files(
         session: AsyncSession,
-        user_fixture,
-        center_fixture,
+        user_fixture: User,
+        center_fixture: Center,
         center_approved_file_fixture
 ):
     # when
@@ -74,8 +75,8 @@ async def test_save_all_center_approved_files(
 @pytest.mark.asyncio
 async def test_save_center_hold(
         session: AsyncSession,
-        center_fixture,
-        center_holds_fixture
+        center_fixture: Center,
+        center_holds_fixture: CenterHold
 ):
     assert center_holds_fixture.center == center_fixture
     assert center_holds_fixture.name == "hold_name"
@@ -86,8 +87,8 @@ async def test_save_center_hold(
 @pytest.mark.asyncio
 async def test_save_all_center_holds(
         session: AsyncSession,
-        center_fixture,
-        center_holds_fixture
+        center_fixture: Center,
+        center_holds_fixture: CenterHold
 ):
     # when
     center_holds = await center_hold_repository.save_all(session, [center_holds_fixture])
@@ -99,8 +100,8 @@ async def test_save_all_center_holds(
 @pytest.mark.asyncio
 async def test_save_center_wall(
         session: AsyncSession,
-        center_fixture,
-        center_walls_fixture
+        center_fixture: Center,
+        center_walls_fixture: CenterWall
 ):
     assert center_walls_fixture.center == center_fixture
     assert center_walls_fixture.name == "wall"
@@ -110,8 +111,8 @@ async def test_save_center_wall(
 @pytest.mark.asyncio
 async def test_save_all_center_walls(
         session: AsyncSession,
-        center_fixture,
-        center_walls_fixture
+        center_fixture: Center,
+        center_walls_fixture: CenterWall
 ):
     # when
     center_walls = await center_hold_repository.save_all(session, [center_walls_fixture])

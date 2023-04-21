@@ -42,8 +42,6 @@ class CenterFeeImage:
 class Center(Base):
     __tablename__ = 'tb_center'
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
-    user_id = Column(String(length=255), ForeignKey("tb_user.id"))
-    user = relationship("User")
     name = Column(String(length=30), nullable=False)
     profile_img = Column(TEXT, nullable=False)
     address = Column(String(length=255), nullable=False)
@@ -52,14 +50,19 @@ class Center(Base):
     web_url = Column(String(length=500))
     instagram_name = Column(String(length=20))
     youtube_url = Column(String(length=500))
+    approved = Column(Boolean, default=False, nullable=False)
+
     _center_img = Column(TEXT)
     _operating_time = Column(TEXT)
     _utility = Column(TEXT)
     _fee = Column(TEXT)
     _fee_img = Column(TEXT)
+
     holds = relationship("CenterHold", back_populates="center")
     walls = relationship("CenterWall", back_populates="center")
-    approved = Column(Boolean, default=False, nullable=False)
+
+    user_id = Column(String(length=255), ForeignKey("tb_user.id"))
+    user = relationship("User")
 
     @property
     def center_img(self):
@@ -110,30 +113,33 @@ class Center(Base):
 class CenterHold(Base):
     __tablename__ = 'tb_center_hold'
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
-    center_id = Column(String(length=255), ForeignKey('tb_center.id'))
-    center = relationship("Center", back_populates="holds")
     name = Column(String(length=10))
     difficulty = Column(String(length=10))
     is_color = Column(Boolean, default=False, nullable=False)
+
+    center_id = Column(String(length=255), ForeignKey('tb_center.id'), nullable=False)
+    center = relationship("Center", back_populates="holds")
 
 
 class CenterWall(Base):
     __tablename__ = 'tb_center_wall'
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
-    center_id = Column(String(length=255), ForeignKey('tb_center.id'))
-    center = relationship("Center", back_populates="walls")
     name = Column(String(length=20))
     type = Column(String(length=20))
+
+    center_id = Column(String(length=255), ForeignKey('tb_center.id'), nullable=False)
+    center = relationship("Center", back_populates="walls")
 
 
 class CenterApprovedFile(Base):
     __tablename__ = 'tb_center_approved_file'
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
-    user_id = Column(String(length=255), ForeignKey('tb_user.id'))
+    url = Column(String(length=255))
+
+    user_id = Column(String(length=255), ForeignKey('tb_user.id'), nullable=False)
     user = relationship("User")
     center_id = Column(String(length=255), ForeignKey('tb_center.id'), nullable=False)
     center = relationship("Center")
-    url = Column(String(length=255))
 
 
 class CenterRepository:
@@ -152,7 +158,6 @@ class CenterRepository:
 
 
 class CenterApprovedFileRepository:
-
     @staticmethod
     async def save(session: AsyncSession, center_approved_file: CenterApprovedFile):
         session.add(center_approved_file)

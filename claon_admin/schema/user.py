@@ -54,13 +54,15 @@ class User(Base):
 class Lector(Base):
     __tablename__ = 'tb_lector'
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
-    user_id = Column(String(length=255), ForeignKey("tb_user.id"), unique=True)
-    user = relationship("User")
     is_setter = Column(Boolean, default=False, nullable=False)
+    approved = Column(Boolean, default=False, nullable=False)
+
     _contest = Column(TEXT)
     _certificate = Column(TEXT)
     _career = Column(TEXT)
-    approved = Column(Boolean, default=False, nullable=False)
+
+    user_id = Column(String(length=255), ForeignKey("tb_user.id"), unique=True, nullable=False)
+    user = relationship("User")
 
     @property
     def contest(self):
@@ -93,9 +95,10 @@ class Lector(Base):
 class LectorApprovedFile(Base):
     __tablename__ = 'tb_lector_approved_file'
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    url = Column(String(length=255))
+
     lector_id = Column(String(length=255), ForeignKey('tb_lector.id'))
     lector = relationship("Lector")
-    url = Column(String(length=255))
 
 
 class UserRepository:

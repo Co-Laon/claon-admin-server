@@ -36,7 +36,7 @@ async def user_fixture(session: AsyncSession):
 
 
 @pytest.fixture(scope="session")
-async def lector_fixture(session: AsyncSession, user_fixture):
+async def lector_fixture(session: AsyncSession, user_fixture: User):
     lector = Lector(
         user=user_fixture,
         is_setter=True,
@@ -65,7 +65,7 @@ async def lector_fixture(session: AsyncSession, user_fixture):
 @pytest.fixture(scope="session")
 async def center_fixture(
         session: AsyncSession,
-        user_fixture
+        user_fixture: User
 ):
     center = Center(
         user=user_fixture,
@@ -90,7 +90,7 @@ async def center_fixture(
 
 
 @pytest.fixture(scope="session")
-async def lector_approved_file_fixture(session: AsyncSession, lector_fixture):
+async def lector_approved_file_fixture(session: AsyncSession, lector_fixture: Lector):
     lector_approved_file = LectorApprovedFile(
         lector=lector_fixture,
         url="https://test.com/test.pdf"
@@ -101,7 +101,7 @@ async def lector_approved_file_fixture(session: AsyncSession, lector_fixture):
 
 
 @pytest.fixture(scope="session")
-async def center_approved_file_fixture(session: AsyncSession, user_fixture, center_fixture):
+async def center_approved_file_fixture(session: AsyncSession, user_fixture: User, center_fixture: Center):
     center_approved_file = CenterApprovedFile(
         user=user_fixture,
         center=center_fixture,
@@ -113,7 +113,7 @@ async def center_approved_file_fixture(session: AsyncSession, user_fixture, cent
 
 
 @pytest.fixture(scope="session")
-async def center_holds_fixture(session: AsyncSession, center_fixture):
+async def center_holds_fixture(session: AsyncSession, center_fixture: Center):
     center_hold = CenterHold(
         center=center_fixture,
         name="hold_name",
@@ -126,7 +126,7 @@ async def center_holds_fixture(session: AsyncSession, center_fixture):
 
 
 @pytest.fixture(scope="session")
-async def center_walls_fixture(session: AsyncSession, center_fixture):
+async def center_walls_fixture(session: AsyncSession, center_fixture: Center):
     center_wall = CenterWall(
         center=center_fixture,
         name="wall",

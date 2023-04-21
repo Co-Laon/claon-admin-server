@@ -5,7 +5,7 @@ from claon_admin.schema.user import (
     UserRepository,
     LectorRepository,
     User,
-    LectorApprovedFileRepository, LectorApprovedFile
+    LectorApprovedFileRepository, LectorApprovedFile, Lector
 )
 
 user_repository = UserRepository()
@@ -16,8 +16,8 @@ lector_approved_file_repository = LectorApprovedFileRepository()
 @pytest.mark.asyncio
 async def test_save_lector(
         session: AsyncSession,
-        user_fixture,
-        lector_fixture
+        user_fixture: User,
+        lector_fixture: Lector
 ):
     # then
     assert lector_fixture.user.id == user_fixture.id
@@ -38,8 +38,8 @@ async def test_save_lector(
 @pytest.mark.asyncio
 async def test_find_user_by_valid_id(
         session: AsyncSession,
-        user_fixture,
-        lector_fixture
+        user_fixture: User,
+        lector_fixture: Lector
 ):
     # given
     user_id = user_fixture.id
@@ -60,7 +60,8 @@ async def test_find_user_by_valid_id(
 @pytest.mark.asyncio
 async def test_find_user_by_invalid_id(
         session: AsyncSession,
-        user_fixture):
+        user_fixture: User
+):
     # given
     wrong_id = "wrong_id"
 
@@ -74,7 +75,8 @@ async def test_find_user_by_invalid_id(
 @pytest.mark.asyncio
 async def test_exist_user_by_valid_id(
         session: AsyncSession,
-        user_fixture):
+        user_fixture: User
+):
     # given
     user_id = user_fixture.id
 
@@ -88,7 +90,8 @@ async def test_exist_user_by_valid_id(
 @pytest.mark.asyncio
 async def test_exist_user_by_invalid_id(
         session: AsyncSession,
-        user_fixture):
+        user_fixture: User
+):
     # given
     wrong_id = "wrong_id"
 
@@ -102,7 +105,8 @@ async def test_exist_user_by_invalid_id(
 @pytest.mark.asyncio
 async def test_find_user_by_not_existing_nickname(
         session: AsyncSession,
-        user_fixture):
+        user_fixture: User
+):
     # given
     nickname = "not_existing_nickname"
 
@@ -116,7 +120,8 @@ async def test_find_user_by_not_existing_nickname(
 @pytest.mark.asyncio
 async def test_find_user_by_existing_nickname(
         session: AsyncSession,
-        user_fixture):
+        user_fixture: User
+):
     # given
     nickname = user_fixture.nickname
 
@@ -136,7 +141,8 @@ async def test_find_user_by_existing_nickname(
 @pytest.mark.asyncio
 async def test_exist_user_by_not_existing_nickname(
         session: AsyncSession,
-        user_fixture):
+        user_fixture: User
+):
     # given
     nickname = "not_existing_nickname"
 
@@ -150,7 +156,8 @@ async def test_exist_user_by_not_existing_nickname(
 @pytest.mark.asyncio
 async def test_exist_user_by_existing_nickname(
         session: AsyncSession,
-        user_fixture):
+        user_fixture: User
+):
     # given
     nickname = user_fixture.nickname
 
@@ -164,7 +171,7 @@ async def test_exist_user_by_existing_nickname(
 @pytest.mark.asyncio
 async def test_save_lector_approved_file(
         session: AsyncSession,
-        lector_fixture,
+        lector_fixture: Lector,
         lector_approved_file_fixture: LectorApprovedFile
 ):
     # then
@@ -175,7 +182,7 @@ async def test_save_lector_approved_file(
 @pytest.mark.asyncio
 async def test_save_all_lector_approved_files(
         session: AsyncSession,
-        lector_fixture,
+        lector_fixture: Lector,
         lector_approved_file_fixture: LectorApprovedFile
 ):
     # when

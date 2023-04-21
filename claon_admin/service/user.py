@@ -5,7 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from claon_admin.common.error.exception import BadRequestException, ErrorCode
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.center import CenterRequestDto, CenterResponseDto
-from claon_admin.model.user import IsDuplicatedNicknameResponseDto, LectorRequestDto, LectorResponseDto, UserProfileResponseDto
+from claon_admin.model.user import IsDuplicatedNicknameResponseDto, LectorRequestDto, LectorResponseDto, \
+    UserProfileResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterFee, \
     CenterFeeImage, CenterHold, CenterWall, CenterApprovedFile, CenterHoldRepository, CenterWallRepository, \
     CenterApprovedFileRepository
