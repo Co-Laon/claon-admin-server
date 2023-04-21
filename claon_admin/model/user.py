@@ -1,4 +1,3 @@
-import re
 from datetime import date, datetime
 from typing import Optional, List
 
@@ -15,6 +14,24 @@ class SignInRequestDto(BaseModel):
 
 class IsDuplicatedNicknameResponseDto(BaseModel):
     is_duplicated: bool
+
+
+class UserProfileResponseDto(BaseModel):
+    profile_image: Optional[str]
+    nickname: str
+    email: Optional[str]
+    instagram_nickname: Optional[str]
+    role: Optional[Role]
+
+    @classmethod
+    def from_entity(cls, entity: User):
+        return UserProfileResponseDto(
+            profile_image=entity.profile_img,
+            nickname=entity.nickname,
+            email=entity.email,
+            instagram_nickname=entity.instagram_name,
+            role=entity.role
+        )
 
 
 class UserProfileDto(BaseModel):
@@ -44,27 +61,12 @@ class UserProfileDto(BaseModel):
             raise ValueError('인스타그램 닉네임은 3자 이상 30자 이하로 입력 해주세요.')
         return value
 
-    @classmethod
-    def from_entity(cls, entity: User):
-        return UserProfileDto(
-            profile_image=entity.profile_img,
-            nickname=entity.nickname,
-            email=entity.email,
-            instagram_nickname=entity.instagram_name,
-            role=entity.role
-        )
-
 
 class JwtResponseDto(BaseModel):
     access_token: str
     refresh_token: str
     is_signed_up: bool
-    profile: UserProfileDto
-
-
-class UserProfileResponseDto(BaseModel):
-    is_proofed: bool
-    profile: UserProfileDto
+    profile: UserProfileResponseDto
 
 
 class LectorContestDto(BaseModel):
@@ -156,7 +158,7 @@ class LectorRequestDto(BaseModel):
 
 class LectorResponseDto(BaseModel):
     lector_id: str
-    profile: UserProfileDto
+    profile: UserProfileResponseDto
     is_setter: bool
     total_experience: int
     contest_list: List[LectorContestDto]
@@ -174,7 +176,7 @@ class LectorResponseDto(BaseModel):
 
         return LectorResponseDto(
             lector_id=entity.id,
-            profile=UserProfileDto.from_entity(entity.user),
+            profile=UserProfileResponseDto.from_entity(entity.user),
             is_setter=entity.is_setter,
             total_experience=total_experience // (365 * 24 * 60 * 60),
             contest_list=[LectorContestDto(year=e.year, title=e.title, name=e.name) for e in entity.contest],

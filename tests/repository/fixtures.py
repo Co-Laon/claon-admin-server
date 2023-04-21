@@ -22,6 +22,7 @@ center_wall_repository = CenterWallRepository()
 @pytest.fixture(autouse=True)
 async def user_fixture(session: AsyncSession):
     user = User(
+        oauth_id="oauth_id",
         nickname="nickname",
         profile_img="profile_img",
         sns="sns",
@@ -36,10 +37,10 @@ async def user_fixture(session: AsyncSession):
 
 
 @pytest.fixture(autouse=True)
-async def lector_fixture(session: AsyncSession, user_fixture):
+async def lector_fixture(session: AsyncSession, user_fixture: User):
     lector = Lector(
-        user=user_fixture,
         is_setter=True,
+        approved=False,
         contest=[Contest(year=2021, title="title", name="name")],
         certificate=[
             Certificate(
@@ -55,7 +56,7 @@ async def lector_fixture(session: AsyncSession, user_fixture):
                 name="career"
             )
         ],
-        approved=False
+        user=user_fixture
     )
 
     lector = await lector_repository.save(session, lector)
@@ -64,10 +65,7 @@ async def lector_fixture(session: AsyncSession, user_fixture):
 
 
 @pytest.fixture(autouse=True)
-async def center_fixture(
-        session: AsyncSession,
-        user_fixture
-):
+async def center_fixture(session: AsyncSession, user_fixture: User):
     center = Center(
         user=user_fixture,
         name="test center",
@@ -92,7 +90,7 @@ async def center_fixture(
 
 
 @pytest.fixture(autouse=True)
-async def lector_approved_file_fixture(session: AsyncSession, lector_fixture):
+async def lector_approved_file_fixture(session: AsyncSession, lector_fixture: Lector):
     lector_approved_file = LectorApprovedFile(
         lector=lector_fixture,
         url="https://test.com/test.pdf"
@@ -104,7 +102,7 @@ async def lector_approved_file_fixture(session: AsyncSession, lector_fixture):
 
 
 @pytest.fixture(autouse=True)
-async def center_approved_file_fixture(session: AsyncSession, user_fixture, center_fixture):
+async def center_approved_file_fixture(session: AsyncSession, user_fixture: User, center_fixture: Center):
     center_approved_file = CenterApprovedFile(
         user=user_fixture,
         center=center_fixture,
@@ -117,7 +115,7 @@ async def center_approved_file_fixture(session: AsyncSession, user_fixture, cent
 
 
 @pytest.fixture(autouse=True)
-async def center_holds_fixture(session: AsyncSession, center_fixture):
+async def center_holds_fixture(session: AsyncSession, center_fixture: Center):
     center_hold = CenterHold(
         center=center_fixture,
         name="hold_name",
@@ -131,7 +129,7 @@ async def center_holds_fixture(session: AsyncSession, center_fixture):
 
 
 @pytest.fixture(autouse=True)
-async def center_walls_fixture(session: AsyncSession, center_fixture):
+async def center_walls_fixture(session: AsyncSession, center_fixture: Center):
     center_wall = CenterWall(
         center=center_fixture,
         name="wall",

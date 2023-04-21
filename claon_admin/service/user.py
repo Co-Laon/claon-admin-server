@@ -1,15 +1,22 @@
+import uuid
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException, ErrorCode
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.center import CenterRequestDto, CenterResponseDto
-from claon_admin.model.enum import Role
-from claon_admin.model.user import IsDuplicatedNicknameResponseDto, LectorRequestDto, LectorResponseDto
+from claon_admin.model.user import IsDuplicatedNicknameResponseDto, LectorRequestDto, LectorResponseDto, \
+    UserProfileResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterFee, \
     CenterFeeImage, CenterHold, CenterWall, CenterApprovedFile, CenterHoldRepository, CenterWallRepository, \
     CenterApprovedFileRepository
 from claon_admin.schema.user import UserRepository, LectorRepository, Lector, Contest, Certificate, Career, \
-    LectorApprovedFile, LectorApprovedFileRepository
+    LectorApprovedFile, LectorApprovedFileRepository, User
+from claon_admin.common.util.jwt import create_access_token, create_refresh_token
+from claon_admin.infra.provider import OAuthUserInfoProviderSupplier, UserInfoProvider
+from claon_admin.model.auth import OAuthUserInfoDto
+from claon_admin.model.enum import OAuthProvider, Role
+from claon_admin.model.user import SignInRequestDto, JwtResponseDto
 
 
 class UserService:
@@ -20,7 +27,8 @@ class UserService:
                  center_repository: CenterRepository,
                  center_approved_file_repository: CenterApprovedFileRepository,
                  center_hold_repository: CenterHoldRepository,
-                 center_wall_repository: CenterWallRepository):
+                 center_wall_repository: CenterWallRepository,
+                 oauth_user_info_provider_supplier: OAuthUserInfoProviderSupplier):
         self.user_repository = user_repository
         self.lector_repository = lector_repository
         self.lector_approved_file_repository = lector_approved_file_repository
@@ -28,6 +36,7 @@ class UserService:
         self.center_approved_file_repository = center_approved_file_repository
         self.center_hold_repository = center_hold_repository
         self.center_wall_repository = center_wall_repository
+        self.supplier = oauth_user_info_provider_supplier
 
     async def check_nickname_duplication(self, session: AsyncSession, nickname: str):
         is_duplicated = await self.user_repository.exist_by_nickname(session, nickname)
@@ -191,3 +200,36 @@ class UserService:
             )
 
         await self.center_repository.delete(session, center)
+
+    async def sign_in(self,
+                      session: AsyncSession,
+                      provider: OAuthProvider,
+                      dto: SignInRequestDto):
+        provider: UserInfoProvider = await self.supplier.get_provider(provider=provider)
+        oauth_dto: OAuthUserInfoDto = await provider.get_user_info(token=dto.id_token)
+
+        user = await self.user_repository.find_by_oauth_id_and_sns(session, oauth_dto.oauth_id, oauth_dto.sns_email)
+
+        is_signed_up = True
+        if user is None:
+            is_signed_up = False
+            user = User(
+                oauth_id=oauth_dto.oauth_id,
+                nickname=str(uuid.uuid4()),
+                sns=oauth_dto.sns_email,
+                role=Role.PENDING
+            )
+            await self.user_repository.save(session, user)
+
+        return JwtResponseDto(
+            access_token=create_access_token(user.id),
+            refresh_token=create_refresh_token(user.id),
+            is_signed_up=is_signed_up,
+            profile=UserProfileResponseDto(
+                profile_image=user.profile_img,
+                nickname=user.nickname,
+                email=user.email,
+                insstagram_nickname=user.instagram_name,
+                role=user.role
+            )
+        )

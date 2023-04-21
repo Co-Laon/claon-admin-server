@@ -5,8 +5,8 @@ from claon_admin.model.enum import Role
 from claon_admin.schema.user import (
     UserRepository,
     LectorRepository,
-    Lector,
-    LectorApprovedFileRepository, LectorApprovedFile
+    User,
+    LectorApprovedFileRepository, LectorApprovedFile, Lector
 )
 
 user_repository = UserRepository()
@@ -17,8 +17,8 @@ lector_approved_file_repository = LectorApprovedFileRepository()
 @pytest.mark.asyncio
 async def test_save_lector(
         session: AsyncSession,
-        user_fixture,
-        lector_fixture
+        user_fixture: User,
+        lector_fixture: Lector
 ):
     # then
     assert lector_fixture.user.id == user_fixture.id
@@ -128,8 +128,8 @@ async def test_approve_lector_by_id(
 @pytest.mark.asyncio
 async def test_find_user_by_valid_id(
         session: AsyncSession,
-        user_fixture,
-        lector_fixture
+        user_fixture: User,
+        lector_fixture: Lector
 ):
     # given
     user_id = user_fixture.id
@@ -150,7 +150,8 @@ async def test_find_user_by_valid_id(
 @pytest.mark.asyncio
 async def test_find_user_by_invalid_id(
         session: AsyncSession,
-        user_fixture):
+        user_fixture: User
+):
     # given
     wrong_id = "wrong_id"
 
@@ -164,7 +165,8 @@ async def test_find_user_by_invalid_id(
 @pytest.mark.asyncio
 async def test_exist_user_by_valid_id(
         session: AsyncSession,
-        user_fixture):
+        user_fixture: User
+):
     # given
     user_id = user_fixture.id
 
@@ -178,7 +180,8 @@ async def test_exist_user_by_valid_id(
 @pytest.mark.asyncio
 async def test_exist_user_by_invalid_id(
         session: AsyncSession,
-        user_fixture):
+        user_fixture: User
+):
     # given
     wrong_id = "wrong_id"
 
@@ -192,7 +195,8 @@ async def test_exist_user_by_invalid_id(
 @pytest.mark.asyncio
 async def test_find_user_by_not_existing_nickname(
         session: AsyncSession,
-        user_fixture):
+        user_fixture: User
+):
     # given
     nickname = "not_existing_nickname"
 
@@ -206,7 +210,8 @@ async def test_find_user_by_not_existing_nickname(
 @pytest.mark.asyncio
 async def test_find_user_by_existing_nickname(
         session: AsyncSession,
-        user_fixture):
+        user_fixture: User
+):
     # given
     nickname = user_fixture.nickname
 
@@ -226,7 +231,8 @@ async def test_find_user_by_existing_nickname(
 @pytest.mark.asyncio
 async def test_exist_user_by_not_existing_nickname(
         session: AsyncSession,
-        user_fixture):
+        user_fixture: User
+):
     # given
     nickname = "not_existing_nickname"
 
@@ -240,7 +246,8 @@ async def test_exist_user_by_not_existing_nickname(
 @pytest.mark.asyncio
 async def test_exist_user_by_existing_nickname(
         session: AsyncSession,
-        user_fixture):
+        user_fixture: User
+):
     # given
     nickname = user_fixture.nickname
 
@@ -254,7 +261,7 @@ async def test_exist_user_by_existing_nickname(
 @pytest.mark.asyncio
 async def test_save_lector_approved_file(
         session: AsyncSession,
-        lector_fixture,
+        lector_fixture: Lector,
         lector_approved_file_fixture: LectorApprovedFile
 ):
     # then
@@ -265,7 +272,7 @@ async def test_save_lector_approved_file(
 @pytest.mark.asyncio
 async def test_save_all_lector_approved_files(
         session: AsyncSession,
-        lector_fixture,
+        lector_fixture: Lector,
         lector_approved_file_fixture: LectorApprovedFile
 ):
     # when
@@ -286,3 +293,34 @@ async def test_find_all_lector_approved_files_by_lector_id(
 
     # then
     assert lector_approved_files == [lector_approved_file_fixture]
+
+
+async def test_find_by_oauth_id_and_sns(session: AsyncSession, user_fixture: User):
+    # given
+    user_oauth_id = user_fixture.oauth_id
+    user_sns = user_fixture.sns
+
+    # when
+    result = await user_repository.find_by_oauth_id_and_sns(session, user_oauth_id, user_sns)
+
+    # then
+    assert result.oauth_id == user_fixture.oauth_id
+    assert result.nickname == user_fixture.nickname
+    assert result.profile_img == user_fixture.profile_img
+    assert result.sns == user_fixture.sns
+    assert result.email == user_fixture.email
+    assert result.instagram_name == user_fixture.instagram_name
+    assert result.role == user_fixture.role
+
+
+@pytest.mark.asyncio
+async def test_find_by_invalid_oauth_id_and_sns(session: AsyncSession, user_fixture: User):
+    # given
+    user_oauth_id = "wrong_id"
+    user_sns = user_fixture.sns
+
+    # when
+    result = await user_repository.find_by_oauth_id_and_sns(session, user_oauth_id, user_sns)
+
+    # then
+    assert not result

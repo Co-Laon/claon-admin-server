@@ -1,14 +1,15 @@
 from dependency_injector.wiring import inject, Provide
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from claon_admin.common.util import header
 from claon_admin.config.auth import get_subject
 from claon_admin.container import Container, db
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.center import CenterRequestDto, CenterResponseDto
 from claon_admin.model.enum import OAuthProvider
-from claon_admin.model.user import SignInRequestDto, LectorRequestDto, JwtResponseDto, UserProfileResponseDto, \
+from claon_admin.model.user import SignInRequestDto, LectorRequestDto, JwtResponseDto, \
     IsDuplicatedNicknameResponseDto, LectorResponseDto
 from claon_admin.service.user import UserService
 
@@ -24,10 +25,13 @@ class AuthRouter:
 
     @router.post('/{provider}/sign-in', response_model=JwtResponseDto)
     async def sign_in(self,
+                      response: Response,
                       provider: OAuthProvider,
                       dto: SignInRequestDto,
                       session: AsyncSession = Depends(db.get_db)):
-        pass
+        jwt_dto: JwtResponseDto = await self.user_service.sign_in(session, provider, dto)
+        header.add_jwt_tokens(response, jwt_dto.access_token, jwt_dto.refresh_token)
+        return jwt_dto
 
     @router.post('/center/sign-up', response_model=CenterResponseDto)
     async def center_sign_up(self,

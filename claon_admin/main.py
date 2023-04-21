@@ -12,7 +12,7 @@ from claon_admin.common.error.handler import add_http_exception_handler
 from claon_admin.config.consts import SESSION_SECRET_KEY
 from claon_admin.container import Container, db
 from claon_admin.middleware.log import LoggerMiddleware
-from claon_admin.router import example, center, auth, admin
+from claon_admin.router import center, auth, admin
 
 nest_asyncio.apply()
 
@@ -28,14 +28,13 @@ def create_app() -> FastAPI:
     container = Container()
 
     """ Define Container """
-    container.wire(modules=[example])
+    container.wire(modules=[auth])
     app.container = container
 
     """ Define Routers """
     api_version = "v1"
     api_prefix = "/api/" + api_version
 
-    app.include_router(example.router, prefix=api_prefix + "/example")
     app.include_router(auth.router, prefix=api_prefix + "/auth")
     app.include_router(center.router, prefix=api_prefix + "/centers")
     app.include_router(admin.router, prefix=api_prefix + "/admin")
@@ -57,7 +56,6 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-
 
 if __name__ == "__main__":
     uvicorn.run('main:app', host='0.0.0.0', port=8000, reload=True)

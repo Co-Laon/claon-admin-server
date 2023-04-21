@@ -10,14 +10,12 @@ try:
 except FileNotFoundError:
     pass
 
-
 redis_config = ConfigParser(allow_no_value=True)
 try:
     with open("redis_config_prod.ini") as file:
         redis_config.read_file(file)
 except FileNotFoundError:
     pass
-
 
 config = ConfigParser(allow_no_value=True)
 try:
