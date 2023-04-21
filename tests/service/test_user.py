@@ -1,3 +1,4 @@
+import uuid
 from datetime import date
 from typing import List
 from unittest.mock import AsyncMock, patch
@@ -51,7 +52,7 @@ def mock_supplier():
 
 
 @pytest.fixture
-def user_service(mock_repo: dict, mock_supplier):
+def user_service(mock_repo: dict, mock_supplier: OAuthUserInfoProviderSupplier):
     return UserService(
         mock_repo["user"],
         mock_repo["lector"],
@@ -65,7 +66,21 @@ def user_service(mock_repo: dict, mock_supplier):
 
 
 @pytest.fixture
-def lector_request_dto(session: AsyncSession, mock_user):
+def mock_user():
+    yield User(
+        id=str(uuid.uuid4()),
+        oauth_id="oauth_id",
+        nickname="nickname",
+        profile_img="profile_img",
+        sns="sns",
+        email="test@test.com",
+        instagram_name="instagram_name",
+        role=Role.PENDING
+    )
+
+
+@pytest.fixture
+def lector_request_dto(session: AsyncSession, mock_user: User):
     yield LectorRequestDto(
         profile=UserProfileResponseDto.from_entity(mock_user),
         is_setter=True,
@@ -95,7 +110,7 @@ def lector_request_dto(session: AsyncSession, mock_user):
 
 
 @pytest.fixture
-async def center_request_dto(session: AsyncSession, mock_user):
+async def center_request_dto(session: AsyncSession, mock_user: User):
     yield CenterRequestDto(
         profile=UserProfileDto(
             profile_image=mock_user.profile_img,
@@ -124,21 +139,9 @@ async def center_request_dto(session: AsyncSession, mock_user):
 
 
 @pytest.fixture
-def mock_user():
-    yield User(
-        oauth_id="oauth_id",
-        nickname="nickname",
-        profile_img="profile_img",
-        sns="sns",
-        email="test@test.com",
-        instagram_name="instagram_name",
-        role=Role.PENDING
-    )
-
-
-@pytest.fixture
 def mock_lector(mock_user: User):
     yield Lector(
+        id=str(uuid.uuid4()),
         user=mock_user,
         is_setter=True,
         contest=[Contest(year=2021, title="title", name="name")],
@@ -161,8 +164,9 @@ def mock_lector(mock_user: User):
 
 
 @pytest.fixture
-def mock_lector_approved_files():
+def mock_lector_approved_files(mock_lector: Lector):
     yield LectorApprovedFile(
+        id=str(uuid.uuid4()),
         lector=mock_lector,
         url="https://test.com/test.pdf"
     )
@@ -171,6 +175,7 @@ def mock_lector_approved_files():
 @pytest.fixture
 def mock_center(mock_user: User):
     yield Center(
+        id=str(uuid.uuid4()),
         user=mock_user,
         name="test center",
         profile_img="https://test.profile.png",
@@ -193,6 +198,7 @@ def mock_center(mock_user: User):
 def mock_center_approved_files(mock_user: User, mock_center: Center):
     yield [
         CenterApprovedFile(
+            id=str(uuid.uuid4()),
             user=mock_user,
             center=mock_center,
             url="https://example.com/approved.jpg"
@@ -204,6 +210,7 @@ def mock_center_approved_files(mock_user: User, mock_center: Center):
 def mock_center_holds(mock_center: Center):
     yield [
         CenterHold(
+            id=str(uuid.uuid4()),
             center=mock_center,
             name="hold",
             difficulty="hard",
@@ -216,6 +223,7 @@ def mock_center_holds(mock_center: Center):
 def mock_center_walls(mock_center: Center):
     yield [
         CenterWall(
+            id=str(uuid.uuid4()),
             center=mock_center,
             name="wall",
             type=WallType.ENDURANCE.value
@@ -269,8 +277,8 @@ async def test_sign_up_existing_center(
         session: AsyncSession,
         mock_repo: dict,
         user_service: UserService,
-        center_request_dto):
-
+        center_request_dto: CenterRequestDto
+):
     # given
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.CENTER_ADMIN)
 
@@ -285,10 +293,10 @@ async def test_sign_up_lector(
         session: AsyncSession,
         mock_repo: dict,
         user_service: UserService,
-        mock_user,
-        mock_lector,
+        mock_user: User,
+        mock_lector: Lector,
         mock_lector_approved_files: LectorApprovedFile,
-        lector_request_dto
+        lector_request_dto: LectorRequestDto
 ):
     # given
     profile = UserProfileResponseDto.from_entity(mock_user)
@@ -334,8 +342,8 @@ async def test_sign_up_existing_lector(
         session: AsyncSession,
         mock_repo: dict,
         user_service: UserService,
-        lector_request_dto):
-
+        lector_request_dto: LectorRequestDto
+):
     # given
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.LECTOR)
 
@@ -382,9 +390,10 @@ async def test_sign_in(
         mock_create_refresh_token,
         session: AsyncSession,
         mock_repo: dict,
-        mock_user,
-        mock_supplier,
-        user_service: UserService):
+        mock_user: User,
+        mock_supplier: OAuthUserInfoProviderSupplier,
+        user_service: UserService
+):
     # given
     mock_repo["user"].find_by_oauth_id_and_sns.side_effect = [mock_user]
     mock_repo["user"].save.side_effect = [mock_user]

@@ -15,7 +15,6 @@ class UserInfoProvider:
 
 
 class GoogleUserInfoProvider(UserInfoProvider):
-
     async def get_user_info(self, token: str):
         try:
             id_token = verify_oauth2_token(token, Request(), GOOGLE_CLIENT_ID)
@@ -27,7 +26,6 @@ class GoogleUserInfoProvider(UserInfoProvider):
                 )
 
             return OAuthUserInfoDto(oauth_id=id_token['sub'], sns_email=id_token['email'])
-
         except Exception:
             raise InternalServerException(
                 ErrorCode.INTERNAL_SERVER_ERROR,
@@ -42,7 +40,6 @@ class OAuthUserInfoProviderSupplier:
     async def get_provider(self, provider: OAuthProvider):
         try:
             return self.supplier.get(provider)
-
         except Exception:
             raise InternalServerException(
                 ErrorCode.INTERNAL_SERVER_ERROR,
