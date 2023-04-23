@@ -5,6 +5,7 @@ import nest_asyncio
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_pagination import add_pagination
 from starlette.middleware.sessions import SessionMiddleware
 
 from claon_admin.common.error.handler import add_http_exception_handler
@@ -49,6 +50,7 @@ def create_app() -> FastAPI:
 
     app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET_KEY)
     app.add_middleware(LoggerMiddleware)
+    add_pagination(app)
 
     add_http_exception_handler(app)
 

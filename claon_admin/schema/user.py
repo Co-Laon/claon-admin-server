@@ -3,9 +3,11 @@ from datetime import date
 from typing import List
 from uuid import uuid4
 
+from fastapi_pagination import Params
+from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, select, exists, and_
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, selectinload
 from sqlalchemy.dialects.postgresql import TEXT
 
 from claon_admin.model.enum import Role
@@ -66,6 +68,9 @@ class Lector(Base):
 
     @property
     def contest(self):
+        if self._contest is None:
+            return []
+
         values = json.loads(self._contest)
         return [Contest(value['year'], value['title'], value['name']) for value in values]
 
@@ -75,6 +80,9 @@ class Lector(Base):
 
     @property
     def certificate(self):
+        if self._certificate is None:
+            return []
+
         values = json.loads(self._certificate)
         return [Certificate(value['acquisition_date'], value['rate'], value['name']) for value in values]
 
@@ -84,6 +92,9 @@ class Lector(Base):
 
     @property
     def career(self):
+        if self._career is None:
+            return []
+
         values = json.loads(self._career)
         return [Career(value['start_date'], value['end_date'], value['name']) for value in values]
 
@@ -140,6 +151,11 @@ class LectorRepository:
         session.add(lector)
         await session.flush()
         return lector
+
+    # TODO: Need to be removed later
+    @staticmethod
+    async def test_pagination(session: AsyncSession, params: Params):
+        return await paginate(query=select(Lector).options(selectinload(Lector.user)), conn=session, params=params)
 
 
 class LectorApprovedFileRepository:
