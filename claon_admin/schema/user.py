@@ -160,6 +160,16 @@ class LectorRepository:
         session.add(lector)
         await session.merge(lector)
         return lector
+    
+    @staticmethod
+    async def find_by_approved_true(session: AsyncSession):
+        result = await session.execute(
+            select(Lector)
+            .where(Lector.approved == False)
+            .options(selectinload(Lector.user))
+        )
+      
+        return result.scalars().all()
 
     @staticmethod
     async def delete(session: AsyncSession, lector: Lector):
