@@ -2,6 +2,7 @@ from dataclasses import asdict
 
 from dependency_injector import containers, providers
 
+from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.config.config import conf
 from claon_admin.infra.provider import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider, KakaoUserInfoProvider
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, CenterHoldRepository, \
@@ -22,6 +23,7 @@ class Container(containers.DeclarativeContainer):
     center_approved_file_repository = providers.Factory(CenterApprovedFileRepository)
     center_hold_repository = providers.Factory(CenterHoldRepository)
     center_wall_repository = providers.Factory(CenterWallRepository)
+    pagination_factory = providers.Factory(PaginationFactory)
 
     """ Infrastructure """
     google_user_info_provider = providers.Factory(GoogleUserInfoProvider)
@@ -42,5 +44,6 @@ class Container(containers.DeclarativeContainer):
         center_approved_file_repository=center_approved_file_repository,
         center_hold_repository=center_hold_repository,
         center_wall_repository=center_wall_repository,
-        oauth_user_info_provider_supplier=oauth_user_info_provider_supplier
+        oauth_user_info_provider_supplier=oauth_user_info_provider_supplier,
+        pagination_factory=pagination_factory
     )

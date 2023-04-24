@@ -1,8 +1,10 @@
 from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Depends, Response
+from fastapi_pagination import Params
 from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from claon_admin.common.util.pagination import Pagination
 from claon_admin.common.util import header
 from claon_admin.config.auth import get_subject
 from claon_admin.container import Container, db
@@ -52,3 +54,10 @@ class AuthRouter:
                                      nickname: str,
                                      session: AsyncSession = Depends(db.get_db)):
         return await self.user_service.check_nickname_duplication(session, nickname)
+
+    # TODO: Need to be removed later
+    @router.get('/pagination-example', response_model=Pagination[LectorResponseDto])
+    async def test_pagination(self,
+                              params: Params = Depends(),
+                              session: AsyncSession = Depends(db.get_db)):
+        return await self.user_service.test_pagination(params, session)

@@ -1,11 +1,13 @@
 import uuid
 
+from fastapi_pagination import Params
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException, ErrorCode
 from claon_admin.common.util.jwt import create_access_token, create_refresh_token
 from claon_admin.infra.provider import OAuthUserInfoProviderSupplier, UserInfoProvider
 from claon_admin.model.auth import OAuthUserInfoDto
+from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.center import CenterAuthRequestDto, CenterResponseDto
 from claon_admin.model.enum import OAuthProvider, Role
@@ -28,7 +30,8 @@ class UserService:
                  center_approved_file_repository: CenterApprovedFileRepository,
                  center_hold_repository: CenterHoldRepository,
                  center_wall_repository: CenterWallRepository,
-                 oauth_user_info_provider_supplier: OAuthUserInfoProviderSupplier):
+                 oauth_user_info_provider_supplier: OAuthUserInfoProviderSupplier,
+                 pagination_factory: PaginationFactory):
         self.user_repository = user_repository
         self.lector_repository = lector_repository
         self.lector_approved_file_repository = lector_approved_file_repository
@@ -37,6 +40,7 @@ class UserService:
         self.center_hold_repository = center_hold_repository
         self.center_wall_repository = center_wall_repository
         self.supplier = oauth_user_info_provider_supplier
+        self.pagination_factory = pagination_factory
 
     async def check_nickname_duplication(self, session: AsyncSession, nickname: str):
         is_duplicated = await self.user_repository.exist_by_nickname(session, nickname)
@@ -164,3 +168,8 @@ class UserService:
                 role=user.role
             )
         )
+
+    # TODO: Need to be removed later
+    async def test_pagination(self, params: Params, session: AsyncSession):
+        pages = await self.lector_repository.test_pagination(session, params)
+        return await self.pagination_factory.create(LectorResponseDto, pages)

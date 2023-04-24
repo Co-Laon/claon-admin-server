@@ -7,6 +7,7 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException
+from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.infra.provider import GoogleUserInfoProvider, OAuthUserInfoProviderSupplier, KakaoUserInfoProvider
 from claon_admin.model.auth import OAuthUserInfoDto
 from claon_admin.model.auth import RequestUser
@@ -34,6 +35,7 @@ def mock_repo():
     center_approved_file_repository = AsyncMock(spec=CenterApprovedFileRepository)
     center_hold_repository = AsyncMock(spec=CenterHoldRepository)
     center_wall_repository = AsyncMock(spec=CenterWallRepository)
+    pagination_factory = AsyncMock(spec=PaginationFactory)
 
     return {
         "user": user_repository,
@@ -42,7 +44,8 @@ def mock_repo():
         "center": center_repository,
         "center_approved_file": center_approved_file_repository,
         "center_hold": center_hold_repository,
-        "center_wall": center_wall_repository
+        "center_wall": center_wall_repository,
+        "pagination_factory" : pagination_factory
     }
 
 
@@ -61,7 +64,8 @@ def user_service(mock_repo: dict, mock_supplier: OAuthUserInfoProviderSupplier):
         mock_repo["center_approved_file"],
         mock_repo["center_hold"],
         mock_repo["center_wall"],
-        mock_supplier
+        mock_supplier,
+        mock_repo["pagination_factory"]
     )
 
 
