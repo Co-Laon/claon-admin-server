@@ -2,9 +2,6 @@ import asyncio
 import nest_asyncio
 import pytest
 
-pytest_plugins = [
-    "tests.repository.fixtures"
-]
 nest_asyncio.apply()
 
 

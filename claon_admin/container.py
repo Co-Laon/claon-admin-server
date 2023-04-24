@@ -8,6 +8,7 @@ from claon_admin.schema.center import CenterRepository, CenterApprovedFileReposi
     CenterWallRepository
 from claon_admin.schema.conn import Database
 from claon_admin.schema.user import UserRepository, LectorRepository, LectorApprovedFileRepository
+from claon_admin.service.admin import AdminService
 from claon_admin.service.user import UserService
 
 db = Database(db_url=asdict(conf())['DB_URL'])
@@ -43,4 +44,12 @@ class Container(containers.DeclarativeContainer):
         center_hold_repository=center_hold_repository,
         center_wall_repository=center_wall_repository,
         oauth_user_info_provider_supplier=oauth_user_info_provider_supplier
+    )
+
+    admin_service = providers.Factory(
+        AdminService,
+        lector_repository=lector_repository,
+        lector_approved_file_repository=lector_approved_file_repository,
+        center_repository=center_repository,
+        center_approved_file_repository=center_approved_file_repository
     )
