@@ -1,5 +1,6 @@
 from typing import Dict
 
+import requests
 from google.oauth2.id_token import verify_oauth2_token
 from google.auth.transport.requests import Request
 
@@ -33,9 +34,36 @@ class GoogleUserInfoProvider(UserInfoProvider):
             )
 
 
+class KakaoUserInfoProvider(UserInfoProvider):
+    async def get_user_info(self, token: str):
+        try:
+            response: requests.Response = requests.get(
+                url="https://kapi.kakao.com/v2/user/me",
+                headers={
+                    "Authorization": "Bearer " + token,
+                    "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
+                }
+            )
+
+            response.raise_for_status()
+
+            user = response.json()
+            return OAuthUserInfoDto(oauth_id=user['id'], sns_email=user['kakao_account']['email'])
+        except Exception:
+            raise InternalServerException(
+                ErrorCode.INTERNAL_SERVER_ERROR,
+                "Failed to Kakao login"
+            )
+
+
 class OAuthUserInfoProviderSupplier:
-    def __init__(self, google_user_info_provider: GoogleUserInfoProvider):
-        self.supplier: Dict[OAuthProvider, UserInfoProvider] = {OAuthProvider.GOOGLE: google_user_info_provider}
+    def __init__(self,
+                 google_user_info_provider: GoogleUserInfoProvider,
+                 kakao_user_info_provider: KakaoUserInfoProvider):
+        self.supplier: Dict[OAuthProvider, UserInfoProvider] = {
+            OAuthProvider.GOOGLE: google_user_info_provider,
+            OAuthProvider.KAKAO: kakao_user_info_provider
+        }
 
     async def get_provider(self, provider: OAuthProvider):
         try:

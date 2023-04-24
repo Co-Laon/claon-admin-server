@@ -4,7 +4,6 @@ from os import environ
 import nest_asyncio
 import uvicorn
 from fastapi import FastAPI
-
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
@@ -12,7 +11,7 @@ from claon_admin.common.error.handler import add_http_exception_handler
 from claon_admin.config.consts import SESSION_SECRET_KEY
 from claon_admin.container import Container, db
 from claon_admin.middleware.log import LoggerMiddleware
-from claon_admin.router import center, auth, admin
+from claon_admin.router import center, auth, admin, user
 
 nest_asyncio.apply()
 
@@ -38,6 +37,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router, prefix=api_prefix + "/auth")
     app.include_router(center.router, prefix=api_prefix + "/centers")
     app.include_router(admin.router, prefix=api_prefix + "/admin")
+    app.include_router(user.router, prefix=api_prefix + "/users")
 
     app.add_middleware(
         CORSMiddleware,

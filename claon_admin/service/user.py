@@ -3,20 +3,20 @@ import uuid
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException, ErrorCode
+from claon_admin.common.util.jwt import create_access_token, create_refresh_token
+from claon_admin.infra.provider import OAuthUserInfoProviderSupplier, UserInfoProvider
+from claon_admin.model.auth import OAuthUserInfoDto
 from claon_admin.model.auth import RequestUser
-from claon_admin.model.center import CenterRequestDto, CenterResponseDto
+from claon_admin.model.center import CenterAuthRequestDto, CenterResponseDto
+from claon_admin.model.enum import OAuthProvider, Role
 from claon_admin.model.user import IsDuplicatedNicknameResponseDto, LectorRequestDto, LectorResponseDto, \
     UserProfileResponseDto
+from claon_admin.model.user import SignInRequestDto, JwtResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterFee, \
     CenterFeeImage, CenterHold, CenterWall, CenterApprovedFile, CenterHoldRepository, CenterWallRepository, \
     CenterApprovedFileRepository
 from claon_admin.schema.user import UserRepository, LectorRepository, Lector, Contest, Certificate, Career, \
     LectorApprovedFile, LectorApprovedFileRepository, User
-from claon_admin.common.util.jwt import create_access_token, create_refresh_token
-from claon_admin.infra.provider import OAuthUserInfoProviderSupplier, UserInfoProvider
-from claon_admin.model.auth import OAuthUserInfoDto
-from claon_admin.model.enum import OAuthProvider, Role
-from claon_admin.model.user import SignInRequestDto, JwtResponseDto
 
 
 class UserService:
@@ -42,7 +42,7 @@ class UserService:
         is_duplicated = await self.user_repository.exist_by_nickname(session, nickname)
         return IsDuplicatedNicknameResponseDto(is_duplicated=is_duplicated)
 
-    async def sign_up_center(self, session: AsyncSession, subject: RequestUser, dto: CenterRequestDto):
+    async def sign_up_center(self, session: AsyncSession, subject: RequestUser, dto: CenterAuthRequestDto):
         if subject.role != Role.PENDING:
             raise BadRequestException(
                 ErrorCode.USER_ALREADY_SIGNED_UP,

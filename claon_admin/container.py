@@ -3,7 +3,7 @@ from dataclasses import asdict
 from dependency_injector import containers, providers
 
 from claon_admin.config.config import conf
-from claon_admin.infra.provider import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider
+from claon_admin.infra.provider import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider, KakaoUserInfoProvider
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, CenterHoldRepository, \
     CenterWallRepository
 from claon_admin.schema.conn import Database
@@ -25,9 +25,11 @@ class Container(containers.DeclarativeContainer):
 
     """ Infrastructure """
     google_user_info_provider = providers.Factory(GoogleUserInfoProvider)
+    kakao_user_info_provider = providers.Factory(KakaoUserInfoProvider)
     oauth_user_info_provider_supplier = providers.Factory(
         OAuthUserInfoProviderSupplier,
-        google_user_info_provider=google_user_info_provider
+        google_user_info_provider=google_user_info_provider,
+        kakao_user_info_provider=kakao_user_info_provider
     )
 
     """ Service """

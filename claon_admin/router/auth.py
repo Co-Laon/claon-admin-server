@@ -7,7 +7,7 @@ from claon_admin.common.util import header
 from claon_admin.config.auth import get_subject
 from claon_admin.container import Container, db
 from claon_admin.model.auth import RequestUser
-from claon_admin.model.center import CenterRequestDto, CenterResponseDto
+from claon_admin.model.center import CenterAuthRequestDto, CenterResponseDto
 from claon_admin.model.enum import OAuthProvider
 from claon_admin.model.user import SignInRequestDto, LectorRequestDto, JwtResponseDto, \
     IsDuplicatedNicknameResponseDto, LectorResponseDto
@@ -35,7 +35,7 @@ class AuthRouter:
 
     @router.post('/center/sign-up', response_model=CenterResponseDto)
     async def center_sign_up(self,
-                             dto: CenterRequestDto,
+                             dto: CenterAuthRequestDto,
                              session: AsyncSession = Depends(db.get_db),
                              subject: RequestUser = Depends(get_subject)):
         return await self.user_service.sign_up_center(session, subject, dto)

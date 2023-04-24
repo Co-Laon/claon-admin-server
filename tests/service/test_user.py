@@ -7,21 +7,21 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException
+from claon_admin.infra.provider import GoogleUserInfoProvider, OAuthUserInfoProviderSupplier, KakaoUserInfoProvider
+from claon_admin.model.auth import OAuthUserInfoDto
 from claon_admin.model.auth import RequestUser
-from claon_admin.model.center import CenterRequestDto, CenterFeeDto, CenterHoldDto, CenterWallDto, \
+from claon_admin.model.center import CenterAuthRequestDto, CenterFeeDto, CenterHoldDto, CenterWallDto, \
     CenterOperatingTimeDto
+from claon_admin.model.enum import OAuthProvider
 from claon_admin.model.enum import WallType, Role
 from claon_admin.model.user import LectorRequestDto, UserProfileResponseDto, LectorContestDto, LectorCertificateDto, \
     LectorCareerDto, UserProfileDto
+from claon_admin.model.user import SignInRequestDto, JwtResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterHoldRepository, CenterWallRepository, \
     CenterApprovedFileRepository, CenterHold, CenterWall, CenterApprovedFile, CenterImage, OperatingTime, Utility, \
     CenterFee, CenterFeeImage
 from claon_admin.schema.user import User, UserRepository, LectorRepository, Lector, LectorApprovedFileRepository, \
     LectorApprovedFile, Contest, Certificate, Career
-from claon_admin.infra.provider import GoogleUserInfoProvider, OAuthUserInfoProviderSupplier
-from claon_admin.model.auth import OAuthUserInfoDto
-from claon_admin.model.enum import OAuthProvider
-from claon_admin.model.user import SignInRequestDto, JwtResponseDto
 from claon_admin.service.user import UserService
 
 
@@ -117,7 +117,7 @@ def lector_request_dto(session: AsyncSession, mock_user: User):
 
 @pytest.fixture
 async def center_request_dto(session: AsyncSession, mock_user: User):
-    yield CenterRequestDto(
+    yield CenterAuthRequestDto(
         profile=UserProfileDto(
             profile_image=mock_user.profile_img,
             nickname=mock_user.nickname,
@@ -247,7 +247,7 @@ async def test_sign_up_center(
         mock_center_holds: List[CenterHold],
         mock_center_walls: List[CenterWall],
         mock_center_approved_files: List[CenterApprovedFile],
-        center_request_dto: CenterRequestDto
+        center_request_dto: CenterAuthRequestDto
 ):
     # given
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
@@ -283,7 +283,7 @@ async def test_sign_up_existing_center(
         session: AsyncSession,
         mock_repo: dict,
         user_service: UserService,
-        center_request_dto: CenterRequestDto
+        center_request_dto: CenterAuthRequestDto
 ):
     # given
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.CENTER_ADMIN)
@@ -611,7 +611,7 @@ async def test_reject_not_existing_lector(
 
 @pytest.mark.asyncio
 @patch("claon_admin.service.user.create_refresh_token")
-async def test_sign_in(
+async def test_sign_in_with_google(
         mock_create_refresh_token,
         session: AsyncSession,
         mock_repo: dict,
@@ -628,6 +628,39 @@ async def test_sign_in(
 
     oauth_user_info_dto = OAuthUserInfoDto(oauth_id="oauth_id", sns_email="test_sns")
     mock_provider = AsyncMock(spec=GoogleUserInfoProvider)
+    mock_provider.get_user_info.return_value = oauth_user_info_dto
+
+    mock_supplier.get_provider.return_value = mock_provider
+
+    mock_create_refresh_token.return_value = "test_refresh_token"
+
+    # when
+    result: JwtResponseDto = await user_service.sign_in(session, provider_name, sign_in_request_dto)
+
+    # then
+    assert result.access_token is not None
+    assert result.refresh_token is not None
+
+
+@pytest.mark.asyncio
+@patch("claon_admin.service.user.create_refresh_token")
+async def test_sign_in_with_kakao(
+        mock_create_refresh_token,
+        session: AsyncSession,
+        mock_repo: dict,
+        mock_user: User,
+        mock_supplier: OAuthUserInfoProviderSupplier,
+        user_service: UserService
+):
+    # given
+    mock_repo["user"].find_by_oauth_id_and_sns.side_effect = [mock_user]
+    mock_repo["user"].save.side_effect = [mock_user]
+
+    sign_in_request_dto = SignInRequestDto(id_token="test_id_token")
+    provider_name = OAuthProvider.KAKAO
+
+    oauth_user_info_dto = OAuthUserInfoDto(oauth_id="oauth_id", sns_email="test_sns")
+    mock_provider = AsyncMock(spec=KakaoUserInfoProvider)
     mock_provider.get_user_info.return_value = oauth_user_info_dto
 
     mock_supplier.get_provider.return_value = mock_provider
