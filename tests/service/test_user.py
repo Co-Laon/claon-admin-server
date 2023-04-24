@@ -7,21 +7,21 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException
+from claon_admin.infra.provider import GoogleUserInfoProvider, OAuthUserInfoProviderSupplier, KakaoUserInfoProvider
+from claon_admin.model.auth import OAuthUserInfoDto
 from claon_admin.model.auth import RequestUser
-from claon_admin.model.center import CenterRequestDto, CenterFeeDto, CenterHoldDto, CenterWallDto, \
+from claon_admin.model.center import CenterAuthRequestDto, CenterFeeDto, CenterHoldDto, CenterWallDto, \
     CenterOperatingTimeDto
+from claon_admin.model.enum import OAuthProvider
 from claon_admin.model.enum import WallType, Role
 from claon_admin.model.user import LectorRequestDto, UserProfileResponseDto, LectorContestDto, LectorCertificateDto, \
     LectorCareerDto, UserProfileDto
+from claon_admin.model.user import SignInRequestDto, JwtResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterHoldRepository, CenterWallRepository, \
     CenterApprovedFileRepository, CenterHold, CenterWall, CenterApprovedFile, CenterImage, OperatingTime, Utility, \
     CenterFee, CenterFeeImage
 from claon_admin.schema.user import User, UserRepository, LectorRepository, Lector, LectorApprovedFileRepository, \
     LectorApprovedFile, Contest, Certificate, Career
-from claon_admin.infra.provider import GoogleUserInfoProvider, OAuthUserInfoProviderSupplier, KakaoUserInfoProvider
-from claon_admin.model.auth import OAuthUserInfoDto
-from claon_admin.model.enum import OAuthProvider
-from claon_admin.model.user import SignInRequestDto, JwtResponseDto
 from claon_admin.service.user import UserService
 
 
@@ -111,7 +111,7 @@ def lector_request_dto(session: AsyncSession, mock_user: User):
 
 @pytest.fixture
 async def center_request_dto(session: AsyncSession, mock_user: User):
-    yield CenterRequestDto(
+    yield CenterAuthRequestDto(
         profile=UserProfileDto(
             profile_image=mock_user.profile_img,
             nickname=mock_user.nickname,
@@ -241,7 +241,7 @@ async def test_sign_up_center(
         mock_center_holds: List[CenterHold],
         mock_center_walls: List[CenterWall],
         mock_center_approved_files: List[CenterApprovedFile],
-        center_request_dto: CenterRequestDto
+        center_request_dto: CenterAuthRequestDto
 ):
     # given
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
@@ -277,7 +277,7 @@ async def test_sign_up_existing_center(
         session: AsyncSession,
         mock_repo: dict,
         user_service: UserService,
-        center_request_dto: CenterRequestDto
+        center_request_dto: CenterAuthRequestDto
 ):
     # given
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.CENTER_ADMIN)

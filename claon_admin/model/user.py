@@ -46,9 +46,9 @@ class UserProfileDto(BaseModel):
         for c in value:
             if not (('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
-                raise ValueError('닉네임은 한글, 영문, 숫자로만 입력 해주세요.')
+                raise ValueError('닉네임은 한글, 영문, 숫자로만 입력해 주세요.')
         if len(value) < 2 or len(value) > 20:
-            raise ValueError('닉네임은 2자 이상 20자 이하로 입력 해주세요.')
+            raise ValueError('닉네임은 2자 이상 20자 이하로 입력해 주세요.')
         return value
 
     @validator('instagram_nickname')
@@ -56,9 +56,9 @@ class UserProfileDto(BaseModel):
         for c in value:
             if not ((c == '_') or (c == '.') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
-                raise ValueError('인스타그램 닉네임은 한글, 영문, 숫자 및 유효 특수문자로만 입력 해주세요.')
+                raise ValueError('인스타그램 닉네임은 한글, 영문, 숫자 및 유효 특수문자로만 입력해 주세요.')
         if value is not None and (len(value) < 3 or len(value) > 30):
-            raise ValueError('인스타그램 닉네임은 3자 이상 30자 이하로 입력 해주세요.')
+            raise ValueError('인스타그램 닉네임은 3자 이상 30자 이하로 입력해 주세요.')
         return value
 
 
@@ -77,9 +77,9 @@ class LectorContestDto(BaseModel):
     @validator('year')
     def validate_year(cls, value):
         if len(str(value)) != 4:
-            raise ValueError('연도는 4자리로 입력 해주세요.')
+            raise ValueError('연도는 4자리로 입력해 주세요.')
         if value < 1976:
-            raise ValueError('연도는 1976년 이후로 입력 해주세요.')
+            raise ValueError('연도는 1976년 이후로 입력해 주세요.')
         return value
 
     @validator('title')
@@ -87,9 +87,9 @@ class LectorContestDto(BaseModel):
         for c in value:
             if not ((c == ' ') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
-                raise ValueError('수상명은 한글, 영문, 숫자로만 입력 해주세요.')
+                raise ValueError('수상명은 한글, 영문, 숫자로만 입력해 주세요.')
         if len(value) < 1 or len(value) > 50:
-            raise ValueError('수상명은 50자 이하로 입력 해주세요.')
+            raise ValueError('수상명은 50자 이하로 입력해 주세요.')
         return value
 
     @validator('name')
@@ -97,9 +97,9 @@ class LectorContestDto(BaseModel):
         for c in value:
             if not ((c == ' ') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
-                raise ValueError('대회명은 한글, 영문, 숫자로만 입력 해주세요.')
+                raise ValueError('대회명은 한글, 영문, 숫자로만 입력해 주세요.')
         if len(value) < 1 or len(value) > 50:
-            raise ValueError('대회명은 50자 이하로 입력 해주세요.')
+            raise ValueError('대회명은 50자 이하로 입력해 주세요.')
         return value
 
 
@@ -111,7 +111,7 @@ class LectorCertificateDto(BaseModel):
     @validator('rate')
     def validate_rate(cls, value):
         if value < 1 or value > 99:
-            raise ValueError('급수는 1 이상 100미만 으로 입력 해주세요.')
+            raise ValueError('급수는 1 이상 100미만 으로 입력해 주세요.')
         return value
 
     @validator('name')
@@ -135,9 +135,9 @@ class LectorCareerDto(BaseModel):
         for c in value:
             if not ((c == ' ') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
                     KOR_BEGIN_CODE <= ord(c) <= KOR_END_CODE) or c.isdigit()):
-                raise ValueError('경력명은 한글, 영문, 숫자로만 입력 해주세요.')
+                raise ValueError('경력명은 한글, 영문, 숫자로만 입력해 주세요.')
         if len(value) < 1 or len(value) > 50:
-            raise ValueError('경력명은 50자 이하로 입력 해주세요.')
+            raise ValueError('경력명은 50자 이하로 입력해 주세요.')
         return value
 
 
@@ -152,7 +152,7 @@ class LectorRequestDto(BaseModel):
     @validator('proof_list')
     def validate_proof_list(cls, value):
         if len(value) > 5:
-            raise ValueError('증빙자료는 5개 이하로 입력 해주세요.')
+            raise ValueError('증빙자료는 5개 이하로 입력해 주세요.')
         return value
 
 
@@ -190,3 +190,9 @@ class LectorResponseDto(BaseModel):
             ) for e in entity.career],
             approved=entity.approved
         )
+
+
+class CenterNameResponseDto(BaseModel):
+    center_id: str
+    name: str
+    is_approved: bool
