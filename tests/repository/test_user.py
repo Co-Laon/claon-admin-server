@@ -109,20 +109,16 @@ async def test_exists_lector_by_non_existing_id(
 
 
 @pytest.mark.asyncio
-async def test_approve_lector_by_id(
+async def test_approve_lector(
         session: AsyncSession,
         lector_fixture: Lector
 ):
-    # given
-    lector_id = lector_fixture.id
-    role = Role.LECTOR
-
     # when
-    result = await lector_repository.approve_by_id(session, lector_id, role)
+    result = await lector_repository.approve(session, lector_fixture)
 
     # then
     assert result.approved
-    assert result.user.role == role
+    assert result.user.role == Role.LECTOR
 
 
 @pytest.mark.asyncio
@@ -293,6 +289,18 @@ async def test_find_all_lector_approved_files_by_lector_id(
 
     # then
     assert lector_approved_files == [lector_approved_file_fixture]
+
+
+@pytest.mark.asyncio
+async def test_delete_all_lector_approved_files_by_lector_id(
+        session: AsyncSession,
+        lector_fixture: Lector
+):
+    # when
+    lector_approved_files = await lector_approved_file_repository.delete_all_by_lector_id(session, lector_fixture.id)
+
+    # then
+    assert lector_approved_files is None
 
 
 async def test_find_by_oauth_id_and_sns(session: AsyncSession, user_fixture: User):

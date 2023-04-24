@@ -1,6 +1,6 @@
 from typing import List
 
-from dependency_injector.wiring import Provide
+from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends
 from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +16,7 @@ router = APIRouter()
 
 @cbv(router)
 class AdminRouter:
+    @inject
     def __init__(self,
                  user_service: UserService = Depends(Provide[Container.user_service])):
         self.user_service = user_service

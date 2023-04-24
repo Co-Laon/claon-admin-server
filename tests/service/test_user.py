@@ -305,7 +305,6 @@ async def test_sign_up_lector(
         lector_request_dto: LectorRequestDto
 ):
     # given
-    profile = UserProfileResponseDto.from_entity(mock_user)
     mock_repo["user"].exist_by_nickname.side_effect = [False]
     mock_repo["lector"].save.side_effect = [mock_lector]
     mock_repo["lector_approved_file"].save_all.side_effect = [mock_lector_approved_files]
@@ -316,7 +315,6 @@ async def test_sign_up_lector(
     result = await user_service.sign_up_lector(session, request_user, lector_request_dto)
 
     # then
-    assert result.profile == profile
     assert result.is_setter == lector_request_dto.is_setter
     assert result.total_experience == 4
     assert result.contest_list == [
@@ -400,16 +398,17 @@ async def test_approve_center(
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
     center_id = mock_center.id
 
+    mock_repo["center"].find_by_id.side_effect = [mock_center]
     mock_center.approved = True
     mock_center.user.role = Role.CENTER_ADMIN
-    mock_repo["center"].approve_by_id.side_effect = [mock_center]
+    mock_repo["center"].approve.side_effect = [mock_center]
 
     # when
     result = await user_service.approve_center(center_id, session, request_user)
 
     # then
     assert result.approved
-    assert result.profile.role == mock_center.user.role
+    assert mock_center.user.role == Role.CENTER_ADMIN
 
 
 async def test_approve_center_with_non_admin(
@@ -437,7 +436,7 @@ async def test_approve_not_existing_center(
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
     center_id = "not_existing_id"
 
-    mock_repo["center"].exists_by_id.side_effect = [None]
+    mock_repo["center"].find_by_id.side_effect = [None]
 
     # then
     with pytest.raises(BadRequestException):
@@ -455,16 +454,17 @@ async def test_approve_lector(
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
     lector_id = mock_lector.id
 
+    mock_repo["lector"].find_by_id.side_effect = [mock_lector]
     mock_lector.approved = True
     mock_lector.user.role = Role.LECTOR
-    mock_repo["lector"].approve_by_id.side_effect = [mock_lector]
+    mock_repo["lector"].approve.side_effect = [mock_lector]
 
     # when
     result = await user_service.approve_lector(lector_id, session, request_user)
 
     # then
     assert result.approved
-    assert result.profile.role == mock_lector.user.role
+    assert mock_lector.user.role == Role.LECTOR
 
 
 async def test_approve_lector_with_non_admin(
@@ -493,7 +493,7 @@ async def test_approve_not_existing_lector(
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
     lector_id = "not_existing_id"
 
-    mock_repo["lector"].exists_by_id.side_effect = [None]
+    mock_repo["lector"].find_by_id.side_effect = [None]
 
     # then
     with pytest.raises(BadRequestException):

@@ -158,18 +158,11 @@ class LectorRepository:
         return result.scalar()
 
     @staticmethod
-    async def approve_by_id(session: AsyncSession, lector_id: str, role: Role):
-        result = await session.execute(
-            select(Lector)
-            .where(Lector.id == lector_id)
-            .options(selectinload(Lector.user))
-        )
-        lector = result.scalars().one()
-
+    async def approve(session: AsyncSession, lector: Lector):
         lector.approved = True
-        lector.user.role = role
+        lector.user.role = Role.LECTOR
 
-        await session.flush()
+        await session.merge(lector)
         return lector
 
 
@@ -190,3 +183,8 @@ class LectorApprovedFileRepository:
     async def find_all_by_lector_id(session: AsyncSession, lector_id: str):
         result = await session.execute(select(LectorApprovedFile).where(LectorApprovedFile.lector_id == lector_id))
         return result.scalars().all()
+
+    @staticmethod
+    async def delete_all_by_lector_id(session: AsyncSession, lector_id: str):
+        result = await session.execute(select(LectorApprovedFile).where(LectorApprovedFile.lector_id == lector_id))
+        [await session.delete(e) for e in result.scalars().all()]

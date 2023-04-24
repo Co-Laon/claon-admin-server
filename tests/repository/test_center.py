@@ -104,20 +104,16 @@ async def test_exists_center_by_non_existing_id(
 
 
 @pytest.mark.asyncio
-async def test_approve_center_by_id(
+async def test_approve_center(
         session: AsyncSession,
         center_fixture: Center
 ):
-    # given
-    center_id = center_fixture.id
-    role = Role.CENTER_ADMIN
-
     # when
-    result = await center_repository.approve_by_id(session, center_id, role)
+    result = await center_repository.approve(session, center_fixture)
 
     # then
     assert result.approved
-    assert result.user.role == role
+    assert result.user.role == Role.CENTER_ADMIN
 
 
 @pytest.mark.asyncio

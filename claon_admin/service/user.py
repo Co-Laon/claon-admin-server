@@ -142,13 +142,17 @@ class UserService:
                 "어드민 권한이 없습니다."
             )
 
-        if not await self.lector_repository.exists_by_id(session, lector_id):
+        lector = await self.lector_repository.find_by_id(session, lector_id)
+
+        if lector is None:
             raise BadRequestException(
                 ErrorCode.ENTITY_NOT_FOUND,
                 "선택한 강사의 정보가 존재하지 않습니다."
             )
 
-        lector = await self.lector_repository.approve_by_id(session, lector_id, Role.LECTOR)
+        lector = await self.lector_repository.approve(session, lector)
+
+        await self.lector_approved_file_repository.delete_all_by_lector_id(session, lector_id)
         return LectorResponseDto.from_entity(lector)
 
     async def reject_lector(self, lector_id: str, session: AsyncSession, subject: RequestUser):
@@ -175,13 +179,17 @@ class UserService:
                 "어드민 권한이 없습니다."
             )
 
-        if not await self.center_repository.exists_by_id(session, center_id):
+        center = await self.center_repository.find_by_id(session, center_id)
+
+        if center is None:
             raise BadRequestException(
                 ErrorCode.ENTITY_NOT_FOUND,
                 "선택한 센터의 정보가 존재하지 않습니다."
             )
 
-        center = await self.center_repository.approve_by_id(session, center_id, Role.LECTOR)
+        center = await self.center_repository.approve(session, center)
+
+        await self.center_approved_file_repository.delete_all_by_center_id(session, center_id)
         return CenterResponseDto.from_entity(center)
 
     async def reject_center(self, center_id: str, session: AsyncSession, subject: RequestUser):

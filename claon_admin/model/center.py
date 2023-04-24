@@ -94,7 +94,6 @@ class CenterNameResponseDto(BaseModel):
 
 class CenterResponseDto(BaseModel):
     center_id: str
-    profile: UserProfileResponseDto
     profile_image: str
     name: str
     address: str
@@ -116,7 +115,6 @@ class CenterResponseDto(BaseModel):
     def from_entity(cls, entity: Center):
         return CenterResponseDto(
             center_id=entity.id,
-            profile=UserProfileResponseDto.from_entity(entity.user),
             profile_image=entity.profile_img,
             name=entity.name,
             address=entity.address,

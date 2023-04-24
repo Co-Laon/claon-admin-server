@@ -158,7 +158,6 @@ class LectorRequestDto(BaseModel):
 
 class LectorResponseDto(BaseModel):
     lector_id: str
-    profile: UserProfileResponseDto
     is_setter: bool
     total_experience: int
     contest_list: List[LectorContestDto]
@@ -176,7 +175,6 @@ class LectorResponseDto(BaseModel):
 
         return LectorResponseDto(
             lector_id=entity.id,
-            profile=UserProfileResponseDto.from_entity(entity.user),
             is_setter=entity.is_setter,
             total_experience=total_experience // (365 * 24 * 60 * 60),
             contest_list=[LectorContestDto(year=e.year, title=e.title, name=e.name) for e in entity.contest],

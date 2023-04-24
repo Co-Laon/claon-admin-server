@@ -164,18 +164,11 @@ class CenterRepository:
         return result.scalar()
 
     @staticmethod
-    async def approve_by_id(session: AsyncSession, center_id: str, role: Role):
-        result = await session.execute(
-            select(Center)
-            .where(Center.id == center_id)
-            .options(selectinload(Center.user))
-        )
-        center = result.scalars().one()
-
+    async def approve(session: AsyncSession, center: Center):
         center.approved = True
-        center.user.role = role
+        center.user.role = Role.CENTER_ADMIN
 
-        await session.flush()
+        await session.merge(center)
         return center
 
     @staticmethod
@@ -200,6 +193,11 @@ class CenterApprovedFileRepository:
     async def find_all_by_center_id(session: AsyncSession, center_id: str):
         result = await session.execute(select(CenterApprovedFile).where(CenterApprovedFile.center_id == center_id))
         return result.scalars().all()
+
+    @staticmethod
+    async def delete_all_by_center_id(session: AsyncSession, center_id: str):
+        result = await session.execute(select(CenterApprovedFile).where(CenterApprovedFile.center_id == center_id))
+        [await session.delete(e) for e in result.scalars().all()]
 
 
 class CenterHoldRepository:
