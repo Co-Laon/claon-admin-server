@@ -66,6 +66,9 @@ class Center(Base):
 
     @property
     def center_img(self):
+        if self._center_img is None:
+            return []
+
         values = json.loads(self._center_img)
         return [CenterImage(value['url']) for value in values]
 
@@ -75,6 +78,9 @@ class Center(Base):
 
     @property
     def operating_time(self):
+        if self._operating_time is None:
+            return []
+
         values = json.loads(self._operating_time)
         return [OperatingTime(value['day_of_week'], value['start_time'], value['end_time']) for value in values]
 
@@ -84,6 +90,9 @@ class Center(Base):
 
     @property
     def utility(self):
+        if self._utility is None:
+            return []
+
         values = json.loads(self._utility)
         return [Utility(value['name']) for value in values]
 
@@ -93,6 +102,9 @@ class Center(Base):
 
     @property
     def fee(self):
+        if self._fee is None:
+            return []
+
         values = json.loads(self._fee)
         return [CenterFee(value['name'], value['price'], value['count']) for value in values]
 
@@ -102,6 +114,9 @@ class Center(Base):
 
     @property
     def fee_img(self):
+        if self._fee_img is None:
+            return []
+
         data = json.loads(self._fee_img)
         return [CenterFeeImage(e['url']) for e in data]
 
