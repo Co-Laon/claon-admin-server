@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, select, exists, and_
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship, selectinload
+from sqlalchemy.orm import relationship, selectinload, backref
 from sqlalchemy.dialects.postgresql import TEXT
 
 from claon_admin.model.enum import Role
@@ -61,8 +61,6 @@ class Lector(Base):
     _certificate = Column(TEXT)
     _career = Column(TEXT)
 
-    approved_files = relationship("LectorApprovedFile", back_populates="lector", cascade="all, delete-orphan")
-
     user_id = Column(String(length=255), ForeignKey("tb_user.id"), unique=True, nullable=False)
     user = relationship("User")
 
@@ -100,7 +98,7 @@ class LectorApprovedFile(Base):
     url = Column(String(length=255))
 
     lector_id = Column(String(length=255), ForeignKey('tb_lector.id'))
-    lector = relationship("Lector")
+    lector = relationship("Lector", backref=backref("LectorApprovedFile", cascade="all, delete"))
 
 
 class UserRepository:
@@ -135,6 +133,12 @@ class UserRepository:
         result = await session.execute(select(User).where(and_(User.oauth_id == oauth_id, User.sns == sns)))
         return result.scalars().one_or_none()
 
+    @staticmethod
+    async def update_role(session: AsyncSession, user: User, role: Role):
+        user.role = role
+        await session.merge(user)
+        return user
+
 
 class LectorRepository:
     @staticmethod
@@ -160,8 +164,6 @@ class LectorRepository:
     @staticmethod
     async def approve(session: AsyncSession, lector: Lector):
         lector.approved = True
-        lector.user.role = Role.LECTOR
-
         await session.merge(lector)
         return lector
 

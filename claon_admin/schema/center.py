@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from sqlalchemy import String, Column, ForeignKey, Boolean, select, exists
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship, selectinload
+from sqlalchemy.orm import relationship, selectinload, backref
 from sqlalchemy.dialects.postgresql import TEXT
 
 from claon_admin.model.enum import Role
@@ -61,7 +61,6 @@ class Center(Base):
 
     holds = relationship("CenterHold", back_populates="center", cascade="all, delete-orphan")
     walls = relationship("CenterWall", back_populates="center", cascade="all, delete-orphan")
-    approved_files = relationship("CenterApprovedFile", back_populates="center", cascade="all, delete-orphan")
 
     user_id = Column(String(length=255), ForeignKey("tb_user.id"))
     user = relationship("User")
@@ -141,7 +140,7 @@ class CenterApprovedFile(Base):
     user_id = Column(String(length=255), ForeignKey('tb_user.id'), nullable=False)
     user = relationship("User")
     center_id = Column(String(length=255), ForeignKey('tb_center.id'), nullable=False)
-    center = relationship("Center")
+    center = relationship("Center", backref=backref("CenterApprovedFile", cascade="all, delete"))
 
 
 class CenterRepository:
@@ -166,8 +165,6 @@ class CenterRepository:
     @staticmethod
     async def approve(session: AsyncSession, center: Center):
         center.approved = True
-        center.user.role = Role.CENTER_ADMIN
-
         await session.merge(center)
         return center
 

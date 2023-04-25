@@ -16,7 +16,6 @@ class ErrorCode(Enum):
 
     # 404 Not Found Error
     DATA_DOES_NOT_EXIST = 40400
-    ENTITY_NOT_FOUND = 40401
 
     # 409 Conflict
     CONFLICT_STATE = 40900

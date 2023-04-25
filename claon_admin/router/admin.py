@@ -31,30 +31,30 @@ class AdminRouter:
                              lector_id: str,
                              session: AsyncSession = Depends(db.get_db),
                              subject: RequestUser = Depends(get_subject)):
-        return await self.admin_service.approve_lector(lector_id, session, subject)
+        return await self.admin_service.approve_lector(session, subject, lector_id)
 
     @router.delete('/lectors/{lector_id}/reject')
     async def reject_lector(self,
                             lector_id: str,
                             session: AsyncSession = Depends(db.get_db),
                             subject: RequestUser = Depends(get_subject)):
-        return await self.admin_service.reject_lector(lector_id, session, subject)
+        return await self.admin_service.reject_lector(session, subject, lector_id)
 
-    @router.get('/center/approve', response_model=List[CenterResponseDto])
+    @router.get('/centers/approve', response_model=List[CenterResponseDto])
     async def find_approval_pending_centers(self,
                                             session: AsyncSession = Depends(db.get_db)):
         pass
 
-    @router.post('/center/{center_id}/approve')
+    @router.post('/centers/{center_id}/approve')
     async def approve_center(self,
                              center_id: str,
                              session: AsyncSession = Depends(db.get_db),
                              subject: RequestUser = Depends(get_subject)):
-        return await self.admin_service.approve_center(center_id, session, subject)
+        return await self.admin_service.approve_center(session, subject, center_id)
 
-    @router.delete('/center/{center_id}/reject')
+    @router.delete('/centers/{center_id}/reject')
     async def reject_center(self,
                             center_id: str,
                             session: AsyncSession = Depends(db.get_db),
                             subject: RequestUser = Depends(get_subject)):
-        return await self.admin_service.reject_center(center_id, session, subject)
+        return await self.admin_service.reject_center(session, subject, center_id)

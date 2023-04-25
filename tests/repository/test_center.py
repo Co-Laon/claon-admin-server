@@ -195,7 +195,6 @@ async def test_approve_center(
 
     # then
     assert result.approved
-    assert result.user.role == Role.CENTER_ADMIN
 
 
 @pytest.mark.asyncio

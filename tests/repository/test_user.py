@@ -177,7 +177,6 @@ async def test_approve_lector(
 
     # then
     assert result.approved
-    assert result.user.role == Role.LECTOR
 
 
 @pytest.mark.asyncio
@@ -391,3 +390,15 @@ async def test_find_by_invalid_oauth_id_and_sns(session: AsyncSession, user_fixt
 
     # then
     assert not result
+
+
+@pytest.mark.asyncio
+async def test_update_role(session: AsyncSession, user_fixture: User):
+    # given
+    role = Role.LECTOR
+
+    # when
+    result = await user_repository.update_role(session, user_fixture, Role.LECTOR)
+
+    # then
+    assert result.role == role
