@@ -4,7 +4,6 @@ from typing import List
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from pytest_mock import mocker
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException
@@ -265,8 +264,7 @@ async def test_reject_center(
         session: AsyncSession,
         mock_repo: dict,
         admin_service: AdminService,
-        mock_center: Center,
-        mock_center_approved_files: CenterApprovedFile
+        mock_center: Center
 ):
     # given
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
@@ -302,8 +300,7 @@ async def test_reject_center_with_non_admin(
 async def test_reject_not_existing_center(
         session: AsyncSession,
         mock_repo: dict,
-        admin_service: AdminService,
-        mock_center: Center
+        admin_service: AdminService
 ):
     # given
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
@@ -322,8 +319,7 @@ async def test_reject_lector(
         session: AsyncSession,
         mock_repo: dict,
         admin_service: AdminService,
-        mock_lector: Lector,
-        mock_lector_approved_files: LectorApprovedFile
+        mock_lector: Lector
 ):
     # given
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
@@ -360,8 +356,7 @@ async def test_reject_lector_with_non_admin(
 async def test_reject_not_existing_lector(
         session: AsyncSession,
         mock_repo: dict,
-        admin_service: AdminService,
-        mock_lector: Lector
+        admin_service: AdminService
 ):
     # given
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)

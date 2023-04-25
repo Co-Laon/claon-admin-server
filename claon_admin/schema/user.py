@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, select, exists, and_
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship, selectinload, backref
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.dialects.postgresql import TEXT
 
 from claon_admin.model.enum import Role

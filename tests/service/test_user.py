@@ -14,7 +14,7 @@ from claon_admin.model.center import CenterAuthRequestDto, CenterFeeDto, CenterH
     CenterOperatingTimeDto
 from claon_admin.model.enum import OAuthProvider
 from claon_admin.model.enum import WallType, Role
-from claon_admin.model.user import LectorRequestDto, UserProfileResponseDto, LectorContestDto, LectorCertificateDto, \
+from claon_admin.model.user import LectorRequestDto, LectorContestDto, LectorCertificateDto, \
     LectorCareerDto, UserProfileDto
 from claon_admin.model.user import SignInRequestDto, JwtResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterHoldRepository, CenterWallRepository, \
@@ -301,7 +301,7 @@ async def test_sign_up_lector(
         user_service: UserService,
         mock_user: User,
         mock_lector: Lector,
-        mock_lector_approved_files: LectorApprovedFile,
+        mock_lector_approved_files: List[LectorApprovedFile],
         lector_request_dto: LectorRequestDto
 ):
     # given

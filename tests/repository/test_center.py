@@ -213,11 +213,11 @@ async def test_delete_center(
 
 
 @pytest.mark.asyncio
-async def test_save_center_approved_files(
+async def test_save_center_approved_file(
         session: AsyncSession,
-        user_fixture,
-        center_fixture,
-        center_approved_file_fixture
+        user_fixture: User,
+        center_fixture: Center,
+        center_approved_file_fixture: CenterApprovedFile
 ):
     # then
     assert center_approved_file_fixture.center == center_fixture
@@ -232,7 +232,7 @@ async def test_save_all_center_approved_files(
         session: AsyncSession,
         user_fixture: User,
         center_fixture: Center,
-        center_approved_file_fixture
+        center_approved_file_fixture: CenterApprovedFile
 ):
     # when
     center_approved_files = await center_approved_file_repository.save_all(session, [center_approved_file_fixture])

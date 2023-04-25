@@ -339,7 +339,7 @@ async def test_save_all_lector_approved_files(
 @pytest.mark.asyncio
 async def test_find_all_lector_approved_files_by_lector_id(
         session: AsyncSession,
-        lector_fixture,
+        lector_fixture: Lector,
         lector_approved_file_fixture: LectorApprovedFile
 ):
     # when

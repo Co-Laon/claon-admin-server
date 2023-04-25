@@ -43,7 +43,10 @@ async def upload_file(file: UploadFile, domain: str, purpose: str):
 
 
 async def delete_file(url: str):
+    prefix = "https://" + BUCKET + ".s3." + REGION_NAME + ".amazonaws.com"
+    key_name = url.replace(prefix, "")[1:]
+
     try:
-        client_s3.delete_object(Bucket=BUCKET, Key=os.path.basename(url))
+        client_s3.delete_object(Bucket=BUCKET, Key=key_name)
     except Exception:
         raise InternalServerException(ErrorCode.INTERNAL_SERVER_ERROR, "S3 객체 제거에 실패했습니다.")

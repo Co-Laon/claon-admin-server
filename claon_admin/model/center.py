@@ -5,8 +5,8 @@ from pydantic import BaseModel, validator
 
 from claon_admin.config.consts import KOR_BEGIN_CODE, KOR_END_CODE
 from claon_admin.model.enum import WallType
-from claon_admin.model.user import UserProfileDto, UserProfileResponseDto
-from claon_admin.schema.center import Center, CenterHold, CenterWall
+from claon_admin.model.user import UserProfileDto
+from claon_admin.schema.center import Center
 
 
 class CenterOperatingTimeDto(BaseModel):
@@ -260,11 +260,11 @@ class CenterResponseDto(BaseModel):
             profile_image=entity.profile_img,
             name=entity.name,
             address=entity.address,
-            detail_address=entity.detail_address,
+            detail_address=entity.detail_address if entity.detail_address is not None else None,
             tel=entity.tel,
-            web_url=entity.web_url,
-            instagram_name=entity.instagram_name,
-            youtube_code=str(entity.youtube_url).split("/")[-1],
+            web_url=entity.web_url if entity.web_url is not None else None,
+            instagram_name=entity.instagram_name if entity.instagram_name is not None else None,
+            youtube_code=str(entity.youtube_url).split("/")[-1] if entity.youtube_url is not None else None,
             image_list=[e.url for e in entity.center_img],
             utility_list=[e.name for e in entity.utility],
             fee_image_list=[e.url for e in entity.fee_img],

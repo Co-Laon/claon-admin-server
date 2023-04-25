@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date
 from typing import Optional, List
 
 from pydantic import BaseModel
@@ -60,11 +60,11 @@ class CenterResponseDto(BaseModel):
             profile_image=center.profile_img,
             name=center.name,
             address=center.address,
-            detail_address=center.detail_address,
+            detail_address=center.detail_address if center.detail_address is not None else None,
             tel=center.tel,
-            web_url=center.web_url,
-            instagram_name=center.instagram_name,
-            youtube_code=str(center.youtube_url).split("/")[-1],
+            web_url=center.web_url if center.web_url is not None else None,
+            instagram_name=center.instagram_name if center.instagram_name is not None else None,
+            youtube_code=str(center.youtube_url).split("/")[-1] if center.youtube_url is not None else None,
             approved=center.approved,
             image_list=[e.url for e in center.center_img],
             utility_list=[e.name for e in center.utility],
