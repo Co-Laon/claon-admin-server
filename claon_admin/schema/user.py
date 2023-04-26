@@ -7,7 +7,7 @@ from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, select, exists, and_
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship, selectinload
+from sqlalchemy.orm import relationship, backref, selectinload
 from sqlalchemy.dialects.postgresql import TEXT
 
 from claon_admin.model.enum import Role
@@ -109,7 +109,7 @@ class LectorApprovedFile(Base):
     url = Column(String(length=255))
 
     lector_id = Column(String(length=255), ForeignKey('tb_lector.id'))
-    lector = relationship("Lector")
+    lector = relationship("Lector", backref=backref("LectorApprovedFile", cascade="all, delete"))
 
 
 class UserRepository:
@@ -136,7 +136,7 @@ class UserRepository:
     @staticmethod
     async def save(session: AsyncSession, user: User):
         session.add(user)
-        await session.flush()
+        await session.merge(user)
         return user
 
     @staticmethod
@@ -144,12 +144,38 @@ class UserRepository:
         result = await session.execute(select(User).where(and_(User.oauth_id == oauth_id, User.sns == sns)))
         return result.scalars().one_or_none()
 
+    @staticmethod
+    async def update_role(session: AsyncSession, user: User, role: Role):
+        user.role = role
+        await session.merge(user)
+        return user
+
 
 class LectorRepository:
     @staticmethod
     async def save(session: AsyncSession, lector: Lector):
         session.add(lector)
-        await session.flush()
+        await session.merge(lector)
+        return lector
+
+    @staticmethod
+    async def delete(session: AsyncSession, lector: Lector):
+        await session.delete(lector)
+
+    @staticmethod
+    async def find_by_id(session: AsyncSession, lector_id: str):
+        result = await session.execute(select(Lector).where(Lector.id == lector_id))
+        return result.scalars().one_or_none()
+
+    @staticmethod
+    async def exists_by_id(session: AsyncSession, lector_id: str):
+        result = await session.execute(select(exists().where(Lector.id == lector_id)))
+        return result.scalar()
+
+    @staticmethod
+    async def approve(session: AsyncSession, lector: Lector):
+        lector.approved = True
+        await session.merge(lector)
         return lector
 
     # TODO: Need to be removed later
@@ -162,11 +188,21 @@ class LectorApprovedFileRepository:
     @staticmethod
     async def save(session: AsyncSession, approved_file: LectorApprovedFile):
         session.add(approved_file)
-        await session.flush()
+        await session.merge(approved_file)
         return approved_file
 
     @staticmethod
     async def save_all(session: AsyncSession, approved_files: List[LectorApprovedFile]):
         session.add_all(approved_files)
-        await session.flush()
+        [await session.merge(e) for e in approved_files]
         return approved_files
+
+    @staticmethod
+    async def find_all_by_lector_id(session: AsyncSession, lector_id: str):
+        result = await session.execute(select(LectorApprovedFile).where(LectorApprovedFile.lector_id == lector_id))
+        return result.scalars().all()
+
+    @staticmethod
+    async def delete_all_by_lector_id(session: AsyncSession, lector_id: str):
+        result = await session.execute(select(LectorApprovedFile).where(LectorApprovedFile.lector_id == lector_id))
+        [await session.delete(e) for e in result.scalars().all()]

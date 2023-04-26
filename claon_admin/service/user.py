@@ -98,7 +98,10 @@ class UserService:
              for e in dto.proof_list]
         )
 
-        return CenterResponseDto.from_entity(center, holds, walls)
+        center.holds = holds
+        center.walls = walls
+
+        return CenterResponseDto.from_entity(center)
 
     async def sign_up_lector(self, session: AsyncSession, subject: RequestUser, dto: LectorRequestDto):
         if subject.role != Role.PENDING:

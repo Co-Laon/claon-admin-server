@@ -15,7 +15,7 @@ from claon_admin.model.center import CenterAuthRequestDto, CenterFeeDto, CenterH
     CenterOperatingTimeDto
 from claon_admin.model.enum import OAuthProvider
 from claon_admin.model.enum import WallType, Role
-from claon_admin.model.user import LectorRequestDto, UserProfileResponseDto, LectorContestDto, LectorCertificateDto, \
+from claon_admin.model.user import LectorRequestDto, LectorContestDto, LectorCertificateDto, \
     LectorCareerDto, UserProfileDto
 from claon_admin.model.user import SignInRequestDto, JwtResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterHoldRepository, CenterWallRepository, \
@@ -86,7 +86,13 @@ def mock_user():
 @pytest.fixture
 def lector_request_dto(session: AsyncSession, mock_user: User):
     yield LectorRequestDto(
-        profile=UserProfileResponseDto.from_entity(mock_user),
+        profile=UserProfileDto(
+            profile_image=mock_user.profile_img,
+            nickname=mock_user.nickname,
+            email=mock_user.email,
+            instagram_nickname=mock_user.instagram_name,
+            role=mock_user.role
+        ),
         is_setter=True,
         contest_list=[
             LectorContestDto(
@@ -299,11 +305,10 @@ async def test_sign_up_lector(
         user_service: UserService,
         mock_user: User,
         mock_lector: Lector,
-        mock_lector_approved_files: LectorApprovedFile,
+        mock_lector_approved_files: List[LectorApprovedFile],
         lector_request_dto: LectorRequestDto
 ):
     # given
-    profile = UserProfileResponseDto.from_entity(mock_user)
     mock_repo["user"].exist_by_nickname.side_effect = [False]
     mock_repo["lector"].save.side_effect = [mock_lector]
     mock_repo["lector_approved_file"].save_all.side_effect = [mock_lector_approved_files]
@@ -314,7 +319,6 @@ async def test_sign_up_lector(
     result = await user_service.sign_up_lector(session, request_user, lector_request_dto)
 
     # then
-    assert result.profile == profile
     assert result.is_setter == lector_request_dto.is_setter
     assert result.total_experience == 4
     assert result.contest_list == [

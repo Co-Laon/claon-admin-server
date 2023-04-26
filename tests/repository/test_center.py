@@ -1,17 +1,101 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.model.enum import WallType
+from claon_admin.model.enum import WallType, Role
 from claon_admin.schema.center import (
     CenterRepository,
-    CenterApprovedFileRepository, CenterHoldRepository, CenterWallRepository, Center, CenterHold, CenterWall
+    CenterApprovedFileRepository, CenterHoldRepository, CenterWallRepository, Center, CenterHold, CenterWall,
+    CenterApprovedFile, CenterImage, OperatingTime, Utility, CenterFee, CenterFeeImage
 )
-from claon_admin.schema.user import User
+from claon_admin.schema.user import User, UserRepository
 
+user_repository = UserRepository()
 center_repository = CenterRepository()
 center_approved_file_repository = CenterApprovedFileRepository()
 center_hold_repository = CenterHoldRepository()
 center_wall_repository = CenterWallRepository()
+
+
+@pytest.fixture
+async def user_fixture(session: AsyncSession):
+    user = User(
+        oauth_id="oauth_id",
+        nickname="nickname",
+        profile_img="profile_img",
+        sns="sns",
+        email="test@test.com",
+        instagram_name="instagram_name",
+        role=Role.PENDING,
+    )
+
+    user = await user_repository.save(session, user)
+    yield user
+    await session.rollback()
+
+
+@pytest.fixture
+async def center_fixture(session: AsyncSession, user_fixture: User):
+    center = Center(
+        user=user_fixture,
+        name="test center",
+        profile_img="https://test.profile.png",
+        address="test_address",
+        detail_address="test_detail_address",
+        tel="010-1234-5678",
+        web_url="http://test.com",
+        instagram_name="test_instagram",
+        youtube_url="https://www.youtube.com/@test",
+        center_img=[CenterImage(url="https://test.image.png")],
+        operating_time=[OperatingTime(day_of_week="월", start_time="09:00", end_time="18:00")],
+        utility=[Utility(name="test_utility")],
+        fee=[CenterFee(name="test_fee_name", price=1000, count=10)],
+        fee_img=[CenterFeeImage(url="https://test.fee.png")],
+        approved=False
+    )
+
+    center = await center_repository.save(session, center)
+    yield center
+    await session.rollback()
+
+
+@pytest.fixture
+async def center_approved_file_fixture(session: AsyncSession, user_fixture: User, center_fixture: Center):
+    center_approved_file = CenterApprovedFile(
+        user=user_fixture,
+        center=center_fixture,
+        url="https://example.com/approved.jpg"
+    )
+
+    center_approved_file = await center_approved_file_repository.save(session, center_approved_file)
+    yield center_approved_file
+    await session.rollback()
+
+
+@pytest.fixture
+async def center_holds_fixture(session: AsyncSession, center_fixture: Center):
+    center_hold = CenterHold(
+        center=center_fixture,
+        name="hold_name",
+        difficulty="hard",
+        is_color=False
+    )
+
+    center_hold = await center_hold_repository.save(session, center_hold)
+    yield center_hold
+    await session.rollback()
+
+
+@pytest.fixture
+async def center_walls_fixture(session: AsyncSession, center_fixture: Center):
+    center_wall = CenterWall(
+        center=center_fixture,
+        name="wall",
+        type=WallType.ENDURANCE.value
+    )
+
+    center_wall = await center_wall_repository.save(session, center_wall)
+    yield center_wall
+    await session.rollback()
 
 
 @pytest.mark.asyncio
@@ -44,11 +128,96 @@ async def test_save_center(
 
 
 @pytest.mark.asyncio
-async def test_save_center_approved_files(
+async def test_find_center_by_id(
         session: AsyncSession,
-        user_fixture,
-        center_fixture,
-        center_approved_file_fixture
+        center_fixture: Center
+):
+    # given
+    center_id = center_fixture.id
+
+    # when
+    result = await center_repository.find_by_id(session, center_id)
+
+    # then
+    assert result == center_fixture
+
+
+@pytest.mark.asyncio
+async def test_find_center_by_non_existing_id(
+        session: AsyncSession
+):
+    # given
+    center_id = "non_existing_id"
+
+    # when
+    result = await center_repository.find_by_id(session, center_id)
+
+    # then
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_exists_center_by_id(
+        session: AsyncSession,
+        center_fixture: Center
+):
+    # given
+    center_id = center_fixture.id
+
+    # when
+    result = await center_repository.exists_by_id(session, center_id)
+
+    # then
+    assert result
+
+
+@pytest.mark.asyncio
+async def test_exists_center_by_non_existing_id(
+        session: AsyncSession
+):
+    # given
+    center_id = "non_existing_id"
+
+    # when
+    result = await center_repository.exists_by_id(session, center_id)
+
+    # then
+    assert result is False
+
+
+@pytest.mark.asyncio
+async def test_approve_center(
+        session: AsyncSession,
+        center_fixture: Center
+):
+    # when
+    result = await center_repository.approve(session, center_fixture)
+
+    # then
+    assert result.approved
+
+
+@pytest.mark.asyncio
+async def test_delete_center(
+        session: AsyncSession,
+        center_fixture: Center
+):
+    # when
+    await center_repository.delete(session, center_fixture)
+
+    # then
+    assert await center_repository.find_by_id(session, center_fixture.id) is None
+    assert await center_hold_repository.find_all_by_center_id(session, center_fixture.id) == []
+    assert await center_wall_repository.find_all_by_center_id(session, center_fixture.id) == []
+    assert await center_approved_file_repository.find_all_by_center_id(session, center_fixture.id) == []
+
+
+@pytest.mark.asyncio
+async def test_save_center_approved_file(
+        session: AsyncSession,
+        user_fixture: User,
+        center_fixture: Center,
+        center_approved_file_fixture: CenterApprovedFile
 ):
     # then
     assert center_approved_file_fixture.center == center_fixture
@@ -63,10 +232,23 @@ async def test_save_all_center_approved_files(
         session: AsyncSession,
         user_fixture: User,
         center_fixture: Center,
-        center_approved_file_fixture
+        center_approved_file_fixture: CenterApprovedFile
 ):
     # when
     center_approved_files = await center_approved_file_repository.save_all(session, [center_approved_file_fixture])
+
+    # then
+    assert center_approved_files == [center_approved_file_fixture]
+
+
+@pytest.mark.asyncio
+async def test_find_all_center_approved_files_by_center_id(
+        session: AsyncSession,
+        center_fixture: Center,
+        center_approved_file_fixture: CenterApprovedFile
+):
+    # when
+    center_approved_files = await center_approved_file_repository.find_all_by_center_id(session, center_fixture.id)
 
     # then
     assert center_approved_files == [center_approved_file_fixture]
@@ -98,6 +280,19 @@ async def test_save_all_center_holds(
 
 
 @pytest.mark.asyncio
+async def test_find_all_center_holds_by_center_id(
+        session: AsyncSession,
+        center_fixture: Center,
+        center_holds_fixture: CenterHold
+):
+    # when
+    center_holds = await center_hold_repository.find_all_by_center_id(session, center_fixture.id)
+
+    # then
+    assert center_holds == [center_holds_fixture]
+
+
+@pytest.mark.asyncio
 async def test_save_center_wall(
         session: AsyncSession,
         center_fixture: Center,
@@ -116,6 +311,19 @@ async def test_save_all_center_walls(
 ):
     # when
     center_walls = await center_hold_repository.save_all(session, [center_walls_fixture])
+
+    # then
+    assert center_walls == [center_walls_fixture]
+
+
+@pytest.mark.asyncio
+async def test_find_all_center_walls_by_center_id(
+        session: AsyncSession,
+        center_fixture: Center,
+        center_walls_fixture: CenterWall
+):
+    # when
+    center_walls = await center_wall_repository.find_all_by_center_id(session, center_fixture.id)
 
     # then
     assert center_walls == [center_walls_fixture]

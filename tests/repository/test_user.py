@@ -1,16 +1,76 @@
+from datetime import date
+
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from claon_admin.model.enum import Role
 from claon_admin.schema.user import (
     UserRepository,
     LectorRepository,
     User,
-    LectorApprovedFileRepository, LectorApprovedFile, Lector
+    LectorApprovedFileRepository, LectorApprovedFile, Lector, Career, Contest, Certificate
 )
 
 user_repository = UserRepository()
 lector_repository = LectorRepository()
 lector_approved_file_repository = LectorApprovedFileRepository()
+
+
+@pytest.fixture(autouse=True)
+async def user_fixture(session: AsyncSession):
+    user = User(
+        oauth_id="oauth_id",
+        nickname="nickname",
+        profile_img="profile_img",
+        sns="sns",
+        email="test@test.com",
+        instagram_name="instagram_name",
+        role=Role.PENDING,
+    )
+
+    user = await user_repository.save(session, user)
+    yield user
+    await session.rollback()
+
+
+@pytest.fixture(autouse=True)
+async def lector_fixture(session: AsyncSession, user_fixture: User):
+    lector = Lector(
+        is_setter=True,
+        approved=False,
+        contest=[Contest(year=2021, title="title", name="name")],
+        certificate=[
+            Certificate(
+                acquisition_date=date.fromisoformat("2012-10-15"),
+                rate=4,
+                name="certificate"
+            )
+        ],
+        career=[
+            Career(
+                start_date=date.fromisoformat("2016-01-01"),
+                end_date=date.fromisoformat("2020-01-01"),
+                name="career"
+            )
+        ],
+        user=user_fixture
+    )
+
+    lector = await lector_repository.save(session, lector)
+    yield lector
+    await session.rollback()
+
+
+@pytest.fixture(autouse=True)
+async def lector_approved_file_fixture(session: AsyncSession, lector_fixture: Lector):
+    lector_approved_file = LectorApprovedFile(
+        lector=lector_fixture,
+        url="https://test.com/test.pdf"
+    )
+
+    lector_approved_file = await lector_approved_file_repository.save(session, lector_approved_file)
+    yield lector_approved_file
+    await session.rollback()
 
 
 @pytest.mark.asyncio
@@ -33,6 +93,90 @@ async def test_save_lector(
     assert lector_fixture.career[0].end_date == '2020-01-01'
     assert lector_fixture.career[0].name == 'career'
     assert lector_fixture.approved is False
+
+
+@pytest.mark.asyncio
+async def test_delete_lector(
+        session: AsyncSession,
+        lector_fixture: Lector,
+        lector_approved_file_fixture: LectorApprovedFile
+):
+    # when
+    await lector_repository.delete(session, lector_fixture)
+
+    # then
+    assert await lector_repository.find_by_id(session, lector_fixture.id) is None
+    assert await lector_approved_file_repository.find_all_by_lector_id(session, lector_fixture.id) == []
+
+
+@pytest.mark.asyncio
+async def test_find_lector_by_id(
+        session: AsyncSession,
+        lector_fixture: Lector
+):
+    # given
+    lector_id = lector_fixture.id
+
+    # when
+    result = await lector_repository.find_by_id(session, lector_id)
+
+    # then
+    assert result == lector_fixture
+
+
+@pytest.mark.asyncio
+async def test_find_lector_by_non_existing_id(
+        session: AsyncSession
+):
+    # given
+    lector_id = "non_existing_id"
+
+    # when
+    result = await lector_repository.find_by_id(session, lector_id)
+
+    # then
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_exists_lector_by_id(
+        session: AsyncSession,
+        lector_fixture: Lector
+):
+    # given
+    lector_id = lector_fixture.id
+
+    # when
+    result = await lector_repository.exists_by_id(session, lector_id)
+
+    # then
+    assert result
+
+
+@pytest.mark.asyncio
+async def test_exists_lector_by_non_existing_id(
+        session: AsyncSession
+):
+    # given
+    lector_id = "non_existing_id"
+
+    # when
+    result = await lector_repository.exists_by_id(session, lector_id)
+
+    # then
+    assert result is False
+
+
+@pytest.mark.asyncio
+async def test_approve_lector(
+        session: AsyncSession,
+        lector_fixture: Lector
+):
+    # when
+    result = await lector_repository.approve(session, lector_fixture)
+
+    # then
+    assert result.approved
 
 
 @pytest.mark.asyncio
@@ -193,6 +337,30 @@ async def test_save_all_lector_approved_files(
 
 
 @pytest.mark.asyncio
+async def test_find_all_lector_approved_files_by_lector_id(
+        session: AsyncSession,
+        lector_fixture: Lector,
+        lector_approved_file_fixture: LectorApprovedFile
+):
+    # when
+    lector_approved_files = await lector_approved_file_repository.find_all_by_lector_id(session, lector_fixture.id)
+
+    # then
+    assert lector_approved_files == [lector_approved_file_fixture]
+
+
+@pytest.mark.asyncio
+async def test_delete_all_lector_approved_files_by_lector_id(
+        session: AsyncSession,
+        lector_fixture: Lector
+):
+    # when
+    lector_approved_files = await lector_approved_file_repository.delete_all_by_lector_id(session, lector_fixture.id)
+
+    # then
+    assert lector_approved_files is None
+
+
 async def test_find_by_oauth_id_and_sns(session: AsyncSession, user_fixture: User):
     # given
     user_oauth_id = user_fixture.oauth_id
@@ -222,3 +390,15 @@ async def test_find_by_invalid_oauth_id_and_sns(session: AsyncSession, user_fixt
 
     # then
     assert not result
+
+
+@pytest.mark.asyncio
+async def test_update_role(session: AsyncSession, user_fixture: User):
+    # given
+    role = Role.LECTOR
+
+    # when
+    result = await user_repository.update_role(session, user_fixture, Role.LECTOR)
+
+    # then
+    assert result.role == role

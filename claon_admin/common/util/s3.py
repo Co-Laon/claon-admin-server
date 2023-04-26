@@ -13,12 +13,13 @@ from claon_admin.config.consts import AWS_SECRET_ACCESS_KEY
 from claon_admin.config.consts import BUCKET
 from claon_admin.config.consts import REGION_NAME
 
-client_s3 = boto3.client(
-    's3',
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-    region_name=REGION_NAME
-)
+if os.environ.get("API_ENV") != "test":
+    client_s3 = boto3.client(
+        's3',
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=REGION_NAME
+    )
 
 
 async def upload_file(file: UploadFile, domain: str, purpose: str):
@@ -39,3 +40,13 @@ async def upload_file(file: UploadFile, domain: str, purpose: str):
             return os.path.join("https://" + BUCKET + ".s3." + REGION_NAME + ".amazonaws.com", key_name)
     except Exception:
         raise InternalServerException(ErrorCode.INTERNAL_SERVER_ERROR, "S3 객체 업로드를 실패했습니다.")
+
+
+async def delete_file(url: str):
+    prefix = "https://" + BUCKET + ".s3." + REGION_NAME + ".amazonaws.com"
+    key_name = url.replace(prefix, "")[1:]
+
+    try:
+        client_s3.delete_object(Bucket=BUCKET, Key=key_name)
+    except Exception:
+        raise InternalServerException(ErrorCode.INTERNAL_SERVER_ERROR, "S3 객체 제거에 실패했습니다.")
