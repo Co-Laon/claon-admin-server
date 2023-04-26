@@ -145,6 +145,11 @@ class UserRepository:
         return result.scalars().one_or_none()
 
     @staticmethod
+    async def find_by_oauth_id(session: AsyncSession, oauth_id: str):
+        result = await session.execute(select(User).where(User.oauth_id == oauth_id))
+        return result.scalars().one_or_none()
+
+    @staticmethod
     async def update_role(session: AsyncSession, user: User, role: Role):
         user.role = role
         await session.merge(user)

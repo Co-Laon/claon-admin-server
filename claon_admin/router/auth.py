@@ -25,6 +25,14 @@ class AuthRouter:
                  user_service: UserService = Depends(Provide[Container.user_service])):
         self.user_service = user_service
 
+    # TODO: Need to be removed later
+    @router.post('/test-sign-in', response_model=JwtResponseDto)
+    async def test_sign_in(self,
+                           dto: SignInRequestDto,
+                           session: AsyncSession = Depends(db.get_db)):
+        return await self.user_service.test_sign_in(session, dto)
+
+
     @router.post('/{provider}/sign-in', response_model=JwtResponseDto)
     async def sign_in(self,
                       response: Response,
