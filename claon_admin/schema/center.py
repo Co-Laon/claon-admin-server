@@ -61,8 +61,8 @@ class Center(Base):
     holds = relationship("CenterHold", back_populates="center", cascade="all, delete-orphan")
     walls = relationship("CenterWall", back_populates="center", cascade="all, delete-orphan")
 
-    user_id = Column(String(length=255), ForeignKey("tb_user.id"))
-    user = relationship("User")
+    user_id = Column(String(length=255), ForeignKey("tb_user.id", ondelete="SET NULL"))
+    user = relationship("User", backref=backref("Center"))
 
     @property
     def center_img(self):
@@ -132,7 +132,7 @@ class CenterHold(Base):
     difficulty = Column(String(length=10))
     is_color = Column(Boolean, default=False, nullable=False)
 
-    center_id = Column(String(length=255), ForeignKey('tb_center.id'), nullable=False)
+    center_id = Column(String(length=255), ForeignKey('tb_center.id', ondelete="CASCADE"), nullable=False)
     center = relationship("Center", back_populates="holds")
 
 
@@ -142,7 +142,7 @@ class CenterWall(Base):
     name = Column(String(length=20))
     type = Column(String(length=20))
 
-    center_id = Column(String(length=255), ForeignKey('tb_center.id'), nullable=False)
+    center_id = Column(String(length=255), ForeignKey('tb_center.id', ondelete="CASCADE"), nullable=False)
     center = relationship("Center", back_populates="walls")
 
 
@@ -151,10 +151,10 @@ class CenterApprovedFile(Base):
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
     url = Column(String(length=255))
 
-    user_id = Column(String(length=255), ForeignKey('tb_user.id'), nullable=False)
-    user = relationship("User")
-    center_id = Column(String(length=255), ForeignKey('tb_center.id'), nullable=False)
-    center = relationship("Center", backref=backref("CenterApprovedFile", cascade="all, delete"))
+    user_id = Column(String(length=255), ForeignKey('tb_user.id', ondelete="CASCADE"), nullable=False)
+    user = relationship("User", backref=backref("CenterApprovedFile", passive_deletes=True))
+    center_id = Column(String(length=255), ForeignKey('tb_center.id', ondelete="CASCADE"), nullable=False)
+    center = relationship("Center", backref=backref("CenterApprovedFile", cascade="all,delete"))
 
 
 class CenterRepository:
