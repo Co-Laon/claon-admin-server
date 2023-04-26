@@ -155,6 +155,7 @@ class UserService:
                 oauth_id=oauth_dto.oauth_id,
                 nickname=str(uuid.uuid4()),
                 sns=oauth_dto.sns_email,
+                profile_img="",
                 role=Role.PENDING
             )
             await self.user_repository.save(session, user)
@@ -163,13 +164,30 @@ class UserService:
             access_token=create_access_token(user.id),
             refresh_token=create_refresh_token(user.id),
             is_signed_up=is_signed_up,
-            profile=UserProfileResponseDto(
-                profile_image=user.profile_img,
-                nickname=user.nickname,
-                email=user.email,
-                insstagram_nickname=user.instagram_name,
-                role=user.role
+            profile=UserProfileResponseDto.from_entity(user)
+        )
+
+    # TODO: Need to be removed later
+    async def test_sign_in(self, session: AsyncSession, dto: SignInRequestDto):
+        user = await self.user_repository.find_by_oauth_id(session, dto.id_token)
+
+        is_signed_up = True
+        if user is None:
+            is_signed_up = False
+            user = User(
+                oauth_id=dto.id_token,
+                nickname=str(uuid.uuid4()),
+                sns="coraon.dev@gmail.com",
+                profile_img="",
+                role=Role.PENDING
             )
+            await self.user_repository.save(session, user)
+
+        return JwtResponseDto(
+            access_token=create_access_token(user.id),
+            refresh_token=create_refresh_token(user.id),
+            is_signed_up=is_signed_up,
+            profile=UserProfileResponseDto.from_entity(user)
         )
 
     # TODO: Need to be removed later
