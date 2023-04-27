@@ -6,7 +6,7 @@ from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.config.config import conf
 from claon_admin.infra.provider import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider, KakaoUserInfoProvider
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, CenterHoldRepository, \
-    CenterWallRepository
+    CenterWallRepository, CenterFeeRepository
 from claon_admin.schema.conn import Database
 from claon_admin.schema.user import UserRepository, LectorRepository, LectorApprovedFileRepository
 from claon_admin.service.admin import AdminService
@@ -22,6 +22,7 @@ class Container(containers.DeclarativeContainer):
     lector_approved_file_repository = providers.Factory(LectorApprovedFileRepository)
     center_repository = providers.Factory(CenterRepository)
     center_approved_file_repository = providers.Factory(CenterApprovedFileRepository)
+    center_fee_repository = providers.Factory(CenterFeeRepository)
     center_hold_repository = providers.Factory(CenterHoldRepository)
     center_wall_repository = providers.Factory(CenterWallRepository)
     pagination_factory = providers.Factory(PaginationFactory)
@@ -43,6 +44,7 @@ class Container(containers.DeclarativeContainer):
         lector_approved_file_repository=lector_approved_file_repository,
         center_repository=center_repository,
         center_approved_file_repository=center_approved_file_repository,
+        center_fee_repository=center_fee_repository,
         center_hold_repository=center_hold_repository,
         center_wall_repository=center_wall_repository,
         oauth_user_info_provider_supplier=oauth_user_info_provider_supplier,

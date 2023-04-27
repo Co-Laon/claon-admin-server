@@ -24,3 +24,14 @@ class CenterUploadPurpose(Enum):
 class WallType(Enum):
     ENDURANCE = "endurance"
     BOULDERING = "bouldering"
+
+
+class MembershipType(Enum):
+    PACKAGE = "package"
+    MEMBER = "member"
+    COURSE = "course"
+
+
+class PeriodType(Enum):
+    WEEK = "week"
+    MONTH = "month"

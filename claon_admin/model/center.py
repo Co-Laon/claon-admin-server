@@ -274,7 +274,7 @@ class CenterResponseDto(BaseModel):
             ],
             fee_list=[
                 CenterFeeDto(name=e.name, price=e.price, count=e.count)
-                for e in entity.fee
+                for e in entity.fees
             ],
             hold_list=[
                 CenterHoldDto(difficulty=e.difficulty, name=e.name, is_color=e.is_color)

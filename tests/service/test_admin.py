@@ -10,7 +10,7 @@ from claon_admin.common.error.exception import BadRequestException
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.enum import Role
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, Center, CenterApprovedFile, \
-    CenterImage, OperatingTime, Utility, CenterFee, CenterFeeImage
+    CenterImage, OperatingTime, Utility, CenterFeeImage
 from claon_admin.schema.user import LectorRepository, LectorApprovedFileRepository, Lector, LectorApprovedFile, User, \
     Contest, Certificate, Career, UserRepository
 from claon_admin.service.admin import AdminService
@@ -110,7 +110,6 @@ def mock_center(mock_user: User):
         center_img=[CenterImage(url="https://test.image.png")],
         operating_time=[OperatingTime(day_of_week="월", start_time="09:00", end_time="18:00")],
         utility=[Utility(name="test_utility")],
-        fee=[CenterFee(name="test_fee_name", price=1000, count=10)],
         fee_img=[CenterFeeImage(url="https://test.fee.png")],
         approved=False
     )

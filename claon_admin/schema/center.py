@@ -2,11 +2,12 @@ import json
 from typing import List
 from uuid import uuid4
 
-from sqlalchemy import String, Column, ForeignKey, Boolean, select, exists
+from sqlalchemy import String, Column, ForeignKey, Boolean, select, exists, Integer, DateTime, Enum
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload, backref
 from sqlalchemy.dialects.postgresql import TEXT
 
+from claon_admin.model.enum import PeriodType, MembershipType, WallType
 from claon_admin.schema.conn import Base
 
 
@@ -27,16 +28,19 @@ class CenterImage:
         self.url = url
 
 
-class CenterFee:
-    def __init__(self, name: str, price: int, count: int):
-        self.name = name
-        self.price = price
-        self.count = count
-
-
 class CenterFeeImage:
     def __init__(self, url: str):
         self.url = url
+
+
+class PostImage:
+    def __init__(self, url: str):
+        self.url = url
+
+
+class ReviewTag:
+    def __init__(self, word: str):
+        self.word = word
 
 
 class Center(Base):
@@ -55,9 +59,9 @@ class Center(Base):
     _center_img = Column(TEXT)
     _operating_time = Column(TEXT)
     _utility = Column(TEXT)
-    _fee = Column(TEXT)
     _fee_img = Column(TEXT)
 
+    fees = relationship("CenterFee", back_populates="center", cascade="all, delete-orphan")
     holds = relationship("CenterHold", back_populates="center", cascade="all, delete-orphan")
     walls = relationship("CenterWall", back_populates="center", cascade="all, delete-orphan")
 
@@ -101,18 +105,6 @@ class Center(Base):
         self._utility = json.dumps([value.__dict__ for value in values], default=str)
 
     @property
-    def fee(self):
-        if self._fee is None:
-            return []
-
-        values = json.loads(self._fee)
-        return [CenterFee(value['name'], value['price'], value['count']) for value in values]
-
-    @fee.setter
-    def fee(self, values: List[CenterFee]):
-        self._fee = json.dumps([value.__dict__ for value in values], default=str)
-
-    @property
     def fee_img(self):
         if self._fee_img is None:
             return []
@@ -125,12 +117,27 @@ class Center(Base):
         self._fee_img = json.dumps([value.__dict__ for value in values], default=str)
 
 
+class CenterFee(Base):
+    __tablename__ = 'tb_center_fee'
+    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    name = Column(String(length=50), nullable=False)
+    membership_type = Column(Enum(MembershipType), nullable=False)
+    price = Column(Integer, nullable=False)
+    count = Column(Integer, nullable=False)
+    period = Column(Integer, nullable=False)
+    period_type = Column(Enum(PeriodType), nullable=False)
+
+    center_id = Column(String(length=255), ForeignKey('tb_center.id', ondelete="CASCADE"), nullable=False)
+    center = relationship("Center", back_populates="fees")
+
+
 class CenterHold(Base):
     __tablename__ = 'tb_center_hold'
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
     name = Column(String(length=10))
     difficulty = Column(String(length=10))
     is_color = Column(Boolean, default=False, nullable=False)
+    img = Column(TEXT, nullable=False)
 
     center_id = Column(String(length=255), ForeignKey('tb_center.id', ondelete="CASCADE"), nullable=False)
     center = relationship("Center", back_populates="holds")
@@ -155,6 +162,82 @@ class CenterApprovedFile(Base):
     user = relationship("User", backref=backref("CenterApprovedFile", passive_deletes=True))
     center_id = Column(String(length=255), ForeignKey('tb_center.id', ondelete="CASCADE"), nullable=False)
     center = relationship("Center", backref=backref("CenterApprovedFile", cascade="all,delete"))
+
+
+class Post(Base):
+    __tablename__ = 'tb_post'
+    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    content = Column(String(length=500), nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    _img = Column(TEXT, nullable=False)
+    histories = relationship("ClimbingHistory", back_populates="post", cascade="all, delete-orphan")
+
+    user_id = Column(String(length=255), ForeignKey("tb_user.id", ondelete="CASCADE"), nullable=False)
+    user = relationship("User", backref=backref("Post"))
+    center_id = Column(String(length=255), ForeignKey("tb_center.id", ondelete="CASCADE"), nullable=False)
+    center = relationship("Center", backref=backref("Post"))
+
+    @property
+    def img(self):
+        if self._img is None:
+            return []
+
+        values = json.loads(self._img)
+        return [PostImage(value['url']) for value in values]
+
+    @img.setter
+    def img(self, values: List[PostImage]):
+        self._img = json.dumps([value.__dict__ for value in values], default=str)
+
+
+class ClimbingHistory(Base):
+    __tablename__ = 'tb_climbing_history'
+    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    hold_url = Column(TEXT, nullable=False)
+    difficulty = Column(String(length=10), nullable=False)
+    challenge_count = Column(Integer, nullable=False)
+    wall_name = Column(String(length=20), nullable=False)
+    wall_type = Column(Enum(WallType), nullable=False)
+
+    post_id = Column(String(length=255), ForeignKey("tb_post.id", ondelete="CASCADE"), nullable=False)
+    post = relationship("Post", back_populates="histories")
+
+
+class Review(Base):
+    __tablename__ = "tb_review"
+    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    content = Column(String(length=500), nullable=False)
+    created_at = Column(DateTime, nullable=False)
+    _tag = Column(TEXT, nullable=False)
+    is_review = Column(Boolean)
+    answer = relationship("ReviewAnswer", back_populates="review", uselist=False, cascade="all, delete-orphan")
+
+    user_id = Column(String(length=255), ForeignKey("tb_user.id", ondelete="CASCADE"), nullable=False)
+    user = relationship("User", backref=backref("Review"))
+    center_id = Column(String(length=255), ForeignKey("tb_center.id", ondelete="CASCADE"), nullable=False)
+    center = relationship("Center", backref=backref("Review"))
+
+    @property
+    def tag(self):
+        if self._tag is None:
+            return []
+
+        values = json.loads(self._tag)
+        return [ReviewTag(value['word']) for value in values]
+
+    @tag.setter
+    def tag(self, values: List[ReviewTag]):
+        self._tag = json.dumps([value.__dict__ for value in values], default=str)
+
+
+class ReviewAnswer(Base):
+    __tablename__ = 'tb_review_answer'
+    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    content = Column(String(length=500), nullable=False)
+    created_at = Column(DateTime, nullable=False)
+
+    review_id = Column(String(length=255), ForeignKey("tb_review.id", ondelete="CASCADE"), nullable=False)
+    review = relationship("Review", back_populates="answer")
 
 
 class CenterRepository:
@@ -247,3 +330,54 @@ class CenterWallRepository:
     async def find_all_by_center_id(session: AsyncSession, center_id: str):
         result = await session.execute(select(CenterWall).where(CenterWall.center_id == center_id))
         return result.scalars().all()
+
+
+class CenterFeeRepository:
+    @staticmethod
+    async def save(session: AsyncSession, center_fee: CenterFee):
+        session.add(center_fee)
+        await session.merge(center_fee)
+        return center_fee
+
+    @staticmethod
+    async def save_all(session: AsyncSession, center_fees: List[CenterFee]):
+        session.add_all(center_fees)
+        [await session.merge(e) for e in center_fees]
+        return center_fees
+
+    @staticmethod
+    async def find_all_by_center_id(session: AsyncSession, center_id: str):
+        result = await session.execute(select(CenterFee).where(CenterFee.center_id == center_id))
+        return result.scalars().all()
+
+
+class PostRepository:
+    @staticmethod
+    async def save(session: AsyncSession, post: Post):
+        session.add(post)
+        await session.merge(post)
+        return post
+
+
+class ReviewRepository:
+    @staticmethod
+    async def save(session: AsyncSession, review: Review):
+        session.add(review)
+        await session.merge(review)
+        return review
+
+
+class ReviewAnswerRepository:
+    @staticmethod
+    async def save(session: AsyncSession, answer: ReviewAnswer):
+        session.add(answer)
+        await session.merge(answer)
+        return answer
+
+
+class ClimbingHistoryRepository:
+    @staticmethod
+    async def save(session: AsyncSession, history: ClimbingHistory):
+        session.add(history)
+        await session.merge(history)
+        return history

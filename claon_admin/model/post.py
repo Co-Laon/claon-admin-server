@@ -50,7 +50,7 @@ class PostResponseDto(BaseModel):
     images: List[str]
     like_count: int
     climbing_history: List[ClimbingHistoryDto]
-    created_at: int
+    created_at: str
     user_id: str
     user_nickname: str
     user_profile_image: str
