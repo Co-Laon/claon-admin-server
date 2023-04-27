@@ -162,7 +162,7 @@ class LectorRepository:
         return lector
     
     @staticmethod
-    async def find_by_approved_true(session: AsyncSession):
+    async def find_by_approved_false(session: AsyncSession):
         result = await session.execute(
             select(Lector)
             .where(Lector.approved == False)
@@ -213,3 +213,8 @@ class LectorApprovedFileRepository:
     @staticmethod
     async def delete_all_by_lector_id(session: AsyncSession, lector_id: str):
         await session.execute(delete(LectorApprovedFile).where(LectorApprovedFile.lector_id == lector_id))
+    
+    @staticmethod
+    async def find_by_id(session: AsyncSession, lector_id: str):
+        result = await session.execute(select(LectorApprovedFile).where(LectorApprovedFile.id == lector_id))
+        return result.scalars().all()

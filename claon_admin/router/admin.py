@@ -26,7 +26,7 @@ class AdminRouter:
     async def find_approval_pending_lectors(self,
                                             session: AsyncSession = Depends(db.get_db),
                                             subject: RequestUser = Depends(get_subject)):
-        return await self.admin_service.get_approved_lectors(session, subject)
+        return await self.admin_service.get_unapproved_lectors(session, subject)
 
 
     @router.post('/lectors/{lector_id}/approve')
@@ -47,7 +47,7 @@ class AdminRouter:
     async def find_approval_pending_centers(self,
                                             session: AsyncSession = Depends(db.get_db),
                                             subject: RequestUser = Depends(get_subject)):
-        return await self.admin_service.get_approved_centers(session, subject)
+        return await self.admin_service.get_unapproved_centers(session, subject)
 
     @router.post('/centers/{center_id}/approve')
     async def approve_center(self,
