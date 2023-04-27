@@ -16,7 +16,7 @@ from claon_admin.model.user import IsDuplicatedNicknameResponseDto, LectorReques
 from claon_admin.model.user import SignInRequestDto, JwtResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterFee, \
     CenterFeeImage, CenterHold, CenterWall, CenterApprovedFile, CenterHoldRepository, CenterWallRepository, \
-    CenterApprovedFileRepository
+    CenterApprovedFileRepository, CenterFeeRepository
 from claon_admin.schema.user import UserRepository, LectorRepository, Lector, Contest, Certificate, Career, \
     LectorApprovedFile, LectorApprovedFileRepository, User
 
@@ -28,6 +28,7 @@ class UserService:
                  lector_approved_file_repository: LectorApprovedFileRepository,
                  center_repository: CenterRepository,
                  center_approved_file_repository: CenterApprovedFileRepository,
+                 center_fee_repository: CenterFeeRepository,
                  center_hold_repository: CenterHoldRepository,
                  center_wall_repository: CenterWallRepository,
                  oauth_user_info_provider_supplier: OAuthUserInfoProviderSupplier,
@@ -37,6 +38,7 @@ class UserService:
         self.lector_approved_file_repository = lector_approved_file_repository
         self.center_repository = center_repository
         self.center_approved_file_repository = center_approved_file_repository
+        self.center_fee_repository = center_fee_repository
         self.center_hold_repository = center_hold_repository
         self.center_wall_repository = center_wall_repository
         self.supplier = oauth_user_info_provider_supplier
@@ -75,10 +77,15 @@ class UserService:
                 for e in dto.operating_time_list
             ],
             utility=[Utility(name=e) for e in dto.utility_list],
-            fee=[CenterFee(name=e.name, price=e.price, count=e.count) for e in dto.fee_list],
             fee_img=[CenterFeeImage(url=e) for e in dto.fee_image_list],
             approved=False
         ))
+
+        fees = await self.center_fee_repository.save_all(
+            session,
+            [CenterFee(center=center, name=e.name, price=e.price, count=e.count)
+             for e in dto.fee_list]
+        )
 
         holds = await self.center_hold_repository.save_all(
             session,
@@ -98,6 +105,7 @@ class UserService:
              for e in dto.proof_list]
         )
 
+        center.fees = fees
         center.holds = holds
         center.walls = walls
 

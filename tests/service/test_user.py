@@ -20,7 +20,7 @@ from claon_admin.model.user import LectorRequestDto, LectorContestDto, LectorCer
 from claon_admin.model.user import SignInRequestDto, JwtResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterHoldRepository, CenterWallRepository, \
     CenterApprovedFileRepository, CenterHold, CenterWall, CenterApprovedFile, CenterImage, OperatingTime, Utility, \
-    CenterFee, CenterFeeImage
+    CenterFee, CenterFeeImage, CenterFeeRepository
 from claon_admin.schema.user import User, UserRepository, LectorRepository, Lector, LectorApprovedFileRepository, \
     LectorApprovedFile, Contest, Certificate, Career
 from claon_admin.service.user import UserService
@@ -33,6 +33,7 @@ def mock_repo():
     lector_approved_file_repository = AsyncMock(spec=LectorApprovedFileRepository)
     center_repository = AsyncMock(spec=CenterRepository)
     center_approved_file_repository = AsyncMock(spec=CenterApprovedFileRepository)
+    center_fee_repository = AsyncMock(spec=CenterFeeRepository)
     center_hold_repository = AsyncMock(spec=CenterHoldRepository)
     center_wall_repository = AsyncMock(spec=CenterWallRepository)
     pagination_factory = AsyncMock(spec=PaginationFactory)
@@ -43,6 +44,7 @@ def mock_repo():
         "lector_approved_file": lector_approved_file_repository,
         "center": center_repository,
         "center_approved_file": center_approved_file_repository,
+        "center_fee": center_fee_repository,
         "center_hold": center_hold_repository,
         "center_wall": center_wall_repository,
         "pagination_factory" : pagination_factory
@@ -62,6 +64,7 @@ def user_service(mock_repo: dict, mock_supplier: OAuthUserInfoProviderSupplier):
         mock_repo["lector_approved_file"],
         mock_repo["center"],
         mock_repo["center_approved_file"],
+        mock_repo["center_fee"],
         mock_repo["center_hold"],
         mock_repo["center_wall"],
         mock_supplier,
@@ -141,7 +144,7 @@ async def center_request_dto(session: AsyncSession, mock_user: User):
         utility_list=["test_utility"],
         fee_image_list=["https://test.fee.png"],
         operating_time_list=[CenterOperatingTimeDto(day_of_week="월", start_time="09:00", end_time="18:00")],
-        fee_list=[CenterFeeDto(name="test_fee_name", price=1000, count=10)],
+        fee_list=[CenterFeeDto(name="fee", price=1000, count=10)],
         hold_list=[CenterHoldDto(name="hold", difficulty="hard", is_color=False)],
         wall_list=[CenterWallDto(name="wall", wall_type=WallType.ENDURANCE)],
         proof_list=["https://example.com/approved.jpg"]
@@ -198,7 +201,6 @@ def mock_center(mock_user: User):
         center_img=[CenterImage(url="https://test.image.png")],
         operating_time=[OperatingTime(day_of_week="월", start_time="09:00", end_time="18:00")],
         utility=[Utility(name="test_utility")],
-        fee=[CenterFee(name="test_fee_name", price=1000, count=10)],
         fee_img=[CenterFeeImage(url="https://test.fee.png")],
         approved=False
     )
@@ -212,6 +214,19 @@ def mock_center_approved_files(mock_user: User, mock_center: Center):
             user=mock_user,
             center=mock_center,
             url="https://example.com/approved.jpg"
+        )
+    ]
+
+
+@pytest.fixture
+def mock_center_fees(mock_center: Center):
+    yield [
+        CenterFee(
+            id=str(uuid.uuid4()),
+            center=mock_center,
+            name="fee",
+            price=1000,
+            count=10
         )
     ]
 
@@ -248,6 +263,7 @@ async def test_sign_up_center(
         user_service: UserService,
         mock_user: User,
         mock_center: Center,
+        mock_center_fees: List[CenterFee],
         mock_center_holds: List[CenterHold],
         mock_center_walls: List[CenterWall],
         mock_center_approved_files: List[CenterApprovedFile],
@@ -257,6 +273,7 @@ async def test_sign_up_center(
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
     mock_repo["user"].exist_by_nickname.side_effect = [False]
     mock_repo["center"].save.side_effect = [mock_center]
+    mock_repo["center_fee"].save_all.side_effect = [mock_center_fees]
     mock_repo["center_hold"].save_all.side_effect = [mock_center_holds]
     mock_repo["center_wall"].save_all.side_effect = [mock_center_walls]
     mock_repo["center_approved_file"].save_all.side_effect = [mock_center_approved_files]

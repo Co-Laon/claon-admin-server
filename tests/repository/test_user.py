@@ -421,7 +421,6 @@ async def test_find_by_invalid_oauth_id(session: AsyncSession, user_fixture: Use
     assert not result
 
 
-
 @pytest.mark.asyncio
 async def test_update_role(session: AsyncSession, user_fixture: User):
     # given
