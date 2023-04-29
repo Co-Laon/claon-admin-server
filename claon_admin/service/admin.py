@@ -135,10 +135,6 @@ class AdminService:
             centor_approved_file = (
                 await self.center_approved_file_repository.find_by_id(center.id)
             )
-            result.append(
-                CenterResponseDto.from_entity(
-                    center, center.holds, center.walls, centor_approved_file
-                )
-            )
+            result.append(CenterResponseDto.from_entity(center, centor_approved_file))
 
         return result

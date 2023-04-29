@@ -83,7 +83,7 @@ class CenterResponseDto(BaseModel):
             ],
             hold_list=[
                 CenterHoldDto(difficulty=e.difficulty, name=e.name, is_color=e.is_color)
-                for e in holds
+                for e in center.holds
             ],
             wall_list=[
                 CenterWallDto(
