@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException
 from claon_admin.model.auth import RequestUser
-from claon_admin.model.enum import Role
+from claon_admin.common.enum import Role
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, Center, CenterApprovedFile, \
     CenterImage, OperatingTime, Utility, CenterFeeImage
 from claon_admin.schema.user import LectorRepository, LectorApprovedFileRepository, Lector, LectorApprovedFile, User, \

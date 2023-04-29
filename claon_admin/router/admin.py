@@ -5,8 +5,9 @@ from fastapi import APIRouter, Depends
 from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from claon_admin.common.util.db import db
 from claon_admin.config.auth import get_subject
-from claon_admin.container import db, Container
+from claon_admin.container import Container
 from claon_admin.model.admin import LectorResponseDto, CenterResponseDto
 from claon_admin.model.auth import RequestUser
 from claon_admin.service.admin import AdminService

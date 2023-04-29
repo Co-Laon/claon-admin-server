@@ -5,10 +5,10 @@ from fastapi import APIRouter, Depends, UploadFile, File
 from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.container import db
+from claon_admin.common.util.db import db
 from claon_admin.model.center import CenterNameResponseDto, CenterResponseDto, UploadFileResponseDto, \
     CenterUpdateRequestDto, CenterBriefResponseDto, CenterRequestDto
-from claon_admin.model.enum import CenterUploadPurpose
+from claon_admin.common.enum import CenterUploadPurpose
 from claon_admin.model.post import PostResponseDto, PostSummaryResponseDto, PostCommentResponseDto
 from claon_admin.model.review import ReviewSummaryResponseDto, ReviewAnswerResponseDto, ReviewAnswerRequestDto, \
     ReviewBriefResponseDto

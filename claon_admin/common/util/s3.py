@@ -4,22 +4,11 @@ import uuid
 from datetime import datetime
 from tempfile import NamedTemporaryFile
 
-import boto3
 from fastapi import UploadFile
 
 from claon_admin.common.error.exception import InternalServerException, ErrorCode
-from claon_admin.config.consts import AWS_ACCESS_KEY_ID
-from claon_admin.config.consts import AWS_SECRET_ACCESS_KEY
-from claon_admin.config.consts import BUCKET
-from claon_admin.config.consts import REGION_NAME
-
-if os.environ.get("API_ENV") != "test":
-    client_s3 = boto3.client(
-        's3',
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
-        region_name=REGION_NAME
-    )
+from claon_admin.config.config import conf
+from claon_admin.config.s3 import s3
 
 
 async def upload_file(file: UploadFile, domain: str, purpose: str):
@@ -30,23 +19,23 @@ async def upload_file(file: UploadFile, domain: str, purpose: str):
         with NamedTemporaryFile() as temp_file:
             temp_file.write(await file.read())
             temp_file.seek(0)
-            client_s3.upload_fileobj(
+            s3.upload_fileobj(
                 temp_file,
-                BUCKET,
+                conf().BUCKET,
                 key_name,
                 ExtraArgs={"ContentType": mimetypes.guess_type(f"{file.filename}")[0], "ACL": "public-read"}
             )
 
-            return os.path.join("https://" + BUCKET + ".s3." + REGION_NAME + ".amazonaws.com", key_name)
+            return os.path.join("https://" + conf().BUCKET + ".s3." + conf().REGION_NAME + ".amazonaws.com", key_name)
     except Exception:
         raise InternalServerException(ErrorCode.INTERNAL_SERVER_ERROR, "S3 객체 업로드를 실패했습니다.")
 
 
 async def delete_file(url: str):
-    prefix = "https://" + BUCKET + ".s3." + REGION_NAME + ".amazonaws.com"
+    prefix = "https://" + conf().BUCKET + ".s3." + conf().REGION_NAME + ".amazonaws.com"
     key_name = url.replace(prefix, "")[1:]
 
     try:
-        client_s3.delete_object(Bucket=BUCKET, Key=key_name)
+        s3.delete_object(Bucket=conf().BUCKET, Key=key_name)
     except Exception:
         raise InternalServerException(ErrorCode.INTERNAL_SERVER_ERROR, "S3 객체 제거에 실패했습니다.")

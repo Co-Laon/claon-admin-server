@@ -3,7 +3,7 @@ from typing import Optional, List
 
 from pydantic import BaseModel
 
-from claon_admin.model.enum import WallType
+from claon_admin.common.enum import WallType
 from claon_admin.model.user import UserProfileDto, UserProfileResponseDto
 from claon_admin.schema.center import Center, CenterApprovedFile
 from claon_admin.schema.user import Lector, LectorApprovedFile

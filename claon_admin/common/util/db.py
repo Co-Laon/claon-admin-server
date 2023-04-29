@@ -1,6 +1,8 @@
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine
 from sqlalchemy.orm import sessionmaker, declarative_base
 
+from claon_admin.config.config import conf
+
 Base = declarative_base()
 
 
@@ -37,3 +39,6 @@ class Database:
     @property
     def session(self):
         return self.get_db
+
+
+db = Database(db_url=conf().DB_URL)

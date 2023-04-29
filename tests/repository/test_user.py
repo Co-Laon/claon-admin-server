@@ -3,7 +3,7 @@ from datetime import date
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.model.enum import Role
+from claon_admin.common.enum import Role
 from claon_admin.schema.user import (
     UserRepository,
     LectorRepository,

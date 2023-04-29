@@ -12,7 +12,7 @@ def event_loop():
 
 @pytest.fixture(scope="session", autouse=True)
 async def db():
-    from claon_admin.container import db
+    from claon_admin.common.util.db import db
 
     asyncio.run(db.drop_database())
     asyncio.run(db.create_database())

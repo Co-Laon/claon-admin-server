@@ -2,7 +2,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 
-from claon_admin.model.enum import Role
+from claon_admin.common.enum import Role
 
 
 class RequestUser(BaseModel):

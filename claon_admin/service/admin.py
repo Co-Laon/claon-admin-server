@@ -4,7 +4,7 @@ from claon_admin.common.error.exception import BadRequestException, ErrorCode
 from claon_admin.common.util.s3 import delete_file
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.admin import CenterResponseDto, LectorResponseDto
-from claon_admin.model.enum import Role
+from claon_admin.common.enum import Role
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository
 from claon_admin.schema.user import LectorRepository, LectorApprovedFileRepository, UserRepository
 
