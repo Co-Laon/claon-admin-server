@@ -1,18 +1,12 @@
-from dataclasses import asdict
-
 from dependency_injector import containers, providers
 
 from claon_admin.common.util.pagination import PaginationFactory
-from claon_admin.config.config import conf
-from claon_admin.infra.provider import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider, KakaoUserInfoProvider
+from claon_admin.common.util.oauth import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider, KakaoUserInfoProvider
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, CenterHoldRepository, \
     CenterWallRepository, CenterFeeRepository
-from claon_admin.schema.conn import Database
 from claon_admin.schema.user import UserRepository, LectorRepository, LectorApprovedFileRepository
 from claon_admin.service.admin import AdminService
 from claon_admin.service.user import UserService
-
-db = Database(db_url=asdict(conf())['DB_URL'])
 
 
 class Container(containers.DeclarativeContainer):

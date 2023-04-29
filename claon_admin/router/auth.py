@@ -4,13 +4,14 @@ from fastapi_pagination import Params
 from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from claon_admin.common.util.db import db
 from claon_admin.common.util.pagination import Pagination
 from claon_admin.common.util import header
 from claon_admin.config.auth import get_subject
-from claon_admin.container import Container, db
+from claon_admin.container import Container
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.center import CenterAuthRequestDto, CenterResponseDto
-from claon_admin.model.enum import OAuthProvider
+from claon_admin.common.enum import OAuthProvider
 from claon_admin.model.user import SignInRequestDto, LectorRequestDto, JwtResponseDto, \
     IsDuplicatedNicknameResponseDto, LectorResponseDto
 from claon_admin.service.user import UserService

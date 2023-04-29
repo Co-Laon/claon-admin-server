@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.container import db
+from claon_admin.common.util.db import db
 from claon_admin.model.user import CenterNameResponseDto
 
 router = APIRouter()

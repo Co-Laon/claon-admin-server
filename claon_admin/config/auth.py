@@ -3,11 +3,12 @@ from fastapi import Header, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import UnauthorizedException, ErrorCode, InternalServerException
+from claon_admin.common.util.db import db
 from claon_admin.common.util.header import add_jwt_tokens
 from claon_admin.common.util.jwt import resolve_access_token, resolve_refresh_token, is_expired, create_access_token, \
     reissue_refresh_token
 from claon_admin.common.util.redis import find_user_id_by_refresh_token
-from claon_admin.container import db, Container
+from claon_admin.container import Container
 from claon_admin.model.auth import RequestUser
 from claon_admin.schema.user import UserRepository
 

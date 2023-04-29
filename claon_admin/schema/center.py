@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload, backref
 from sqlalchemy.dialects.postgresql import TEXT
 
-from claon_admin.model.enum import PeriodType, MembershipType, WallType
-from claon_admin.schema.conn import Base
+from claon_admin.common.enum import PeriodType, MembershipType, WallType
+from claon_admin.common.util.db import Base
 
 
 class OperatingTime:

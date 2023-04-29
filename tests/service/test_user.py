@@ -8,13 +8,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException
 from claon_admin.common.util.pagination import PaginationFactory
-from claon_admin.infra.provider import GoogleUserInfoProvider, OAuthUserInfoProviderSupplier, KakaoUserInfoProvider
+from claon_admin.common.util.oauth import GoogleUserInfoProvider, OAuthUserInfoProviderSupplier, KakaoUserInfoProvider
 from claon_admin.model.auth import OAuthUserInfoDto
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.center import CenterAuthRequestDto, CenterFeeDto, CenterHoldDto, CenterWallDto, \
     CenterOperatingTimeDto
-from claon_admin.model.enum import OAuthProvider
-from claon_admin.model.enum import WallType, Role
+from claon_admin.common.enum import OAuthProvider
+from claon_admin.common.enum import WallType, Role
 from claon_admin.model.user import LectorRequestDto, LectorContestDto, LectorCertificateDto, \
     LectorCareerDto, UserProfileDto
 from claon_admin.model.user import SignInRequestDto, JwtResponseDto
@@ -410,8 +410,10 @@ async def test_exist_by_existing_nickname(
 
 
 @pytest.mark.asyncio
+@patch("claon_admin.service.user.create_access_token")
 @patch("claon_admin.service.user.create_refresh_token")
 async def test_sign_in_with_google(
+        mock_create_access_token,
         mock_create_refresh_token,
         session: AsyncSession,
         mock_repo: dict,
@@ -432,6 +434,7 @@ async def test_sign_in_with_google(
 
     mock_supplier.get_provider.return_value = mock_provider
 
+    mock_create_access_token.return_value = "test_access_token"
     mock_create_refresh_token.return_value = "test_refresh_token"
 
     # when
@@ -443,8 +446,10 @@ async def test_sign_in_with_google(
 
 
 @pytest.mark.asyncio
+@patch("claon_admin.service.user.create_access_token")
 @patch("claon_admin.service.user.create_refresh_token")
 async def test_sign_in_with_kakao(
+        mock_create_access_token,
         mock_create_refresh_token,
         session: AsyncSession,
         mock_repo: dict,
@@ -465,6 +470,7 @@ async def test_sign_in_with_kakao(
 
     mock_supplier.get_provider.return_value = mock_provider
 
+    mock_create_access_token.return_value = "test_access_token"
     mock_create_refresh_token.return_value = "test_refresh_token"
 
     # when

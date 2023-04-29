@@ -5,9 +5,9 @@ from google.oauth2.id_token import verify_oauth2_token
 from google.auth.transport.requests import Request
 
 from claon_admin.common.error.exception import InternalServerException, ErrorCode
-from claon_admin.config.consts import GOOGLE_CLIENT_ID
+from claon_admin.config.config import conf
 from claon_admin.model.auth import OAuthUserInfoDto
-from claon_admin.model.enum import OAuthProvider
+from claon_admin.common.enum import OAuthProvider
 
 
 class UserInfoProvider:
@@ -18,7 +18,7 @@ class UserInfoProvider:
 class GoogleUserInfoProvider(UserInfoProvider):
     async def get_user_info(self, token: str):
         try:
-            id_token = verify_oauth2_token(token, Request(), GOOGLE_CLIENT_ID)
+            id_token = verify_oauth2_token(token, Request(), conf().GOOGLE_CLIENT_ID)
 
             if id_token is None:
                 raise InternalServerException(

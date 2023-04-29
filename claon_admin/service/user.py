@@ -5,12 +5,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException, ErrorCode
 from claon_admin.common.util.jwt import create_access_token, create_refresh_token
-from claon_admin.infra.provider import OAuthUserInfoProviderSupplier, UserInfoProvider
+from claon_admin.common.util.oauth import OAuthUserInfoProviderSupplier, UserInfoProvider
 from claon_admin.model.auth import OAuthUserInfoDto
 from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.center import CenterAuthRequestDto, CenterResponseDto
-from claon_admin.model.enum import OAuthProvider, Role
+from claon_admin.common.enum import OAuthProvider, Role
 from claon_admin.model.user import IsDuplicatedNicknameResponseDto, LectorRequestDto, LectorResponseDto, \
     UserProfileResponseDto
 from claon_admin.model.user import SignInRequestDto, JwtResponseDto

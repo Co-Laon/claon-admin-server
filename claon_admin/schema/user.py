@@ -10,8 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, backref, selectinload
 from sqlalchemy.dialects.postgresql import TEXT
 
-from claon_admin.model.enum import Role
-from claon_admin.schema.conn import Base
+from claon_admin.common.enum import Role
+from claon_admin.common.util.db import Base
 
 
 class Contest:
