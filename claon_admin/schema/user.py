@@ -34,7 +34,7 @@ class Career:
 
 
 class User(Base):
-    __tablename__ = 'tb_user'
+    __tablename__ = "tb_user"
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
     oauth_id = Column(String(length=255), nullable=False)
     nickname = Column(String(length=40), nullable=False, unique=True)
@@ -52,7 +52,7 @@ class User(Base):
 
 
 class Lector(Base):
-    __tablename__ = 'tb_lector'
+    __tablename__ = "tb_lector"
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
     is_setter = Column(Boolean, default=False, nullable=False)
     approved = Column(Boolean, default=False, nullable=False)
@@ -70,7 +70,9 @@ class Lector(Base):
             return []
 
         values = json.loads(self._contest)
-        return [Contest(value['year'], value['title'], value['name']) for value in values]
+        return [
+            Contest(value["year"], value["title"], value["name"]) for value in values
+        ]
 
     @contest.setter
     def contest(self, values: List[Contest]):
@@ -82,11 +84,13 @@ class Lector(Base):
             return []
 
         values = json.loads(self._certificate)
-        return [Certificate(value['acquisition_date'], value['rate'], value['name']) for value in values]
+        return [Certificate(value["acquisition_date"], value["rate"], value["name"]) for value in values]
 
     @certificate.setter
     def certificate(self, values: List[Certificate]):
-        self._certificate = json.dumps([value.__dict__ for value in values], default=str)
+        self._certificate = json.dumps(
+            [value.__dict__ for value in values], default=str
+        )
 
     @property
     def career(self):
@@ -94,7 +98,7 @@ class Lector(Base):
             return []
 
         values = json.loads(self._career)
-        return [Career(value['start_date'], value['end_date'], value['name']) for value in values]
+        return [Career(value["start_date"], value["end_date"], value["name"]) for value in values]
 
     @career.setter
     def career(self, values: List[Career]):
@@ -102,7 +106,7 @@ class Lector(Base):
 
 
 class LectorApprovedFile(Base):
-    __tablename__ = 'tb_lector_approved_file'
+    __tablename__ = "tb_lector_approved_file"
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
     url = Column(String(length=255))
 
@@ -128,7 +132,9 @@ class UserRepository:
 
     @staticmethod
     async def exist_by_nickname(session: AsyncSession, nickname: str):
-        result = await session.execute(select(exists().where(User.nickname == nickname)))
+        result = await session.execute(
+            select(exists().where(User.nickname == nickname))
+        )
         return result.scalar()
 
     @staticmethod
@@ -139,7 +145,9 @@ class UserRepository:
 
     @staticmethod
     async def find_by_oauth_id_and_sns(session: AsyncSession, oauth_id: str, sns: str):
-        result = await session.execute(select(User).where(and_(User.oauth_id == oauth_id, User.sns == sns)))
+        result = await session.execute(
+            select(User).where(and_(User.oauth_id == oauth_id, User.sns == sns))
+        )
         return result.scalars().one_or_none()
 
     @staticmethod
@@ -160,7 +168,7 @@ class LectorRepository:
         session.add(lector)
         await session.merge(lector)
         return lector
-    
+
     @staticmethod
     async def find_by_approved_false(session: AsyncSession):
         result = await session.execute(
@@ -168,7 +176,7 @@ class LectorRepository:
             .where(Lector.approved == False)
             .options(selectinload(Lector.user))
         )
-      
+
         return result.scalars().all()
 
     @staticmethod

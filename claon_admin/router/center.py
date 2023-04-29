@@ -28,22 +28,18 @@ class CenterRouter:
                  center_service: CenterService = Depends(Provide[Container.center_service])):
         self.center_service = center_service
 
-    @router.get('/name/{name}', response_model=CenterNameResponseDto)
-    async def get_name(self,
-                       name: str,
-                       session: AsyncSession = Depends(db.get_db)):
+    @router.get("/name/{name}", response_model=CenterNameResponseDto)
+    async def get_name(self, name: str, session: AsyncSession = Depends(db.get_db)):
         pass
 
-    @router.get('/{center_id}', response_model=CenterResponseDto)
-    async def find_by_id(self,
-                         center_id: str,
-                         session: AsyncSession = Depends(db.get_db)):
+    @router.get("/{center_id}", response_model=CenterResponseDto)
+    async def find_by_id(
+        self, center_id: str, session: AsyncSession = Depends(db.get_db)
+    ):
         pass
 
-    @router.post('/{purpose}/file', response_model=UploadFileResponseDto)
-    async def upload(self,
-                     purpose: CenterUploadPurpose,
-                     file: UploadFile = File(...)):
+    @router.post("/{purpose}/file", response_model=UploadFileResponseDto)
+    async def upload(self, purpose: CenterUploadPurpose, file: UploadFile = File(...)):
         pass
 
     @router.get('/', response_model=List[CenterBriefResponseDto])

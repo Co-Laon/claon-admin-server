@@ -1,5 +1,3 @@
-from typing import List
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException
@@ -110,3 +108,37 @@ class AdminService:
         approved_files = await self.center_approved_file_repository.find_all_by_center_id(session, center_id)
         [await delete_file(e.url) for e in approved_files]
         await self.center_repository.delete(session, center)
+
+    async def get_unapproved_lectors(self, session: AsyncSession, subject: RequestUser):
+        if subject.role != Role.ADMIN:
+            raise BadRequestException(ErrorCode.NONE_ADMIN_ACCOUNT, "어드민 권한이 없습니다.")
+
+        lectors = await self.lector_repository.find_by_approved_false(session)
+        result = list()
+
+        for lector in [lectors]:
+            lector_approved_file = (
+                await self.lector_approved_file_repository.find_by_id(lector.id)
+            )
+            result.append(LectorResponseDto.from_entity(lector, lector_approved_file))
+
+        return result
+
+    async def get_unapproved_centers(self, session: AsyncSession, subject: RequestUser):
+        if subject.role != Role.ADMIN:
+            raise BadRequestException(ErrorCode.NONE_ADMIN_ACCOUNT, "어드민 권한이 없습니다.")
+
+        centers = await self.center_repository.find_by_approved_false(session)
+        result = list()
+
+        for center in [centers]:
+            centor_approved_file = (
+                await self.center_approved_file_repository.find_by_id(center.id)
+            )
+            result.append(
+                CenterResponseDto.from_entity(
+                    center, center.holds, center.walls, centor_approved_file
+                )
+            )
+
+        return result

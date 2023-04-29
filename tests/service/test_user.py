@@ -83,7 +83,7 @@ def mock_user():
         sns="sns",
         email="test@test.com",
         instagram_name="instagram_name",
-        role=Role.PENDING
+        role=Role.PENDING,
     )
 
 
@@ -104,22 +104,22 @@ def lector_request_dto(session: AsyncSession, mock_user: User):
                 title='testtitle',
                 name='testname'
             )
-        ],
+        ],        
         certificate_list=[
             LectorCertificateDto(
-                acquisition_date=date.fromisoformat('2012-10-15'),
+                acquisition_date=date.fromisoformat("2012-10-15"),
                 rate=4,
-                name='testcertificate'
+                name="testcertificate",
             )
         ],
         career_list=[
             LectorCareerDto(
-                start_date=date.fromisoformat('2016-01-01'),
-                end_date=date.fromisoformat('2020-01-01'),
-                name='testcareer'
+                start_date=date.fromisoformat("2016-01-01"),
+                end_date=date.fromisoformat("2020-01-01"),
+                name="testcareer",
             )
         ],
-        proof_list=['https://test.com/test.pdf']
+        proof_list=["https://test.com/test.pdf"],
     )
 
 
@@ -131,7 +131,7 @@ async def center_request_dto(session: AsyncSession, mock_user: User):
             nickname=mock_user.nickname,
             email=mock_user.email,
             instagram_nickname=mock_user.instagram_name,
-            role=mock_user.role
+            role=mock_user.role,
         ),
         profile_image="https://test.profile.png",
         name="test center",
@@ -148,7 +148,7 @@ async def center_request_dto(session: AsyncSession, mock_user: User):
         fee_list=[CenterFeeDto(name="fee", price=1000, count=10)],
         hold_list=[CenterHoldDto(name="hold", difficulty="hard", is_color=False)],
         wall_list=[CenterWallDto(name="wall", wall_type=WallType.ENDURANCE)],
-        proof_list=["https://example.com/approved.jpg"]
+        proof_list=["https://example.com/approved.jpg"],
     )
 
 
@@ -163,26 +163,24 @@ def mock_lector(mock_user: User):
             Certificate(
                 acquisition_date=date.fromisoformat("2012-10-15"),
                 rate=4,
-                name="certificate"
+                name="certificate",
             )
         ],
         career=[
             Career(
                 start_date=date.fromisoformat("2016-01-01"),
                 end_date=date.fromisoformat("2020-01-01"),
-                name="career"
+                name="career",
             )
         ],
-        approved=False
+        approved=False,
     )
 
 
 @pytest.fixture
 def mock_lector_approved_files(mock_lector: Lector):
     yield LectorApprovedFile(
-        id=str(uuid.uuid4()),
-        lector=mock_lector,
-        url="https://test.com/test.pdf"
+        id=str(uuid.uuid4()), lector=mock_lector, url="https://test.com/test.pdf"
     )
 
 
@@ -200,10 +198,12 @@ def mock_center(mock_user: User):
         instagram_name="test_instagram",
         youtube_url="https://www.youtube.com/@test",
         center_img=[CenterImage(url="https://test.image.png")],
-        operating_time=[OperatingTime(day_of_week="월", start_time="09:00", end_time="18:00")],
+        operating_time=[
+            OperatingTime(day_of_week="월", start_time="09:00", end_time="18:00")
+        ],
         utility=[Utility(name="test_utility")],
         fee_img=[CenterFeeImage(url="https://test.fee.png")],
-        approved=False
+        approved=False,
     )
 
 
@@ -214,7 +214,7 @@ def mock_center_approved_files(mock_user: User, mock_center: Center):
             id=str(uuid.uuid4()),
             user=mock_user,
             center=mock_center,
-            url="https://example.com/approved.jpg"
+            url="https://example.com/approved.jpg",
         )
     ]
 
@@ -240,7 +240,7 @@ def mock_center_holds(mock_center: Center):
             center=mock_center,
             name="hold",
             difficulty="hard",
-            is_color=False
+            is_color=False,
         )
     ]
 
@@ -252,7 +252,7 @@ def mock_center_walls(mock_center: Center):
             id=str(uuid.uuid4()),
             center=mock_center,
             name="wall",
-            type=WallType.ENDURANCE.value
+            type=WallType.ENDURANCE.value,
         )
     ]
 
@@ -423,9 +423,9 @@ async def test_sign_up_lector_already_sign_up(
 
 @pytest.mark.asyncio
 async def test_exist_by_not_existing_nickname(
-        session: AsyncSession,
-        mock_repo: dict,
-        user_service: UserService
+    session: AsyncSession, 
+    mock_repo: dict, 
+    user_service: UserService
 ):
     # given
     mock_repo["user"].exist_by_nickname.side_effect = [False]
@@ -439,9 +439,9 @@ async def test_exist_by_not_existing_nickname(
 
 @pytest.mark.asyncio
 async def test_exist_by_existing_nickname(
-        session: AsyncSession,
-        mock_repo: dict,
-        user_service: UserService
+    session: AsyncSession,
+    mock_repo: dict,
+    user_service: UserService
 ):
     # given
     mock_repo["user"].exist_by_nickname.side_effect = [True]

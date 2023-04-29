@@ -70,7 +70,11 @@ class CenterResponseDto(BaseModel):
             utility_list=[e.name for e in center.utility],
             fee_image_list=[e.url for e in center.fee_img],
             operating_time_list=[
-                CenterOperatingTimeDto(day_of_week=e.day_of_week, start_time=e.start_time, end_time=e.end_time)
+                CenterOperatingTimeDto(
+                    day_of_week=e.day_of_week,
+                    start_time=e.start_time,
+                    end_time=e.end_time,
+                )
                 for e in center.operating_time
             ],
             fee_list=[
