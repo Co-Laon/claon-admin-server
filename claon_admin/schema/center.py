@@ -2,7 +2,7 @@ import json
 from typing import List
 from uuid import uuid4
 
-from sqlalchemy import String, Column, ForeignKey, Boolean, select, exists, Integer, DateTime, Enum
+from sqlalchemy import String, Column, ForeignKey, Boolean, select, exists, Integer, DateTime, Enum, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload, backref
 from sqlalchemy.dialects.postgresql import TEXT
@@ -290,8 +290,7 @@ class CenterApprovedFileRepository:
 
     @staticmethod
     async def delete_all_by_center_id(session: AsyncSession, center_id: str):
-        result = await session.execute(select(CenterApprovedFile).where(CenterApprovedFile.center_id == center_id))
-        [await session.delete(e) for e in result.scalars().all()]
+        await session.execute(delete(CenterApprovedFile).where(CenterApprovedFile.center_id == center_id))
 
 
 class CenterHoldRepository:

@@ -159,14 +159,13 @@ class UserService:
         is_signed_up = True
         if user is None:
             is_signed_up = False
-            user = User(
+            user = await self.user_repository.save(session, User(
                 oauth_id=oauth_dto.oauth_id,
                 nickname=str(uuid.uuid4()),
                 sns=oauth_dto.sns_email,
                 profile_img="",
                 role=Role.PENDING
-            )
-            await self.user_repository.save(session, user)
+            ))
 
         return JwtResponseDto(
             access_token=create_access_token(user.id),
