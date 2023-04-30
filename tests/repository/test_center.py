@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -80,7 +80,7 @@ async def center_approved_file_fixture(session: AsyncSession, user_fixture: User
 
 
 @pytest.fixture
-async def center_fees_fixture(session: AsyncSession, center_fixture: Center):
+async def center_fee_fixture(session: AsyncSession, center_fixture: Center):
     center_fee = CenterFee(
         center=center_fixture,
         name="fee_name",
@@ -130,7 +130,7 @@ async def post_fixture(session: AsyncSession, user_fixture: User, center_fixture
         user=user_fixture,
         center=center_fixture,
         content="content",
-        created_at=date(2023, 1, 1),
+        created_at=datetime(2023, 1, 1),
         img=[PostImage(url="url")]
     )
 
@@ -161,7 +161,7 @@ async def review_fixture(session: AsyncSession, user_fixture: User, center_fixtu
         user=user_fixture,
         center=center_fixture,
         content="content",
-        created_at=date(2023, 1, 1),
+        created_at=datetime(2023, 1, 1),
         tag=[ReviewTag(word="tag")],
         is_review=True
     )
@@ -176,7 +176,7 @@ async def review_answer_fixture(session: AsyncSession, review_fixture: Review):
     review_answer = ReviewAnswer(
         review=review_fixture,
         content="content",
-        created_at=date(2023, 1, 2),
+        created_at=datetime(2023, 1, 2),
     )
 
     review_answer = await review_answer_repository.save(session, review_answer)
@@ -187,8 +187,8 @@ async def review_answer_fixture(session: AsyncSession, review_fixture: Review):
 @pytest.mark.asyncio
 async def test_save_center(
         session: AsyncSession,
-        user_fixture,
-        center_fixture
+        user_fixture: User,
+        center_fixture: Center
 ):
     # then
     assert center_fixture.user.id == user_fixture.id
@@ -208,6 +208,8 @@ async def test_save_center(
     assert center_fixture.utility[0].name == "test_utility"
     assert center_fixture.fee_img[0].url == "https://test.fee.png"
     assert center_fixture.approved is False
+    assert await center_repository.find_by_id(session, center_fixture.id) == center_fixture
+    assert await center_repository.exists_by_id(session, center_fixture.id) is True
 
 
 @pytest.mark.asyncio
@@ -227,7 +229,7 @@ async def test_find_center_by_id(
 
 @pytest.mark.asyncio
 async def test_find_center_by_non_existing_id(
-        session: AsyncSession
+        session: AsyncSession,
 ):
     # given
     center_id = "non_existing_id"
@@ -251,7 +253,7 @@ async def test_exists_center_by_id(
     result = await center_repository.exists_by_id(session, center_id)
 
     # then
-    assert result
+    assert result is True
 
 
 @pytest.mark.asyncio
@@ -277,7 +279,7 @@ async def test_approve_center(
     result = await center_repository.approve(session, center_fixture)
 
     # then
-    assert result.approved
+    assert result.approved is True
 
 
 @pytest.mark.asyncio
@@ -292,6 +294,7 @@ async def test_delete_center(
     assert await center_repository.find_by_id(session, center_fixture.id) is None
     assert await center_hold_repository.find_all_by_center_id(session, center_fixture.id) == []
     assert await center_wall_repository.find_all_by_center_id(session, center_fixture.id) == []
+    assert await center_fee_repository.find_all_by_center_id(session, center_fixture.id) == []
     assert await center_approved_file_repository.find_all_by_center_id(session, center_fixture.id) == []
 
 
@@ -308,6 +311,7 @@ async def test_save_center_approved_file(
     assert center_approved_file_fixture.user == user_fixture
     assert center_approved_file_fixture.user_id == user_fixture.id
     assert center_approved_file_fixture.url == "https://example.com/approved.jpg"
+    assert await center_approved_file_repository.find_all_by_center_id(session, center_fixture.id) == [center_approved_file_fixture]
 
 
 @pytest.mark.asyncio
@@ -360,6 +364,7 @@ async def test_save_center_hold(
     assert center_holds_fixture.difficulty == "hard"
     assert center_holds_fixture.is_color is False
     assert center_holds_fixture.img == "hold_img"
+    assert await center_hold_repository.find_all_by_center_id(session, center_fixture.id) == [center_holds_fixture]
 
 
 @pytest.mark.asyncio
@@ -397,6 +402,7 @@ async def test_save_center_wall(
     assert center_walls_fixture.center == center_fixture
     assert center_walls_fixture.name == "wall"
     assert center_walls_fixture.type == WallType.ENDURANCE.value
+    assert await center_wall_repository.find_all_by_center_id(session, center_fixture.id) == [center_walls_fixture]
 
 
 @pytest.mark.asyncio
@@ -429,41 +435,68 @@ async def test_find_all_center_walls_by_center_id(
 async def test_save_center_fee(
         session: AsyncSession,
         center_fixture: Center,
-        center_fees_fixture: CenterFee
+        center_fee_fixture: CenterFee
 ):
-    assert center_fees_fixture.center == center_fixture
-    assert center_fees_fixture.name == "fee_name"
-    assert center_fees_fixture.membership_type == MembershipType.PACKAGE
-    assert center_fees_fixture.price == 1000
-    assert center_fees_fixture.count == 2
-    assert center_fees_fixture.period == 2
-    assert center_fees_fixture.period_type == PeriodType.MONTH
+    assert center_fee_fixture.center == center_fixture
+    assert center_fee_fixture.name == "fee_name"
+    assert center_fee_fixture.membership_type == MembershipType.PACKAGE
+    assert center_fee_fixture.price == 1000
+    assert center_fee_fixture.count == 2
+    assert center_fee_fixture.period == 2
+    assert center_fee_fixture.period_type == PeriodType.MONTH
+    assert await center_fee_repository.find_all_by_center_id(session, center_fixture.id) == [center_fee_fixture]
 
 
 @pytest.mark.asyncio
 async def test_save_all_center_fees(
         session: AsyncSession,
         center_fixture: Center,
-        center_fees_fixture: CenterFee
+        center_fee_fixture: CenterFee
 ):
     # when
-    center_fees = await center_fee_repository.save_all(session, [center_fees_fixture])
+    center_fees = await center_fee_repository.save_all(session, [center_fee_fixture])
 
     # then
-    assert center_fees == [center_fees_fixture]
+    assert center_fees == [center_fee_fixture]
 
 
 @pytest.mark.asyncio
 async def test_find_all_center_fees_by_center_id(
         session: AsyncSession,
         center_fixture: Center,
-        center_fees_fixture: CenterFee
+        center_fee_fixture: CenterFee
 ):
     # when
     center_fees = await center_fee_repository.find_all_by_center_id(session, center_fixture.id)
 
     # then
-    assert center_fees == [center_fees_fixture]
+    assert center_fees == [center_fee_fixture]
+
+
+@pytest.mark.asyncio
+async def test_save_post(
+        session: AsyncSession,
+        user_fixture: User,
+        post_fixture: Post
+):
+    assert post_fixture.user == user_fixture
+    assert post_fixture.content == "content"
+    assert post_fixture.img[0].url == "url"
+    assert post_fixture.created_at == datetime(2023, 1, 1)
+
+
+@pytest.mark.asyncio
+async def test_save_review(
+        session: AsyncSession,
+        user_fixture: User,
+        center_fixture: Center,
+        review_fixture: Review
+):
+    assert review_fixture.user == user_fixture
+    assert review_fixture.center == center_fixture
+    assert review_fixture.content == "content"
+    assert review_fixture.tag[0].word == "tag"
+    assert review_fixture.created_at == datetime(2023, 1, 1)
 
 
 @pytest.mark.asyncio
@@ -474,7 +507,7 @@ async def test_save_review_answer(
 ):
     assert review_answer_fixture.review == review_fixture
     assert review_answer_fixture.content == "content"
-    assert review_answer_fixture.created_at == date(2023, 1, 2)
+    assert review_answer_fixture.created_at == datetime(2023, 1, 2)
 
 
 @pytest.mark.asyncio
