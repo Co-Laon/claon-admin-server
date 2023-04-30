@@ -355,10 +355,10 @@ async def test_delete_all_lector_approved_files_by_lector_id(
         lector_fixture: Lector
 ):
     # when
-    lector_approved_files = await lector_approved_file_repository.delete_all_by_lector_id(session, lector_fixture.id)
+    await lector_approved_file_repository.delete_all_by_lector_id(session, lector_fixture.id)
 
     # then
-    assert lector_approved_files is None
+    assert await lector_approved_file_repository.find_all_by_lector_id(session, lector_fixture.id) == []
 
 
 async def test_find_by_oauth_id_and_sns(session: AsyncSession, user_fixture: User):

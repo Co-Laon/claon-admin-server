@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate
-from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, select, exists, and_
+from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, select, exists, and_, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, backref, selectinload
 from sqlalchemy.dialects.postgresql import TEXT
@@ -209,5 +209,4 @@ class LectorApprovedFileRepository:
 
     @staticmethod
     async def delete_all_by_lector_id(session: AsyncSession, lector_id: str):
-        result = await session.execute(select(LectorApprovedFile).where(LectorApprovedFile.lector_id == lector_id))
-        [await session.delete(e) for e in result.scalars().all()]
+        await session.execute(delete(LectorApprovedFile).where(LectorApprovedFile.lector_id == lector_id))

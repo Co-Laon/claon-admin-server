@@ -338,6 +338,18 @@ async def test_find_all_center_approved_files_by_center_id(
 
 
 @pytest.mark.asyncio
+async def test_delete_all_center_approved_files_by_center_id(
+        session: AsyncSession,
+        center_fixture: Center
+):
+    # when
+    await center_approved_file_repository.delete_all_by_center_id(session, center_fixture.id)
+
+    # then
+    assert await center_approved_file_repository.find_all_by_center_id(session, center_fixture.id) == []
+
+
+@pytest.mark.asyncio
 async def test_save_center_hold(
         session: AsyncSession,
         center_fixture: Center,
@@ -394,7 +406,7 @@ async def test_save_all_center_walls(
         center_walls_fixture: CenterWall
 ):
     # when
-    center_walls = await center_hold_repository.save_all(session, [center_walls_fixture])
+    center_walls = await center_wall_repository.save_all(session, [center_walls_fixture])
 
     # then
     assert center_walls == [center_walls_fixture]

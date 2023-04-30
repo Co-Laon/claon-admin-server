@@ -300,6 +300,23 @@ async def test_sign_up_center(
 
 
 @pytest.mark.asyncio
+async def test_sign_up_existing_nickname(
+        session: AsyncSession,
+        mock_repo: dict,
+        user_service: UserService,
+        center_request_dto: CenterAuthRequestDto
+):
+    # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    mock_repo["user"].exist_by_nickname.side_effect = [True]
+
+    # then
+    with pytest.raises(BadRequestException):
+        # when
+        await user_service.sign_up_center(session, request_user, center_request_dto)
+
+
+@pytest.mark.asyncio
 async def test_sign_up_existing_center(
         session: AsyncSession,
         mock_repo: dict,
@@ -370,6 +387,23 @@ async def test_sign_up_existing_lector(
         lector_request_dto: LectorRequestDto
 ):
     # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    mock_repo["user"].exist_by_nickname.side_effect = [True]
+
+    # then
+    with pytest.raises(BadRequestException):
+        # when
+        await user_service.sign_up_lector(session, request_user, lector_request_dto)
+
+
+@pytest.mark.asyncio
+async def test_sign_up_existing_lector(
+        session: AsyncSession,
+        mock_repo: dict,
+        user_service: UserService,
+        lector_request_dto: LectorRequestDto
+):
+    # given
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.LECTOR)
 
     # then
@@ -423,6 +457,42 @@ async def test_sign_in_with_google(
 ):
     # given
     mock_repo["user"].find_by_oauth_id_and_sns.side_effect = [mock_user]
+
+    sign_in_request_dto = SignInRequestDto(id_token="test_id_token")
+    provider_name = OAuthProvider.GOOGLE
+
+    oauth_user_info_dto = OAuthUserInfoDto(oauth_id="oauth_id", sns_email="test_sns")
+    mock_provider = AsyncMock(spec=GoogleUserInfoProvider)
+    mock_provider.get_user_info.return_value = oauth_user_info_dto
+
+    mock_supplier.get_provider.return_value = mock_provider
+
+    mock_create_access_token.return_value = "test_access_token"
+    mock_create_refresh_token.return_value = "test_refresh_token"
+
+    # when
+    result: JwtResponseDto = await user_service.sign_in(session, provider_name, sign_in_request_dto)
+
+    # then
+    assert result.access_token is not None
+    assert result.refresh_token is not None
+    assert result.is_signed_up is True
+
+
+@pytest.mark.asyncio
+@patch("claon_admin.service.user.create_access_token")
+@patch("claon_admin.service.user.create_refresh_token")
+async def test_sign_in_with_google_new_user(
+        mock_create_access_token,
+        mock_create_refresh_token,
+        session: AsyncSession,
+        mock_repo: dict,
+        mock_user: User,
+        mock_supplier: OAuthUserInfoProviderSupplier,
+        user_service: UserService
+):
+    # given
+    mock_repo["user"].find_by_oauth_id_and_sns.side_effect = [None]
     mock_repo["user"].save.side_effect = [mock_user]
 
     sign_in_request_dto = SignInRequestDto(id_token="test_id_token")
@@ -443,6 +513,7 @@ async def test_sign_in_with_google(
     # then
     assert result.access_token is not None
     assert result.refresh_token is not None
+    assert result.is_signed_up is False
 
 
 @pytest.mark.asyncio
@@ -459,6 +530,42 @@ async def test_sign_in_with_kakao(
 ):
     # given
     mock_repo["user"].find_by_oauth_id_and_sns.side_effect = [mock_user]
+
+    sign_in_request_dto = SignInRequestDto(id_token="test_id_token")
+    provider_name = OAuthProvider.KAKAO
+
+    oauth_user_info_dto = OAuthUserInfoDto(oauth_id="oauth_id", sns_email="test_sns")
+    mock_provider = AsyncMock(spec=KakaoUserInfoProvider)
+    mock_provider.get_user_info.return_value = oauth_user_info_dto
+
+    mock_supplier.get_provider.return_value = mock_provider
+
+    mock_create_access_token.return_value = "test_access_token"
+    mock_create_refresh_token.return_value = "test_refresh_token"
+
+    # when
+    result: JwtResponseDto = await user_service.sign_in(session, provider_name, sign_in_request_dto)
+
+    # then
+    assert result.access_token is not None
+    assert result.refresh_token is not None
+    assert result.is_signed_up is True
+
+
+@pytest.mark.asyncio
+@patch("claon_admin.service.user.create_access_token")
+@patch("claon_admin.service.user.create_refresh_token")
+async def test_sign_in_with_kakao_new_user(
+        mock_create_access_token,
+        mock_create_refresh_token,
+        session: AsyncSession,
+        mock_repo: dict,
+        mock_user: User,
+        mock_supplier: OAuthUserInfoProviderSupplier,
+        user_service: UserService
+):
+    # given
+    mock_repo["user"].find_by_oauth_id_and_sns.side_effect = [None]
     mock_repo["user"].save.side_effect = [mock_user]
 
     sign_in_request_dto = SignInRequestDto(id_token="test_id_token")
@@ -479,3 +586,4 @@ async def test_sign_in_with_kakao(
     # then
     assert result.access_token is not None
     assert result.refresh_token is not None
+    assert result.is_signed_up is False
