@@ -2,6 +2,8 @@ from typing import List
 
 from pydantic import BaseModel
 
+from claon_admin.schema.center import Post
+
 
 class PostBriefResponseDto(BaseModel):
     post_id: str
@@ -11,6 +13,18 @@ class PostBriefResponseDto(BaseModel):
     user_id: str
     user_nickname: str
     user_profile_image: str
+
+    @classmethod
+    def from_entity(cls, entity: Post):
+        return PostBriefResponseDto(
+            post_id=entity.id,
+            content=entity.content,
+            image=entity.img[0].url,
+            created_at=entity.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            user_id=entity.user.id,
+            user_nickname=entity.user.nickname,
+            user_profile_image=entity.user.profile_img
+        )
 
 
 class PostCount(BaseModel):

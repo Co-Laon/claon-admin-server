@@ -3,11 +3,9 @@ from datetime import date
 from typing import List
 from uuid import uuid4
 
-from fastapi_pagination import Params
-from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, select, exists, and_, delete
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship, backref, selectinload
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.dialects.postgresql import TEXT
 
 from claon_admin.common.enum import Role
@@ -182,11 +180,6 @@ class LectorRepository:
         lector.approved = True
         await session.merge(lector)
         return lector
-
-    # TODO: Need to be removed later
-    @staticmethod
-    async def test_pagination(session: AsyncSession, params: Params):
-        return await paginate(query=select(Lector).options(selectinload(Lector.user)), conn=session, params=params)
 
 
 class LectorApprovedFileRepository:

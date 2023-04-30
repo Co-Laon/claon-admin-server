@@ -3,9 +3,10 @@ from dependency_injector import containers, providers
 from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.common.util.oauth import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider, KakaoUserInfoProvider
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, CenterHoldRepository, \
-    CenterWallRepository, CenterFeeRepository
+    CenterWallRepository, CenterFeeRepository, PostRepository
 from claon_admin.schema.user import UserRepository, LectorRepository, LectorApprovedFileRepository
 from claon_admin.service.admin import AdminService
+from claon_admin.service.center import CenterService
 from claon_admin.service.user import UserService
 
 
@@ -19,6 +20,7 @@ class Container(containers.DeclarativeContainer):
     center_fee_repository = providers.Factory(CenterFeeRepository)
     center_hold_repository = providers.Factory(CenterHoldRepository)
     center_wall_repository = providers.Factory(CenterWallRepository)
+    post_repository = providers.Factory(PostRepository)
     pagination_factory = providers.Factory(PaginationFactory)
 
     """ Infrastructure """
@@ -51,4 +53,11 @@ class Container(containers.DeclarativeContainer):
         lector_approved_file_repository=lector_approved_file_repository,
         center_repository=center_repository,
         center_approved_file_repository=center_approved_file_repository
+    )
+
+    center_service = providers.Factory(
+        CenterService,
+        center_repository=center_repository,
+        post_repository=post_repository,
+        pagination_factory=pagination_factory
     )

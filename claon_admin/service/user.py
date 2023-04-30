@@ -1,6 +1,5 @@
 import uuid
 
-from fastapi_pagination import Params
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException, ErrorCode
@@ -194,8 +193,3 @@ class UserService:
             is_signed_up=is_signed_up,
             profile=UserProfileResponseDto.from_entity(user)
         )
-
-    # TODO: Need to be removed later
-    async def test_pagination(self, params: Params, session: AsyncSession):
-        pages = await self.lector_repository.test_pagination(session, params)
-        return await self.pagination_factory.create(LectorResponseDto, pages)

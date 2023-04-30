@@ -1,8 +1,11 @@
 import json
-from typing import List
+from datetime import date
+from typing import List, Optional
 from uuid import uuid4
 
-from sqlalchemy import String, Column, ForeignKey, Boolean, select, exists, Integer, DateTime, Enum, delete
+from fastapi_pagination import Params
+from fastapi_pagination.ext.sqlalchemy import paginate
+from sqlalchemy import String, Column, ForeignKey, Boolean, select, exists, Integer, DateTime, Enum, delete, and_, desc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload, backref
 from sqlalchemy.dialects.postgresql import TEXT
@@ -193,6 +196,7 @@ class Post(Base):
 class ClimbingHistory(Base):
     __tablename__ = 'tb_climbing_history'
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    hold_id = Column(String(length=255), nullable=False)
     hold_url = Column(TEXT, nullable=False)
     difficulty = Column(String(length=10), nullable=False)
     challenge_count = Column(Integer, nullable=False)
@@ -356,6 +360,33 @@ class PostRepository:
         session.add(post)
         await session.merge(post)
         return post
+
+    @staticmethod
+    async def find_posts_by_center(session: AsyncSession,
+                                   params: Params,
+                                   center_id: str,
+                                   hold_id: Optional[str],
+                                   start: date,
+                                   end: date):
+        if hold_id is not None:
+            query = select(Post) \
+                .join(ClimbingHistory) \
+                .where(and_(Post.center_id == center_id,
+                            Post.created_at.between(start, end),
+                            ClimbingHistory.hold_id == hold_id)) \
+                .order_by(desc(Post.created_at)) \
+                .options(selectinload(Post.user))
+
+            return await paginate(query=query, conn=session, params=params)
+
+        else:
+            query = select(Post) \
+                .where(and_(Post.center_id == center_id,
+                            Post.created_at.between(start, end))) \
+                .order_by(desc(Post.created_at)) \
+                .options(selectinload(Post.user))
+
+            return await paginate(query=query, conn=session, params=params)
 
 
 class ReviewRepository:

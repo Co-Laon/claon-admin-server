@@ -1,25 +1,32 @@
 from datetime import date
 from typing import List, Optional
 
+from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi_pagination import Params
 from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.util.db import db
+from claon_admin.common.util.pagination import Pagination
+from claon_admin.container import Container
 from claon_admin.model.center import CenterNameResponseDto, CenterResponseDto, UploadFileResponseDto, \
     CenterUpdateRequestDto, CenterBriefResponseDto, CenterRequestDto
 from claon_admin.common.enum import CenterUploadPurpose
-from claon_admin.model.post import PostResponseDto, PostSummaryResponseDto, PostCommentResponseDto
+from claon_admin.model.post import PostResponseDto, PostSummaryResponseDto, PostCommentResponseDto, PostBriefResponseDto
 from claon_admin.model.review import ReviewSummaryResponseDto, ReviewAnswerResponseDto, ReviewAnswerRequestDto, \
     ReviewBriefResponseDto
+from claon_admin.service.center import CenterService
 
 router = APIRouter()
 
 
 @cbv(router)
 class CenterRouter:
-    def __init__(self):
-        pass
+    @inject
+    def __init__(self,
+                 center_service: CenterService = Depends(Provide[Container.center_service])):
+        self.center_service = center_service
 
     @router.get('/name/{name}', response_model=CenterNameResponseDto)
     async def get_name(self,
@@ -77,14 +84,22 @@ class CenterRouter:
                                 session: AsyncSession = Depends(db.get_db)):
         pass
 
-    @router.get('/{center_id}/posts', response_model=List[CenterBriefResponseDto])
+    @router.get('/{center_id}/posts', response_model=Pagination[PostBriefResponseDto])
     async def find_posts_by_center(self,
                                    center_id: str,
                                    hold_id: Optional[str],
                                    start: date,
                                    end: date,
+                                   params: Params = Depends(),
                                    session: AsyncSession = Depends(db.get_db)):
-        pass
+        return await self.center_service.find_posts_by_center(
+            session=session,
+            params=params,
+            hold_id=hold_id,
+            center_id=center_id,
+            start=start,
+            end=end
+        )
 
     @router.get('/{center_id}/posts/summary', response_model=PostSummaryResponseDto)
     async def find_posts_summary_by_center(self,

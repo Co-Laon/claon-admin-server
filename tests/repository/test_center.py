@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import pytest
+from fastapi_pagination import Params, Page
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.enum import WallType, Role, MembershipType, PeriodType
@@ -140,14 +141,16 @@ async def post_fixture(session: AsyncSession, user_fixture: User, center_fixture
 
 
 @pytest.fixture
-async def climbing_history_fixture(session: AsyncSession, post_fixture: Post):
+async def climbing_history_fixture(session: AsyncSession, post_fixture: Post, center_holds_fixture: CenterHold,
+                                   center_walls_fixture: CenterWall):
     history = ClimbingHistory(
         post=post_fixture,
-        hold_url="hold_url",
-        difficulty="difficulty",
+        hold_id=center_holds_fixture.id,
+        hold_url=center_holds_fixture.img,
+        difficulty=center_holds_fixture.difficulty,
         challenge_count=2,
-        wall_name="wall",
-        wall_type=WallType.BOULDERING
+        wall_name=center_walls_fixture.name,
+        wall_type=center_walls_fixture.type
     )
 
     history = await climbing_history_repository.save(session, history)
@@ -311,7 +314,8 @@ async def test_save_center_approved_file(
     assert center_approved_file_fixture.user == user_fixture
     assert center_approved_file_fixture.user_id == user_fixture.id
     assert center_approved_file_fixture.url == "https://example.com/approved.jpg"
-    assert await center_approved_file_repository.find_all_by_center_id(session, center_fixture.id) == [center_approved_file_fixture]
+    assert await center_approved_file_repository.find_all_by_center_id(session, center_fixture.id) == [
+        center_approved_file_fixture]
 
 
 @pytest.mark.asyncio
@@ -517,8 +521,69 @@ async def test_save_climbing_history(
         climbing_history_fixture: ClimbingHistory
 ):
     assert climbing_history_fixture.post == post_fixture
-    assert climbing_history_fixture.hold_url == "hold_url"
-    assert climbing_history_fixture.difficulty == "difficulty"
+    assert climbing_history_fixture.hold_url == "hold_img"
+    assert climbing_history_fixture.difficulty == "hard"
     assert climbing_history_fixture.challenge_count == 2
     assert climbing_history_fixture.wall_name == "wall"
-    assert climbing_history_fixture.wall_type == WallType.BOULDERING
+    assert climbing_history_fixture.wall_type == WallType.ENDURANCE.value
+
+
+@pytest.mark.asyncio
+async def test_find_posts_by_center(
+        session: AsyncSession,
+        center_fixture: Center,
+        post_fixture: Post
+):
+    # given
+    params = Params(page=1, size=10)
+
+    # then
+    assert await post_repository.find_posts_by_center(
+        session,
+        params,
+        center_fixture.id,
+        None,
+        datetime(2022, 3, 1),
+        datetime(2023, 2, 28)
+    ) == Page.create(items=[post_fixture], params=params, total=1)
+
+
+@pytest.mark.asyncio
+async def test_find_posts_by_center_not_included_hold(
+        session: AsyncSession,
+        center_fixture: Center,
+        post_fixture: Post
+):
+    # given
+    params = Params(page=1, size=10)
+
+    # then
+    assert await post_repository.find_posts_by_center(
+        session,
+        params,
+        center_fixture.id,
+        "not included hold id",
+        datetime(2022, 3, 1),
+        datetime(2023, 2, 28)
+    ) == Page.create(items=[], params=params, total=0)
+
+
+@pytest.mark.asyncio
+async def test_find_posts_by_center_included_hold(
+        session: AsyncSession,
+        center_fixture: Center,
+        climbing_history_fixture: ClimbingHistory,
+        post_fixture: Post
+):
+    # given
+    params = Params(page=1, size=10)
+
+    # then
+    assert await post_repository.find_posts_by_center(
+        session=session,
+        params=params,
+        center_id=center_fixture.id,
+        hold_id=climbing_history_fixture.hold_id,
+        start=datetime(2022, 3, 1),
+        end=datetime(2023, 2, 28)
+    ) == Page.create(items=[post_fixture], params=params, total=1)
