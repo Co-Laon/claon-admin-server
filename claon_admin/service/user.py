@@ -156,9 +156,7 @@ class UserService:
 
         user = await self.user_repository.find_by_oauth_id_and_sns(session, oauth_dto.oauth_id, oauth_dto.sns_email)
 
-        is_signed_up = True
         if user is None:
-            is_signed_up = False
             user = await self.user_repository.save(session, User(
                 oauth_id=oauth_dto.oauth_id,
                 nickname=str(uuid.uuid4()),
@@ -170,7 +168,7 @@ class UserService:
         return JwtResponseDto(
             access_token=create_access_token(user.id),
             refresh_token=create_refresh_token(user.id),
-            is_signed_up=is_signed_up,
+            is_signed_up=user.is_signed_up(),
             profile=UserProfileResponseDto.from_entity(user)
         )
 

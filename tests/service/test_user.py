@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.common.error.exception import BadRequestException
+from claon_admin.common.error.exception import BadRequestException, ErrorCode
 from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.common.util.oauth import GoogleUserInfoProvider, OAuthUserInfoProviderSupplier, KakaoUserInfoProvider
 from claon_admin.model.auth import OAuthUserInfoDto
@@ -300,7 +300,7 @@ async def test_sign_up_center(
 
 
 @pytest.mark.asyncio
-async def test_sign_up_existing_nickname(
+async def test_sign_up_center_existing_nickname(
         session: AsyncSession,
         mock_repo: dict,
         user_service: UserService,
@@ -310,14 +310,16 @@ async def test_sign_up_existing_nickname(
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
     mock_repo["user"].exist_by_nickname.side_effect = [True]
 
-    # then
-    with pytest.raises(BadRequestException):
+    with pytest.raises(BadRequestException) as exception:
         # when
         await user_service.sign_up_center(session, request_user, center_request_dto)
 
+    # then
+    assert exception.value.code == ErrorCode.DUPLICATED_NICKNAME
+
 
 @pytest.mark.asyncio
-async def test_sign_up_existing_center(
+async def test_sign_up_center_already_sign_up(
         session: AsyncSession,
         mock_repo: dict,
         user_service: UserService,
@@ -326,10 +328,12 @@ async def test_sign_up_existing_center(
     # given
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.CENTER_ADMIN)
 
-    # then
-    with pytest.raises(BadRequestException):
+    with pytest.raises(BadRequestException) as exception:
         # when
         await user_service.sign_up_center(session, request_user, center_request_dto)
+
+    # then
+    assert exception.value.code == ErrorCode.USER_ALREADY_SIGNED_UP
 
 
 @pytest.mark.asyncio
@@ -380,7 +384,7 @@ async def test_sign_up_lector(
 
 
 @pytest.mark.asyncio
-async def test_sign_up_existing_lector(
+async def test_sign_up_lector_existing_nickname(
         session: AsyncSession,
         mock_repo: dict,
         user_service: UserService,
@@ -390,14 +394,16 @@ async def test_sign_up_existing_lector(
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
     mock_repo["user"].exist_by_nickname.side_effect = [True]
 
-    # then
-    with pytest.raises(BadRequestException):
+    with pytest.raises(BadRequestException) as exception:
         # when
         await user_service.sign_up_lector(session, request_user, lector_request_dto)
 
+    # then
+    assert exception.value.code == ErrorCode.DUPLICATED_NICKNAME
+
 
 @pytest.mark.asyncio
-async def test_sign_up_existing_lector(
+async def test_sign_up_lector_already_sign_up(
         session: AsyncSession,
         mock_repo: dict,
         user_service: UserService,
@@ -406,10 +412,12 @@ async def test_sign_up_existing_lector(
     # given
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.LECTOR)
 
-    # then
-    with pytest.raises(BadRequestException):
+    with pytest.raises(BadRequestException) as exception:
         # when
         await user_service.sign_up_lector(session, request_user, lector_request_dto)
+
+    # then
+    assert exception.value.code == ErrorCode.USER_ALREADY_SIGNED_UP
 
 
 @pytest.mark.asyncio
@@ -428,6 +436,7 @@ async def test_exist_by_not_existing_nickname(
     assert result.is_duplicated is False
 
 
+@pytest.mark.asyncio
 async def test_exist_by_existing_nickname(
         session: AsyncSession,
         mock_repo: dict,
@@ -456,6 +465,7 @@ async def test_sign_in_with_google(
         user_service: UserService
 ):
     # given
+    mock_user.role = Role.USER
     mock_repo["user"].find_by_oauth_id_and_sns.side_effect = [mock_user]
 
     sign_in_request_dto = SignInRequestDto(id_token="test_id_token")
@@ -529,6 +539,7 @@ async def test_sign_in_with_kakao(
         user_service: UserService
 ):
     # given
+    mock_user.role = Role.USER
     mock_repo["user"].find_by_oauth_id_and_sns.side_effect = [mock_user]
 
     sign_in_request_dto = SignInRequestDto(id_token="test_id_token")

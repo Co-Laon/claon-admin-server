@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.common.error.exception import BadRequestException, ErrorCode
+from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException
 from claon_admin.common.util.s3 import delete_file
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.admin import CenterResponseDto, LectorResponseDto
@@ -24,7 +24,7 @@ class AdminService:
 
     async def approve_lector(self, session: AsyncSession, subject: RequestUser, lector_id: str):
         if subject.role != Role.ADMIN:
-            raise BadRequestException(
+            raise UnauthorizedException(
                 ErrorCode.NONE_ADMIN_ACCOUNT,
                 "어드민 권한이 없습니다."
             )
@@ -48,7 +48,7 @@ class AdminService:
 
     async def reject_lector(self, session: AsyncSession, subject: RequestUser, lector_id: str):
         if subject.role != Role.ADMIN:
-            raise BadRequestException(
+            raise UnauthorizedException(
                 ErrorCode.NONE_ADMIN_ACCOUNT,
                 "어드민 권한이 없습니다."
             )
@@ -68,7 +68,7 @@ class AdminService:
 
     async def approve_center(self, session: AsyncSession, subject: RequestUser, center_id: str):
         if subject.role != Role.ADMIN:
-            raise BadRequestException(
+            raise UnauthorizedException(
                 ErrorCode.NONE_ADMIN_ACCOUNT,
                 "어드민 권한이 없습니다."
             )
@@ -92,7 +92,7 @@ class AdminService:
 
     async def reject_center(self, session: AsyncSession, subject: RequestUser, center_id: str):
         if subject.role != Role.ADMIN:
-            raise BadRequestException(
+            raise UnauthorizedException(
                 ErrorCode.NONE_ADMIN_ACCOUNT,
                 "어드민 권한이 없습니다."
             )

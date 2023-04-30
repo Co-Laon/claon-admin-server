@@ -74,6 +74,24 @@ async def lector_approved_file_fixture(session: AsyncSession, lector_fixture: Le
 
 
 @pytest.mark.asyncio
+async def test_save_user(session: AsyncSession, user_fixture: User):
+    # then
+    assert user_fixture.oauth_id == "oauth_id"
+    assert user_fixture.nickname == "nickname"
+    assert user_fixture.profile_img == "profile_img"
+    assert user_fixture.sns == "sns"
+    assert user_fixture.email == "test@test.com"
+    assert user_fixture.instagram_name == "instagram_name"
+    assert user_fixture.role == Role.PENDING
+    assert await user_repository.find_by_id(session, user_fixture.id) == user_fixture
+    assert await user_repository.find_by_nickname(session, user_fixture.nickname) == user_fixture
+    assert await user_repository.find_by_oauth_id(session, user_fixture.oauth_id) == user_fixture
+    assert await user_repository.find_by_oauth_id_and_sns(session, user_fixture.oauth_id, user_fixture.sns) == user_fixture
+    assert await user_repository.exist_by_id(session, user_fixture.id) is True
+    assert await user_repository.exist_by_nickname(session, user_fixture.nickname) is True
+
+
+@pytest.mark.asyncio
 async def test_save_lector(
         session: AsyncSession,
         user_fixture: User,
@@ -93,6 +111,8 @@ async def test_save_lector(
     assert lector_fixture.career[0].end_date == '2020-01-01'
     assert lector_fixture.career[0].name == 'career'
     assert lector_fixture.approved is False
+    assert await lector_repository.find_by_id(session, lector_fixture.id) == lector_fixture
+    assert await lector_repository.exists_by_id(session, lector_fixture.id) is True
 
 
 @pytest.mark.asyncio
@@ -107,6 +127,35 @@ async def test_delete_lector(
     # then
     assert await lector_repository.find_by_id(session, lector_fixture.id) is None
     assert await lector_approved_file_repository.find_all_by_lector_id(session, lector_fixture.id) == []
+
+
+@pytest.mark.asyncio
+async def test_find_user_by_id(
+        session: AsyncSession,
+        user_fixture: User
+):
+    # given
+    user_id = user_fixture.id
+
+    # when
+    result = await user_repository.find_by_id(session, user_id)
+
+    # then
+    assert result == user_fixture
+
+
+@pytest.mark.asyncio
+async def test_find_user_by_invalid_id(
+        session: AsyncSession
+):
+    # given
+    wrong_id = "wrong_id"
+
+    # when
+    result = await user_repository.find_by_id(session, wrong_id)
+
+    # then
+    assert result is None
 
 
 @pytest.mark.asyncio
@@ -125,7 +174,7 @@ async def test_find_lector_by_id(
 
 
 @pytest.mark.asyncio
-async def test_find_lector_by_non_existing_id(
+async def test_find_lector_by_invalid_id(
         session: AsyncSession
 ):
     # given
@@ -150,7 +199,7 @@ async def test_exists_lector_by_id(
     result = await lector_repository.exists_by_id(session, lector_id)
 
     # then
-    assert result
+    assert result is True
 
 
 @pytest.mark.asyncio
@@ -176,44 +225,7 @@ async def test_approve_lector(
     result = await lector_repository.approve(session, lector_fixture)
 
     # then
-    assert result.approved
-
-
-@pytest.mark.asyncio
-async def test_find_user_by_valid_id(
-        session: AsyncSession,
-        user_fixture: User,
-        lector_fixture: Lector
-):
-    # given
-    user_id = user_fixture.id
-
-    # when
-    result = await user_repository.find_by_id(session, user_id)
-
-    # then
-    assert result.id == user_fixture.id
-    assert result.nickname == user_fixture.nickname
-    assert result.profile_img == user_fixture.profile_img
-    assert result.sns == user_fixture.sns
-    assert result.email == user_fixture.email
-    assert result.instagram_name == user_fixture.instagram_name
-    assert result.role == user_fixture.role
-
-
-@pytest.mark.asyncio
-async def test_find_user_by_invalid_id(
-        session: AsyncSession,
-        user_fixture: User
-):
-    # given
-    wrong_id = "wrong_id"
-
-    # when
-    result = await user_repository.find_by_id(session, wrong_id)
-
-    # then
-    assert not result
+    assert result.approved is True
 
 
 @pytest.mark.asyncio
@@ -228,7 +240,7 @@ async def test_exist_user_by_valid_id(
     result = await user_repository.exist_by_id(session, user_id)
 
     # then
-    assert result
+    assert result is True
 
 
 @pytest.mark.asyncio
@@ -243,7 +255,7 @@ async def test_exist_user_by_invalid_id(
     result = await user_repository.exist_by_id(session, wrong_id)
 
     # then
-    assert not result
+    assert result is False
 
 
 @pytest.mark.asyncio
@@ -258,7 +270,7 @@ async def test_find_user_by_not_existing_nickname(
     result = await user_repository.find_by_nickname(session, nickname)
 
     # then
-    assert not result
+    assert result is None
 
 
 @pytest.mark.asyncio
@@ -273,13 +285,7 @@ async def test_find_user_by_existing_nickname(
     result = await user_repository.find_by_nickname(session, nickname)
 
     # then
-    assert result.id == user_fixture.id
-    assert result.role == user_fixture.role
-    assert result.nickname == user_fixture.nickname
-    assert result.profile_img == user_fixture.profile_img
-    assert result.sns == user_fixture.sns
-    assert result.email == user_fixture.email
-    assert result.instagram_name == user_fixture.instagram_name
+    assert result == user_fixture
 
 
 @pytest.mark.asyncio
@@ -294,7 +300,7 @@ async def test_exist_user_by_not_existing_nickname(
     result = await user_repository.exist_by_nickname(session, nickname)
 
     # then
-    assert not result
+    assert result is False
 
 
 @pytest.mark.asyncio
@@ -309,7 +315,7 @@ async def test_exist_user_by_existing_nickname(
     result = await user_repository.exist_by_nickname(session, nickname)
 
     # then
-    assert result
+    assert result is True
 
 
 @pytest.mark.asyncio
@@ -321,6 +327,7 @@ async def test_save_lector_approved_file(
     # then
     assert lector_approved_file_fixture.lector == lector_fixture
     assert lector_approved_file_fixture.url == "https://test.com/test.pdf"
+    assert await lector_approved_file_repository.find_all_by_lector_id(session, lector_fixture.id) == [lector_approved_file_fixture]
 
 
 @pytest.mark.asyncio
@@ -370,13 +377,7 @@ async def test_find_by_oauth_id_and_sns(session: AsyncSession, user_fixture: Use
     result = await user_repository.find_by_oauth_id_and_sns(session, user_oauth_id, user_sns)
 
     # then
-    assert result.oauth_id == user_fixture.oauth_id
-    assert result.nickname == user_fixture.nickname
-    assert result.profile_img == user_fixture.profile_img
-    assert result.sns == user_fixture.sns
-    assert result.email == user_fixture.email
-    assert result.instagram_name == user_fixture.instagram_name
-    assert result.role == user_fixture.role
+    assert result == user_fixture
 
 
 @pytest.mark.asyncio
@@ -389,7 +390,7 @@ async def test_find_by_invalid_oauth_id_and_sns(session: AsyncSession, user_fixt
     result = await user_repository.find_by_oauth_id_and_sns(session, user_oauth_id, user_sns)
 
     # then
-    assert not result
+    assert result is None
 
 
 async def test_find_by_oauth_id(session: AsyncSession, user_fixture: User):
@@ -400,13 +401,7 @@ async def test_find_by_oauth_id(session: AsyncSession, user_fixture: User):
     result = await user_repository.find_by_oauth_id(session, user_oauth_id)
 
     # then
-    assert result.oauth_id == user_fixture.oauth_id
-    assert result.nickname == user_fixture.nickname
-    assert result.profile_img == user_fixture.profile_img
-    assert result.sns == user_fixture.sns
-    assert result.email == user_fixture.email
-    assert result.instagram_name == user_fixture.instagram_name
-    assert result.role == user_fixture.role
+    assert result == user_fixture
 
 
 @pytest.mark.asyncio

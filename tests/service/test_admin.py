@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.common.error.exception import BadRequestException
+from claon_admin.common.error.exception import BadRequestException, UnauthorizedException, ErrorCode
 from claon_admin.model.auth import RequestUser
 from claon_admin.common.enum import Role
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, Center, CenterApprovedFile, \
@@ -168,10 +168,12 @@ async def test_approve_center_with_non_admin(
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
     center_id = mock_center.id
 
-    # then
-    with pytest.raises(BadRequestException):
+    with pytest.raises(UnauthorizedException) as exception:
         # when
         await admin_service.approve_center(session, request_user, center_id)
+
+    # then
+    assert exception.value.code == ErrorCode.NONE_ADMIN_ACCOUNT
 
 
 @pytest.mark.asyncio
@@ -186,10 +188,12 @@ async def test_approve_not_existing_center(
 
     mock_repo["center"].find_by_id.side_effect = [None]
 
-    # then
-    with pytest.raises(BadRequestException):
+    with pytest.raises(BadRequestException) as exception:
         # when
         await admin_service.approve_center(session, request_user, center_id)
+
+    # then
+    assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
 
 
 @pytest.mark.asyncio
@@ -233,10 +237,12 @@ async def test_approve_lector_with_non_admin(
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
     lector_id = mock_lector.id
 
-    # then
-    with pytest.raises(BadRequestException):
+    with pytest.raises(UnauthorizedException) as exception:
         # when
         await admin_service.approve_lector(session, request_user, lector_id)
+
+    # then
+    assert exception.value.code == ErrorCode.NONE_ADMIN_ACCOUNT
 
 
 @pytest.mark.asyncio
@@ -252,10 +258,12 @@ async def test_approve_not_existing_lector(
 
     mock_repo["lector"].find_by_id.side_effect = [None]
 
-    # then
-    with pytest.raises(BadRequestException):
+    with pytest.raises(BadRequestException) as exception:
         # when
         await admin_service.approve_lector(session, request_user, lector_id)
+
+    # then
+    assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
 
 
 @pytest.mark.asyncio
@@ -289,10 +297,12 @@ async def test_reject_center_with_non_admin(
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
     center_id = mock_center.id
 
-    # then
-    with pytest.raises(BadRequestException):
+    with pytest.raises(UnauthorizedException) as exception:
         # when
         await admin_service.reject_center(session, request_user, center_id)
+
+    # then
+    assert exception.value.code == ErrorCode.NONE_ADMIN_ACCOUNT
 
 
 @pytest.mark.asyncio
@@ -302,15 +312,17 @@ async def test_reject_not_existing_center(
         admin_service: AdminService
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
     center_id = "not_existing_id"
 
     mock_repo["center"].find_by_id.side_effect = [None]
 
-    # then
-    with pytest.raises(BadRequestException):
+    with pytest.raises(BadRequestException) as exception:
         # when
         await admin_service.reject_center(session, request_user, center_id)
+
+    # then
+    assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
 
 
 @pytest.mark.asyncio
@@ -345,10 +357,12 @@ async def test_reject_lector_with_non_admin(
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
     lector_id = mock_lector.id
 
-    # then
-    with pytest.raises(BadRequestException):
+    with pytest.raises(UnauthorizedException) as exception:
         # when
         await admin_service.reject_lector(session, request_user, lector_id)
+
+    # then
+    assert exception.value.code == ErrorCode.NONE_ADMIN_ACCOUNT
 
 
 @pytest.mark.asyncio
@@ -358,12 +372,14 @@ async def test_reject_not_existing_lector(
         admin_service: AdminService
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
     lector_id = "not_existing_id"
 
     mock_repo["lector"].find_by_id.side_effect = [None]
 
-    # then
-    with pytest.raises(BadRequestException):
+    with pytest.raises(BadRequestException) as exception:
         # when
         await admin_service.reject_lector(session, request_user, lector_id)
+
+    # then
+    assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
