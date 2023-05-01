@@ -26,10 +26,9 @@ class AdminRouter:
     async def find_approval_pending_lectors(
         self,
         session: AsyncSession = Depends(db.get_db),
-        subject: RequestUser = Depends(get_subject),
+        subject: RequestUser = Depends(get_subject)
     ):
         return await self.admin_service.get_unapproved_lectors(session, subject)
-
 
     @router.post('/lectors/{lector_id}/approve')
     async def approve_lector(self,

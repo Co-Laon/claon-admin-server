@@ -224,5 +224,5 @@ class LectorApprovedFileRepository:
     
     @staticmethod
     async def find_by_id(session: AsyncSession, lector_id: str):
-        result = await session.execute(select(LectorApprovedFile).where(LectorApprovedFile.id == lector_id))
+        result = await session.execute(select(LectorApprovedFile).where(LectorApprovedFile.lector_id == lector_id))
         return result.scalars().all()

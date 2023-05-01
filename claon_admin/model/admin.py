@@ -32,7 +32,7 @@ class CenterWallDto(BaseModel):
 
 
 class CenterResponseDto(BaseModel):
-    user_profile: UserProfileDto
+    user_profile: UserProfileResponseDto
     center_id: str
     profile_image: str
     name: str
@@ -82,8 +82,8 @@ class CenterResponseDto(BaseModel):
                 for e in center.fees
             ],
             hold_list=[
-                CenterHoldDto(difficulty=e.difficulty, name=e.name, is_color=e.is_color)
-                for e in center.holds
+                CenterHoldDto(difficulty=e.difficulty, name=e.name)
+                for e in center.holds 
             ],
             wall_list=[
                 CenterWallDto(

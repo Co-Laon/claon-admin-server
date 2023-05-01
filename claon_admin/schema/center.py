@@ -273,16 +273,13 @@ class CenterRepository:
     async def delete(session: AsyncSession, center: Center):
         return await session.delete(center)
 
+    @staticmethod
     async def find_by_approved_false(session: AsyncSession):
-        result = await session.execute(
-            select(Center)
-            .where(Center.approved == False)
-            .options(
-                selectinload(Center.user)
-                .options(selectinload(Center.holds))
-                .options(selectinload(Center.walls))
-            )
-        )
+        result = await session.execute(select(Center).where(Center.approved == False)
+                                       .options(selectinload(Center.user))
+                                       .options(selectinload(Center.holds))
+                                       .options(selectinload(Center.walls))
+                                       .options(selectinload(Center.fees)))
         return result.scalars().all()
 
 
@@ -304,7 +301,7 @@ class CenterApprovedFileRepository:
     @staticmethod
     async def find_by_id(session: AsyncSession, center_id: str):
         result = await session.execute(
-            select(CenterApprovedFile).where(CenterApprovedFile.id == center_id)
+            select(CenterApprovedFile).where(CenterApprovedFile.center_id == center_id)
         )
         return result.scalars().all()
 

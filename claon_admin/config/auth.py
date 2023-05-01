@@ -18,7 +18,7 @@ async def get_subject(
     access_token: str = Header(None),
     refresh_token: str = Header(None),
     session: AsyncSession = Depends(db.get_db),
-    user_repository: UserRepository = Depends(Provide[Container.user_repository]),
+    user_repository: UserRepository = Depends(UserRepository), 
 ) -> RequestUser:
     try:
         if access_token is None:
@@ -63,11 +63,11 @@ async def get_subject(
 
             return RequestUser(
                 id=user.id,
-                profile_image=user.profile_image,
+                profile_img=user.profile_img,
                 nickname=user.nickname,
                 email=user.email,
-                instagram_nickname=user.instagram_nickname,
-                role=user.role,
+                instagram_nickname=user.instagram_name,
+                role=user.role
             )
         else:
             if is_expired(refresh_payload):
@@ -80,14 +80,14 @@ async def get_subject(
                 raise UnauthorizedException(
                     ErrorCode.USER_DOES_NOT_EXIST, "Not existing user account."
                 )
-
+            
             return RequestUser(
                 id=user.id,
-                profile_image=user.profile_image,
+                profile_img=user.profile_img,
                 nickname=user.nickname,
                 email=user.email,
-                instagram_nickname=user.instagram_nickname,
-                role=user.role,
+                instagram_nickname=user.instagram_name,
+                role=user.role
             )
     except Exception:
         raise InternalServerException(

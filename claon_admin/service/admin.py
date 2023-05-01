@@ -116,10 +116,8 @@ class AdminService:
         lectors = await self.lector_repository.find_by_approved_false(session)
         result = list()
 
-        for lector in [lectors]:
-            lector_approved_file = (
-                await self.lector_approved_file_repository.find_by_id(lector.id)
-            )
+        for lector in lectors:
+            lector_approved_file = await self.lector_approved_file_repository.find_by_id(session, lector.id)
             result.append(LectorResponseDto.from_entity(lector, lector_approved_file))
 
         return result
@@ -131,10 +129,8 @@ class AdminService:
         centers = await self.center_repository.find_by_approved_false(session)
         result = list()
 
-        for center in [centers]:
-            centor_approved_file = (
-                await self.center_approved_file_repository.find_by_id(center.id)
-            )
+        for center in centers:
+            centor_approved_file = await self.center_approved_file_repository.find_by_id(session, center.id)
             result.append(CenterResponseDto.from_entity(center, centor_approved_file))
 
         return result
