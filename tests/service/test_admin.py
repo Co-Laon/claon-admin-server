@@ -452,19 +452,38 @@ async def test_get_unapproved_lectors(
     # given
     response = LectorResponseDto.from_entity(mock_lector, mock_lector_approved_files)
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
-    mock_repo["lector"].find_by_approved_false.side_effect = [[mock_lector]]
-    mock_repo["lector_approved_file"].find_by_id.side_effect = [mock_lector_approved_files]
+    mock_repo["lector"].find_all_by_approved_false.side_effect = [[mock_lector]]
+    mock_repo["lector_approved_file"].find_all_by_lector_id.side_effect = [mock_lector_approved_files]
 
     # when
     result: List[LectorResponseDto] = await admin_service.get_unapproved_lectors(session, request_user)
 
     # then
     assert len(result) == 1
-    assert mock_repo["lector"].find_by_approved_false.call_count == len(result)
+    assert mock_repo["lector"].find_all_by_approved_false.call_count == len(result)
 
     for lector in result:
         assert lector == response
 
+@pytest.mark.asyncio
+async def test_get_unapproved_lectors_with_non_admin(
+        session: AsyncSession,
+        mock_repo: dict,
+        admin_service: AdminService,
+        mock_lector: Lector,
+        mock_lector_approved_files: List[LectorApprovedFile]
+):
+    # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    mock_repo["lector"].find_all_by_approved_false.side_effect = [[mock_lector]]
+    mock_repo["lector_approved_file"].find_all_by_lector_id.side_effect = [mock_lector_approved_files]
+    
+    with pytest.raises(UnauthorizedException) as exception:
+        # when
+        await admin_service.get_unapproved_lectors(session, request_user)
+
+    # then
+    assert exception.value.code == ErrorCode.NONE_ADMIN_ACCOUNT
 
 @pytest.mark.asyncio
 async def test_get_unapproved_centers(
@@ -477,15 +496,35 @@ async def test_get_unapproved_centers(
     # given
     response = CenterResponseDto.from_entity(mock_center, mock_center_approved_files)
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
-    mock_repo["center"].find_by_approved_false.side_effect = [[mock_center]]
-    mock_repo["center_approved_file"].find_by_id.side_effect = [mock_center_approved_files]
+    mock_repo["center"].find_all_by_approved_false.side_effect = [[mock_center]]
+    mock_repo["center_approved_file"].find_all_by_center_id.side_effect = [mock_center_approved_files]
 
     # when
     result: List[CenterResponseDto] = await admin_service.get_unapproved_centers(session, request_user)
 
     # then
     assert len(result) == 1
-    assert mock_repo["center"].find_by_approved_false.call_count == len(result)
+    assert mock_repo["center"].find_all_by_approved_false.call_count == len(result)
 
     for center in result:
         assert center == response
+
+@pytest.mark.asyncio
+async def test_get_unapproved_centers_with_non_admin(
+        session: AsyncSession,
+        mock_repo: dict,
+        admin_service: AdminService,
+        mock_center: Center,
+        mock_center_approved_files: List[CenterApprovedFile]
+):
+    # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    mock_repo["center"].find_all_by_approved_false.side_effect = [[mock_center]]
+    mock_repo["center_approved_file"].find_all_by_center_id.side_effect = [mock_center_approved_files]
+    
+    with pytest.raises(UnauthorizedException) as exception:
+        # when
+        await admin_service.get_unapproved_centers(session, request_user)
+
+    # then
+    assert exception.value.code == ErrorCode.NONE_ADMIN_ACCOUNT

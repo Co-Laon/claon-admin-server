@@ -1,5 +1,5 @@
 import re
-from typing import List, Optional
+from typing import Optional, List
 
 from pydantic import BaseModel, validator
 
@@ -14,19 +14,19 @@ class CenterOperatingTimeDto(BaseModel):
     start_time: str
     end_time: str
 
-    @validator("day_of_week")
+    @validator('day_of_week')
     def validate_day_of_week(cls, value):
         if value not in ['월', '화', '수', '목', '금', '토', '일', '공휴일']:
             raise ValueError('요일은 월, 화, 수, 목, 금, 토, 일 중 하나로 입력해 주세요.')
         return value
 
-    @validator("start_time")
+    @validator('start_time')
     def validate_start_time(cls, value):
         if not re.match(r'^(0\d|1\d|2[0-3]):(0[1-9]|[0-5]\d)$', value):
             raise ValueError('올바른 시간 형식으로 입력해 주세요.')
         return value
 
-    @validator("end_time")
+    @validator('end_time')
     def validate_end_time(cls, value):
         if not re.match(r'^(0\d|1\d|2[0-3]):(0[1-9]|[0-5]\d)$', value):
             raise ValueError('올바른 시간 형식으로 입력해 주세요.')
@@ -38,19 +38,19 @@ class CenterFeeDto(BaseModel):
     price: int
     count: int
 
-    @validator("name")
+    @validator('name')
     def validate_name(cls, value):
         if len(value) < 2 or len(value) > 50:
             raise ValueError('이름은 2자 이상 50자 이하로 입력해 주세요.')
         return value
 
-    @validator("price")
+    @validator('price')
     def validate_price(cls, value):
         if value < 0:
             raise ValueError('가격은 0원 이상으로 입력해 주세요.')
         return value
 
-    @validator("count")
+    @validator('count')
     def validate_count(cls, value):
         if value < 0:
             raise ValueError('횟수는 0회 이상으로 입력해 주세요.')
@@ -62,13 +62,13 @@ class CenterHoldDto(BaseModel):
     name: str
     is_color: bool
 
-    @validator("difficulty")
+    @validator('difficulty')
     def validate_difficulty(cls, value):
         if len(value) < 2 or len(value) > 10:
             raise ValueError('홀드 난이도는 1자 이상 10자 이하로 입력해 주세요.')
         return value
 
-    @validator("name")
+    @validator('name')
     def validate_name(cls, value):
         if len(value) < 2 or len(value) > 10:
             raise ValueError('홀드 이름은 1자 이상 10자 이하로 입력해 주세요.')
@@ -79,7 +79,7 @@ class CenterWallDto(BaseModel):
     wall_type: WallType
     name: str
 
-    @validator("name")
+    @validator('name')
     def validate_name(cls, value):
         if len(value) < 2 or len(value) > 20:
             raise ValueError('벽 이름은 2자 이상 20자 이하로 입력해 주세요.')
@@ -110,7 +110,7 @@ class CenterRequestDto(BaseModel):
     wall_list: List[CenterWallDto]
     proof_list: List[str]
 
-    @validator("name")
+    @validator('name')
     def validate_name(cls, value):
         for c in value:
             if not ((c == ' ') or ('a' <= c <= 'z') or ('A' <= c <= 'Z') or (
@@ -120,13 +120,13 @@ class CenterRequestDto(BaseModel):
             raise ValueError('암장명은 2자 이상 50자 이하로 입력해 주세요.')
         return value
 
-    @validator("tel", pre=True, always=True)
+    @validator('tel', pre=True, always=True)
     def validate_tel(cls, value):
-        if not re.match(r"^(0)\d{1,2}-\d{3,4}-\d{4}$", value):
-            raise ValueError("전화번호를 올바른 형식으로 다시 입력해주세요.")
+        if not re.match(r'^(0)\d{1,2}-\d{3,4}-\d{4}$', value):
+            raise ValueError('전화번호를 올바른 형식으로 다시 입력해주세요.')
         return value
 
-    @validator("instagram_name")
+    @validator('instagram_name')
     def validate_instagram_name(cls, value):
         if value is None:
             return value
@@ -139,7 +139,7 @@ class CenterRequestDto(BaseModel):
             raise ValueError('인스타그램 닉네임은 3자 이상 30자 이하로 입력해 주세요.')
         return value
 
-    @validator("youtube_code")
+    @validator('youtube_code')
     def validate_youtube_code(cls, value):
         if value is None:
             return value
@@ -148,25 +148,25 @@ class CenterRequestDto(BaseModel):
             raise ValueError('유튜브 채널 코드는 @로 시작해 주세요.')
         return value
 
-    @validator("image_list")
+    @validator('image_list')
     def validate_image_list(cls, value):
         if len(value) > 10:
-            raise ValueError("이미지는 최대 10장까지 등록 가능해요.")
+            raise ValueError('이미지는 최대 10장까지 등록 가능해요.')
         return value
 
-    @validator("fee_image_list")
+    @validator('fee_image_list')
     def validate_fee_image_list(cls, value):
         if len(value) > 5:
-            raise ValueError("이용요금 이미지는 최대 10장까지 등록 가능해요.")
+            raise ValueError('이용요금 이미지는 최대 10장까지 등록 가능해요.')
         return value
 
-    @validator("operating_time_list")
+    @validator('operating_time_list')
     def validate_operating_time_list(cls, value):
         if len(value) > 8:
-            raise ValueError("운영시간은 최대 8개까지 등록 가능해요.")
+            raise ValueError('운영시간은 최대 8개까지 등록 가능해요.')
         return value
 
-    @validator("proof_list")
+    @validator('proof_list')
     def validate_proof_list(cls, value):
         if len(value) > 5:
             raise ValueError('증빙자료는 5개 이하로 입력해 주세요.')

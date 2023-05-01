@@ -300,6 +300,16 @@ async def test_delete_center(
     assert await center_fee_repository.find_all_by_center_id(session, center_fixture.id) == []
     assert await center_approved_file_repository.find_all_by_center_id(session, center_fixture.id) == []
 
+@pytest.mark.asyncio
+async def test_find_all_center_by_approved_false(
+        session: AsyncSession,
+        center_fixture: Center
+):
+    # when
+    result = await center_repository.find_all_by_approved_false(session)
+
+    # then
+    assert result == [center_fixture]
 
 @pytest.mark.asyncio
 async def test_save_center_approved_file(

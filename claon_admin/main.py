@@ -46,7 +46,7 @@ def create_app() -> FastAPI:
         allow_origins=["*"],
         allow_credentials=True,
         allow_methods=["*"],
-        allow_headers=["*"],
+        allow_headers=["*"]
     )
 
     app.add_middleware(SessionMiddleware, secret_key=conf().SESSION_SECRET_KEY)

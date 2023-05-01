@@ -11,7 +11,7 @@ from claon_admin.service.user import UserService
 
 
 class Container(containers.DeclarativeContainer):
-    """Repository"""
+    """ Repository """
     user_repository = providers.Factory(UserRepository)
     lector_repository = providers.Factory(LectorRepository)
     lector_approved_file_repository = providers.Factory(LectorApprovedFileRepository)
@@ -29,7 +29,7 @@ class Container(containers.DeclarativeContainer):
     oauth_user_info_provider_supplier = providers.Factory(
         OAuthUserInfoProviderSupplier,
         google_user_info_provider=google_user_info_provider,
-        kakao_user_info_provider=kakao_user_info_provider,
+        kakao_user_info_provider=kakao_user_info_provider
     )
 
     """ Service """

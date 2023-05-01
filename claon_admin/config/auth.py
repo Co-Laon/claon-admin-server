@@ -1,5 +1,5 @@
-from dependency_injector.wiring import Provide
-from fastapi import Depends, Header, Response
+from dependency_injector.wiring import Provide, inject
+from fastapi import Header, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import UnauthorizedException, ErrorCode, InternalServerException
@@ -12,24 +12,24 @@ from claon_admin.container import Container
 from claon_admin.model.auth import RequestUser
 from claon_admin.schema.user import UserRepository
 
-
+@inject
 async def get_subject(
     response: Response,
     access_token: str = Header(None),
     refresh_token: str = Header(None),
     session: AsyncSession = Depends(db.get_db),
-    user_repository: UserRepository = Depends(UserRepository), 
+    user_repository: UserRepository = Depends(Provide[Container.user_repository])
 ) -> RequestUser:
     try:
         if access_token is None:
             raise UnauthorizedException(
-                ErrorCode.NOT_SIGN_IN, 
+                ErrorCode.NOT_SIGN_IN,
                 "Cannot find access token from request header."
             )
 
         if refresh_token is None:
             raise UnauthorizedException(
-                ErrorCode.NOT_SIGN_IN, 
+                ErrorCode.NOT_SIGN_IN,
                 "Cannot find refresh token from request header."
             )
 
@@ -40,13 +40,14 @@ async def get_subject(
             if is_expired(refresh_payload):
                 raise UnauthorizedException(
                     ErrorCode.INVALID_JWT,
-                    "Both access token and refresh token are expired.",
+                    "Both access token and refresh token are expired."
                 )
 
             user_id = find_user_id_by_refresh_token(refresh_token)
             if user_id is None:
                 raise UnauthorizedException(
-                    ErrorCode.INVALID_JWT, "Refresh token is not valid."
+                    ErrorCode.INVALID_JWT,
+                    "Refresh token is not valid."
                 )
 
             add_jwt_tokens(
@@ -58,7 +59,8 @@ async def get_subject(
             user = await user_repository.find_by_id(session, user_id)
             if user is None:
                 raise UnauthorizedException(
-                    ErrorCode.USER_DOES_NOT_EXIST, "Not existing user account."
+                    ErrorCode.USER_DOES_NOT_EXIST,
+                    "Not existing user account."
                 )
 
             return RequestUser(
@@ -72,15 +74,17 @@ async def get_subject(
         else:
             if is_expired(refresh_payload):
                 raise UnauthorizedException(
-                    ErrorCode.INVALID_JWT, "Refresh token is expired."
+                    ErrorCode.INVALID_JWT,
+                    "Refresh token is expired."
                 )
 
             user = await user_repository.find_by_id(session, access_payload.get("sub"))
             if user is None:
                 raise UnauthorizedException(
-                    ErrorCode.USER_DOES_NOT_EXIST, "Not existing user account."
+                    ErrorCode.USER_DOES_NOT_EXIST,
+                    "Not existing user account."
                 )
-            
+
             return RequestUser(
                 id=user.id,
                 profile_img=user.profile_img,

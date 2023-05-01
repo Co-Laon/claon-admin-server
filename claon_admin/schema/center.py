@@ -47,7 +47,7 @@ class ReviewTag:
 
 
 class Center(Base):
-    __tablename__ = "tb_center"
+    __tablename__ = 'tb_center'
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
     name = Column(String(length=30), nullable=False)
     profile_img = Column(TEXT, nullable=False)
@@ -77,7 +77,7 @@ class Center(Base):
             return []
 
         values = json.loads(self._center_img)
-        return [CenterImage(value["url"]) for value in values]
+        return [CenterImage(value['url']) for value in values]
 
     @center_img.setter
     def center_img(self, values: List[CenterImage]):
@@ -89,7 +89,7 @@ class Center(Base):
             return []
 
         values = json.loads(self._operating_time)
-        return [OperatingTime(value["day_of_week"], value["start_time"], value["end_time"]) for value in values]
+        return [OperatingTime(value['day_of_week'], value['start_time'], value['end_time']) for value in values]
 
     @operating_time.setter
     def operating_time(self, values: List[OperatingTime]):
@@ -101,7 +101,7 @@ class Center(Base):
             return []
 
         values = json.loads(self._utility)
-        return [Utility(value["name"]) for value in values]
+        return [Utility(value['name']) for value in values]
 
     @utility.setter
     def utility(self, values: List[Utility]):
@@ -113,7 +113,7 @@ class Center(Base):
             return []
 
         data = json.loads(self._fee_img)
-        return [CenterFeeImage(e["url"]) for e in data]
+        return [CenterFeeImage(e['url']) for e in data]
 
     @fee_img.setter
     def fee_img(self, values: List[CenterFeeImage]):
@@ -135,7 +135,7 @@ class CenterFee(Base):
 
 
 class CenterHold(Base):
-    __tablename__ = "tb_center_hold"
+    __tablename__ = 'tb_center_hold'
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
     name = Column(String(length=10))
     difficulty = Column(String(length=10))
@@ -147,7 +147,7 @@ class CenterHold(Base):
 
 
 class CenterWall(Base):
-    __tablename__ = "tb_center_wall"
+    __tablename__ = 'tb_center_wall'
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
     name = Column(String(length=20))
     type = Column(String(length=20))
@@ -157,7 +157,7 @@ class CenterWall(Base):
 
 
 class CenterApprovedFile(Base):
-    __tablename__ = "tb_center_approved_file"
+    __tablename__ = 'tb_center_approved_file'
     id = Column(String(length=255), primary_key=True, default=str(uuid4()))
     url = Column(String(length=255))
 
@@ -274,7 +274,7 @@ class CenterRepository:
         return await session.delete(center)
 
     @staticmethod
-    async def find_by_approved_false(session: AsyncSession):
+    async def find_all_by_approved_false(session: AsyncSession):
         result = await session.execute(select(Center).where(Center.approved == False)
                                        .options(selectinload(Center.user))
                                        .options(selectinload(Center.holds))
@@ -291,19 +291,10 @@ class CenterApprovedFileRepository:
         return center_approved_file
 
     @staticmethod
-    async def save_all(
-        session: AsyncSession, center_approved_files: List[CenterApprovedFile]
-    ):
+    async def save_all(session: AsyncSession, center_approved_files: List[CenterApprovedFile]):
         session.add_all(center_approved_files)
         [await session.merge(e) for e in center_approved_files]
         return center_approved_files
-
-    @staticmethod
-    async def find_by_id(session: AsyncSession, center_id: str):
-        result = await session.execute(
-            select(CenterApprovedFile).where(CenterApprovedFile.center_id == center_id)
-        )
-        return result.scalars().all()
 
     @staticmethod
     async def find_all_by_center_id(session: AsyncSession, center_id: str):
