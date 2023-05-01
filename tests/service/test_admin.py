@@ -452,7 +452,7 @@ async def test_get_unapproved_lectors(
     # given
     response = LectorResponseDto.from_entity(mock_lector, mock_lector_approved_files)
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
-    mock_repo["lector"].find_by_approved_false.side_effect = [mock_lector]
+    mock_repo["lector"].find_by_approved_false.side_effect = [[mock_lector]]
     mock_repo["lector_approved_file"].find_by_id.side_effect = [mock_lector_approved_files]
 
     # when
@@ -477,7 +477,7 @@ async def test_get_unapproved_centers(
     # given
     response = CenterResponseDto.from_entity(mock_center, mock_center_approved_files)
     request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
-    mock_repo["center"].find_by_approved_false.side_effect = [mock_center]
+    mock_repo["center"].find_by_approved_false.side_effect = [[mock_center]]
     mock_repo["center_approved_file"].find_by_id.side_effect = [mock_center_approved_files]
 
     # when
