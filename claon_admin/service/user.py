@@ -1,10 +1,12 @@
 import uuid
 
+from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException, ErrorCode
 from claon_admin.common.util.jwt import create_access_token, create_refresh_token
 from claon_admin.common.util.oauth import OAuthUserInfoProviderSupplier, UserInfoProvider
+from claon_admin.common.util.s3 import upload_file
 from claon_admin.model.auth import OAuthUserInfoDto
 from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.model.auth import RequestUser
@@ -170,6 +172,15 @@ class UserService:
             is_signed_up=user.is_signed_up(),
             profile=UserProfileResponseDto.from_entity(user)
         )
+
+    async def upload_profile(self, file: UploadFile):
+        if file.filename.split('.')[-1] not in ['jpeg', 'png', 'jpg']:
+            raise BadRequestException(
+                ErrorCode.INVALID_FORMAT,
+                "지원하지 않는 포맷입니다."
+            )
+
+        return await upload_file(file=file, domain="user", purpose="profile")
 
     # TODO: Need to be removed later
     async def test_sign_in(self, session: AsyncSession, dto: SignInRequestDto):

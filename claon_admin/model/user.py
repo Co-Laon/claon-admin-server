@@ -35,7 +35,7 @@ class UserProfileResponseDto(BaseModel):
 
 
 class UserProfileDto(BaseModel):
-    profile_image: Optional[str]
+    profile_image: str
     nickname: str
     email: EmailStr
     instagram_nickname: Optional[str]

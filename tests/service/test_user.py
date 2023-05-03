@@ -4,6 +4,7 @@ from typing import List
 from unittest.mock import AsyncMock, patch
 
 import pytest
+from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException, ErrorCode
@@ -598,3 +599,35 @@ async def test_sign_in_with_kakao_new_user(
     assert result.access_token is not None
     assert result.refresh_token is not None
     assert result.is_signed_up is False
+
+
+@pytest.mark.asyncio
+@patch("claon_admin.service.user.upload_file")
+async def test_upload_profile(mock_upload_file,
+                              user_service: UserService):
+    # given
+    upload_file = AsyncMock(spec=UploadFile)
+    upload_file.filename = "test.png"
+    mock_upload_file.return_value = "https://test_upload_profile/user/profile/uuid.png"
+
+    # when
+    result = await user_service.upload_profile(upload_file)
+
+    # then
+    assert result.split('.')[-1] == "png"
+    assert result.split('/')[-2] == "profile"
+    assert result.split('/')[-3] == "user"
+
+
+@pytest.mark.asyncio
+async def test_upload_profile_with_invalid_format(user_service: UserService):
+    # given
+    upload_file = AsyncMock(spec=UploadFile)
+    upload_file.filename = "test.gif"
+
+    with pytest.raises(BadRequestException) as exception:
+        # when
+        await user_service.upload_profile(upload_file)
+
+    # then
+    assert exception.value.code == ErrorCode.INVALID_FORMAT
