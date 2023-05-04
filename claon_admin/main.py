@@ -29,7 +29,7 @@ def create_app() -> FastAPI:
     container = Container()
 
     """ Define Container """
-    container.wire(modules=[auth, admin, center])
+    container.wire(modules=[auth, admin, center, user])
     app.container = container
 
     """ Define Routers """
