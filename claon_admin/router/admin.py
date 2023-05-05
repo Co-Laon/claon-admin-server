@@ -22,10 +22,13 @@ class AdminRouter:
                  admin_service: AdminService = Depends(Provide[Container.admin_service])):
         self.admin_service = admin_service
 
-    @router.get('/lectors/approve', response_model=List[LectorResponseDto])
-    async def find_approval_pending_lectors(self,
-                                            session: AsyncSession = Depends(db.get_db)):
-        pass
+    @router.get("/lectors/approve", response_model=List[LectorResponseDto])
+    async def find_approval_pending_lectors(
+        self,
+        session: AsyncSession = Depends(db.get_db),
+        subject: RequestUser = Depends(get_subject)
+    ):
+        return await self.admin_service.get_unapproved_lectors(session, subject)
 
     @router.post('/lectors/{lector_id}/approve')
     async def approve_lector(self,
@@ -43,8 +46,9 @@ class AdminRouter:
 
     @router.get('/centers/approve', response_model=List[CenterResponseDto])
     async def find_approval_pending_centers(self,
-                                            session: AsyncSession = Depends(db.get_db)):
-        pass
+                                            session: AsyncSession = Depends(db.get_db),
+                                            subject: RequestUser = Depends(get_subject)):
+        return await self.admin_service.get_unapproved_centers(session, subject)
 
     @router.post('/centers/{center_id}/approve')
     async def approve_center(self,

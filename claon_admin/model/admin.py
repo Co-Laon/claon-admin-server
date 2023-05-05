@@ -24,6 +24,7 @@ class CenterFeeDto(BaseModel):
 class CenterHoldDto(BaseModel):
     difficulty: str
     name: str
+    is_color: bool
 
 
 class CenterWallDto(BaseModel):
@@ -32,7 +33,7 @@ class CenterWallDto(BaseModel):
 
 
 class CenterResponseDto(BaseModel):
-    user_profile: UserProfileDto
+    user_profile: UserProfileResponseDto
     center_id: str
     profile_image: str
     name: str

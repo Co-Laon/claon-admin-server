@@ -1,4 +1,4 @@
-from dependency_injector.wiring import Provide
+from dependency_injector.wiring import Provide, inject
 from fastapi import Header, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,13 +12,13 @@ from claon_admin.container import Container
 from claon_admin.model.auth import RequestUser
 from claon_admin.schema.user import UserRepository
 
-
+@inject
 async def get_subject(
-        response: Response,
-        access_token: str = Header(None),
-        refresh_token: str = Header(None),
-        session: AsyncSession = Depends(db.get_db),
-        user_repository: UserRepository = Depends(Provide[Container.user_repository])
+    response: Response,
+    access_token: str = Header(None),
+    refresh_token: str = Header(None),
+    session: AsyncSession = Depends(db.get_db),
+    user_repository: UserRepository = Depends(Provide[Container.user_repository])
 ) -> RequestUser:
     try:
         if access_token is None:
@@ -50,7 +50,11 @@ async def get_subject(
                     "Refresh token is not valid."
                 )
 
-            add_jwt_tokens(response, create_access_token(user_id), reissue_refresh_token(refresh_token, user_id))
+            add_jwt_tokens(
+                response,
+                create_access_token(user_id),
+                reissue_refresh_token(refresh_token, user_id),
+            )
 
             user = await user_repository.find_by_id(session, user_id)
             if user is None:
@@ -61,10 +65,10 @@ async def get_subject(
 
             return RequestUser(
                 id=user.id,
-                profile_image=user.profile_image,
+                profile_img=user.profile_img,
                 nickname=user.nickname,
                 email=user.email,
-                instagram_nickname=user.instagram_nickname,
+                instagram_nickname=user.instagram_name,
                 role=user.role
             )
         else:
@@ -83,10 +87,10 @@ async def get_subject(
 
             return RequestUser(
                 id=user.id,
-                profile_image=user.profile_image,
+                profile_img=user.profile_img,
                 nickname=user.nickname,
                 email=user.email,
-                instagram_nickname=user.instagram_nickname,
+                instagram_nickname=user.instagram_name,
                 role=user.role
             )
     except Exception:

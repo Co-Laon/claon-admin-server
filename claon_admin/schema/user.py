@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, select, exists, and_, delete
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, selectinload
 from sqlalchemy.dialects.postgresql import TEXT
 
 from claon_admin.common.enum import Role
@@ -180,6 +180,16 @@ class LectorRepository:
         lector.approved = True
         await session.merge(lector)
         return lector
+
+    @staticmethod
+    async def find_all_by_approved_false(session: AsyncSession):
+        result = await session.execute(
+            select(Lector)
+            .where(Lector.approved == False)
+            .options(selectinload(Lector.user))
+        )
+
+        return result.scalars().all()
 
 
 class LectorApprovedFileRepository:

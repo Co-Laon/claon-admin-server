@@ -273,6 +273,15 @@ class CenterRepository:
     async def delete(session: AsyncSession, center: Center):
         return await session.delete(center)
 
+    @staticmethod
+    async def find_all_by_approved_false(session: AsyncSession):
+        result = await session.execute(select(Center).where(Center.approved == False)
+                                       .options(selectinload(Center.user))
+                                       .options(selectinload(Center.holds))
+                                       .options(selectinload(Center.walls))
+                                       .options(selectinload(Center.fees)))
+        return result.scalars().all()
+
 
 class CenterApprovedFileRepository:
     @staticmethod

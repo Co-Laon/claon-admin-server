@@ -49,6 +49,7 @@ class Container(containers.DeclarativeContainer):
 
     admin_service = providers.Factory(
         AdminService,
+        user_repository=user_repository,
         lector_repository=lector_repository,
         lector_approved_file_repository=lector_approved_file_repository,
         center_repository=center_repository,

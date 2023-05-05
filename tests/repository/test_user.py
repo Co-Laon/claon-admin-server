@@ -227,6 +227,16 @@ async def test_approve_lector(
     # then
     assert result.approved is True
 
+@pytest.mark.asyncio
+async def test_find_all_lector_by_approved_false(
+        session: AsyncSession,
+        lector_fixture: Lector
+):
+    # when
+    result = await lector_repository.find_all_by_approved_false(session)
+
+    # then
+    assert result == [lector_fixture]
 
 @pytest.mark.asyncio
 async def test_exist_user_by_valid_id(
