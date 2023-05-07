@@ -1,6 +1,8 @@
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from pydantic import BaseModel, validator
+
+from claon_admin.schema.center import Review, ReviewAnswer
 
 
 class ReviewAnswerRequestDto(BaseModel):
@@ -19,6 +21,15 @@ class ReviewAnswerResponseDto(BaseModel):
     created_at: str
     review_id: str
 
+    @classmethod
+    def from_entity(cls, entity: ReviewAnswer):
+        return ReviewAnswerResponseDto(
+            review_answer_id=entity.id,
+            content=entity.content,
+            created_at=entity.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            review_id=entity.review_id
+        )
+
 
 class ReviewBriefResponseDto(BaseModel):
     review_id: str
@@ -30,6 +41,22 @@ class ReviewBriefResponseDto(BaseModel):
     user_profile_image: str
     user_visit_count: int
     tags: List[str]
+
+    @classmethod
+    def from_entity(cls, entity: Tuple[Review, int]):
+        review = entity[0]
+        visit_count = entity[1]
+        return ReviewBriefResponseDto(
+            review_id=review.id,
+            content=review.content,
+            created_at=review.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            answer=ReviewAnswerResponseDto.from_entity(review.answer) if review.answer is not None else None,
+            user_id=review.user.id,
+            user_nickname=review.user.nickname,
+            user_profile_image=review.user.profile_img,
+            user_visit_count=visit_count,
+            tags=[e.word for e in review.tag]
+        )
 
 
 class ReviewTagDto(BaseModel):

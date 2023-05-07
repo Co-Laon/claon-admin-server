@@ -107,15 +107,24 @@ class CenterRouter:
                                            session: AsyncSession = Depends(db.get_db)):
         pass
 
-    @router.get('/{center_id}/reviews', response_model=List[ReviewBriefResponseDto])
+    @router.get('/{center_id}/reviews', response_model=Pagination[ReviewBriefResponseDto])
     async def find_reviews_by_center(self,
                                      center_id: str,
                                      start: date,
                                      end: date,
                                      tag: Optional[str],
-                                     is_answered: Optional[str],
+                                     is_answered: Optional[bool],
+                                     params: Params = Depends(),
                                      session: AsyncSession = Depends(db.get_db)):
-        pass
+        return await self.center_service.find_reviews_by_center(
+            session=session,
+            params=params,
+            center_id=center_id,
+            start=start,
+            end=end,
+            tag=tag,
+            is_answered=is_answered
+        )
 
     @router.get('/{center_id}/reviews/summary', response_model=ReviewSummaryResponseDto)
     async def find_reviews_summary_by_center(self,
