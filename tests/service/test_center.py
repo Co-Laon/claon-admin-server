@@ -11,8 +11,10 @@ from claon_admin.common.enum import WallType, Role
 from claon_admin.common.error.exception import BadRequestException, UnauthorizedException, ErrorCode
 from claon_admin.common.util.pagination import PaginationFactory, Pagination
 from claon_admin.model.post import PostBriefResponseDto
+from claon_admin.model.review import ReviewBriefResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterFeeImage, \
-    Post, PostImage, ClimbingHistory, PostRepository, CenterHold, CenterWall
+    Post, PostImage, ClimbingHistory, PostRepository, CenterHold, CenterWall, ReviewRepository, Review, ReviewTag, \
+    ReviewAnswer
 from claon_admin.schema.user import User
 from claon_admin.service.center import CenterService
 
@@ -21,11 +23,13 @@ from claon_admin.service.center import CenterService
 def mock_repo():
     center_repository = AsyncMock(spec=CenterRepository)
     post_repository = AsyncMock(spec=PostRepository)
+    review_repository = AsyncMock(spec=ReviewRepository)
     pagination_factory = AsyncMock(spec=PaginationFactory)
 
     return {
         "center": center_repository,
         "post": post_repository,
+        "review": review_repository,
         "pagination_factory": pagination_factory
     }
 
@@ -35,6 +39,7 @@ def center_service(mock_repo: dict):
     return CenterService(
         mock_repo["center"],
         mock_repo["post"],
+        mock_repo["review"],
         mock_repo["pagination_factory"]
     )
 
@@ -64,6 +69,20 @@ def mock_pending_user():
         email="pending_test@test.com",
         instagram_name="pending_instagram_name",
         role=Role.PENDING
+    )
+
+
+@pytest.fixture
+def mock_review_user():
+    yield User(
+        id=str(uuid.uuid4()),
+        oauth_id="r_oauth_id",
+        nickname="r_nickname",
+        profile_img="r_profile_img",
+        sns="r_sns",
+        email="r_test@test.com",
+        instagram_name="r_instagram_name",
+        role=Role.USER
     )
 
 
@@ -148,6 +167,30 @@ def mock_post(mock_user: User, mock_center: Center):
 
 
 @pytest.fixture
+def mock_other_post(mock_pending_user: User, mock_center: Center):
+    yield Post(
+        id=str(uuid.uuid4()),
+        user=mock_pending_user,
+        center=mock_center,
+        content="content",
+        created_at=datetime(2023, 2, 3),
+        img=[PostImage(url="https://test.post.img.png")]
+    )
+
+
+@pytest.fixture
+def mock_another_post(mock_review_user: User, mock_center: Center):
+    yield Post(
+        id=str(uuid.uuid4()),
+        user=mock_review_user,
+        center=mock_center,
+        content="content",
+        created_at=datetime(2023, 2, 3),
+        img=[PostImage(url="https://test.post.img.png")]
+    )
+
+
+@pytest.fixture
 def mock_climbing_history(mock_post: Post, mock_center_holds: List[CenterHold], mock_center_walls: List[CenterWall]):
     yield [
         ClimbingHistory(
@@ -160,6 +203,62 @@ def mock_climbing_history(mock_post: Post, mock_center_holds: List[CenterHold], 
             wall_name=mock_center_walls[0].name,
             wall_type=mock_center_walls[0].type)
     ]
+
+
+@pytest.fixture
+def mock_review(mock_user: User, mock_center: Center):
+    yield Review(
+        id=str(uuid.uuid4()),
+        user=mock_user,
+        center=mock_center,
+        content="content",
+        created_at=datetime(2023, 2, 5),
+        tag=[ReviewTag(word="tag")]
+    )
+
+
+@pytest.fixture
+def mock_other_review(mock_pending_user: User, mock_center: Center):
+    yield Review(
+        id=str(uuid.uuid4()),
+        user=mock_pending_user,
+        center=mock_center,
+        content="content",
+        created_at=datetime(2023, 2, 5),
+        tag=[ReviewTag(word="tag")]
+    )
+
+
+@pytest.fixture
+def mock_another_review(mock_review_user: User, mock_center: Center):
+    yield Review(
+        id=str(uuid.uuid4()),
+        user=mock_review_user,
+        center=mock_center,
+        content="content",
+        created_at=datetime(2023, 2, 5),
+        tag=[ReviewTag(word="other_tag")]
+    )
+
+
+@pytest.fixture
+def mock_review_answer(mock_review: Review):
+    yield ReviewAnswer(
+        id=str(uuid.uuid4()),
+        review=mock_review,
+        content="answer",
+        created_at=datetime(2023, 2, 7)
+    )
+
+
+@pytest.fixture
+def mock_another_review_answer(mock_another_review: Review):
+    yield ReviewAnswer(
+        id=str(uuid.uuid4()),
+        review=mock_another_review,
+        content="answer",
+        created_at=datetime(2023, 2, 7)
+    )
 
 
 @pytest.mark.asyncio
@@ -312,3 +411,220 @@ async def test_find_posts_by_center_not_center_admin(session: AsyncSession,
 
     # then
     assert exception.value.code == ErrorCode.NOT_ACCESSIBLE
+
+
+@pytest.mark.asyncio
+async def test_find_reviews_by_center_not_filter(session: AsyncSession,
+                                                 center_service: CenterService,
+                                                 mock_repo: dict,
+                                                 mock_user: User,
+                                                 mock_pending_user: User,
+                                                 mock_review_user: User,
+                                                 mock_center: Center,
+                                                 mock_other_post: Post,
+                                                 mock_another_post: Post,
+                                                 mock_review: Review,
+                                                 mock_other_review: Review,
+                                                 mock_another_review: Review):
+    # given
+    params = Params(page=1, size=10)
+    items = [(mock_review, 1), (mock_other_review, 1), (mock_another_review, 1)]
+    review_page = Page(items=items, params=params, total=3)
+    mock_repo["center"].find_by_id.side_effect = [mock_center]
+    mock_repo["review"].find_reviews_by_center.side_effect = review_page
+    mock_pagination = Pagination(
+        next_page_num=2,
+        previous_page_num=0,
+        total_num=1,
+        results=[ReviewBriefResponseDto.from_entity(item) for item in items]
+    )
+    mock_repo["pagination_factory"].create.side_effect = [mock_pagination]
+
+    # when
+    pages: Pagination[ReviewBriefResponseDto] = await center_service.find_reviews_by_center(
+        session,
+        params,
+        mock_center.id,
+        datetime(2022, 4, 1),
+        datetime(2023, 3, 31),
+        None,
+        None
+    )
+
+    # then
+    assert len(pages.results) == 3
+    assert pages.results[0].content == mock_review.content
+    assert pages.results[0].created_at == mock_review.created_at.strftime("%Y-%m-%d %H:%M:%S")
+    assert pages.results[0].user_id == mock_user.id == mock_review.user.id
+    assert pages.results[0].user_nickname == mock_review.user.nickname
+    assert pages.results[0].user_profile_image == mock_review.user.profile_img
+    assert pages.results[0].user_visit_count == 1
+    assert pages.results[0].tags[0] == mock_review.tag[0].word
+    assert pages.results[1].user_id == mock_pending_user.id == mock_other_review.user.id == mock_other_post.user.id
+    assert pages.results[2].user_id == mock_review_user.id == mock_another_review.user.id == mock_another_post.user.id
+
+
+@pytest.mark.asyncio
+async def test_find_reviews_by_center_not_answered(session: AsyncSession,
+                                                   center_service: CenterService,
+                                                   mock_repo: dict,
+                                                   mock_pending_user: User,
+                                                   mock_center: Center,
+                                                   mock_other_review: Review):
+    # given
+    params = Params(page=1, size=10)
+    items = [(mock_other_review, 1)]
+    review_page = Page(items=items, params=params, total=0)
+    mock_repo["center"].find_by_id.side_effect = [mock_center]
+    mock_repo["review"].find_reviews_by_center.side_effect = review_page
+    mock_pagination = Pagination(
+        next_page_num=2,
+        previous_page_num=0,
+        total_num=1,
+        results=[ReviewBriefResponseDto.from_entity(item) for item in items]
+    )
+    mock_repo["pagination_factory"].create.side_effect = [mock_pagination]
+
+    # when
+    pages: Pagination[ReviewBriefResponseDto] = await center_service.find_reviews_by_center(
+        session,
+        params,
+        mock_center.id,
+        datetime(2022, 4, 1),
+        datetime(2023, 3, 31),
+        None,
+        "false"
+    )
+
+    # then
+    assert len(pages.results) == 1
+    assert pages.results[0].content == mock_other_review.content
+    assert pages.results[0].created_at == mock_other_review.created_at.strftime("%Y-%m-%d %H:%M:%S")
+    assert pages.results[0].user_id == mock_pending_user.id == mock_other_review.user.id
+    assert pages.results[0].user_nickname == mock_other_review.user.nickname
+    assert pages.results[0].user_profile_image == mock_other_review.user.profile_img
+    assert pages.results[0].user_visit_count == 1
+    assert pages.results[0].tags[0] == mock_other_review.tag[0].word
+
+
+@pytest.mark.asyncio
+async def test_find_reviews_by_center_with_tag(session: AsyncSession,
+                                               center_service: CenterService,
+                                               mock_repo: dict,
+                                               mock_user: User,
+                                               mock_review_user: User,
+                                               mock_center: Center,
+                                               mock_post: Post,
+                                               mock_another_post: Post,
+                                               mock_review: Review,
+                                               mock_another_review: Review):
+    # given
+    params = Params(page=1, size=10)
+    items = [(mock_review, 1), (mock_another_review, 1)]
+    review_page = Page(items=items, params=params, total=0)
+    mock_repo["center"].find_by_id.side_effect = [mock_center]
+    mock_repo["review"].find_reviews_by_center.side_effect = review_page
+    mock_pagination = Pagination(
+        next_page_num=2,
+        previous_page_num=0,
+        total_num=1,
+        results=[ReviewBriefResponseDto.from_entity(item) for item in items]
+    )
+    mock_repo["pagination_factory"].create.side_effect = [mock_pagination]
+
+    # when
+    pages: Pagination[ReviewBriefResponseDto] = await center_service.find_reviews_by_center(
+        session,
+        params,
+        mock_center.id,
+        datetime(2022, 4, 1),
+        datetime(2023, 3, 31),
+        "tag",
+        None,
+    )
+
+    # then
+    assert len(pages.results) == 2
+    assert pages.results[0].content == mock_review.content
+    assert pages.results[0].created_at == mock_review.created_at.strftime("%Y-%m-%d %H:%M:%S")
+    assert pages.results[0].user_id == mock_user.id == mock_review.user.id == mock_post.user.id
+    assert pages.results[0].user_nickname == mock_review.user.nickname
+    assert pages.results[0].user_profile_image == mock_review.user.profile_img
+    assert pages.results[0].user_visit_count == 1
+    assert pages.results[0].tags[0] == mock_review.tag[0].word
+    assert pages.results[1].user_id == mock_review_user.id == mock_another_review.user.id == mock_another_post.user.id
+
+
+@pytest.mark.asyncio
+async def test_find_reviews_by_center_not_exist_center(session: AsyncSession,
+                                                       mock_repo: dict,
+                                                       mock_center: Center,
+                                                       center_service: CenterService):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [None]
+    params = Params(page=1, size=10)
+
+    with pytest.raises(BadRequestException) as exception:
+        # when
+        await center_service.find_reviews_by_center(
+            session,
+            params,
+            mock_center.id,
+            datetime(2022, 4, 1),
+            datetime(2023, 3, 31),
+            None,
+            None,
+        )
+
+    # then
+    assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
+
+
+@pytest.mark.asyncio
+async def test_find_reviews_by_center_not_center_admin(session: AsyncSession,
+                                                       mock_repo: dict,
+                                                       mock_another_center: Center,
+                                                       center_service: CenterService):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [mock_another_center]
+    params = Params(page=1, size=10)
+
+    with pytest.raises(UnauthorizedException) as exception:
+        # when
+        await center_service.find_reviews_by_center(
+            session,
+            params,
+            mock_another_center.id,
+            datetime(2022, 4, 1),
+            datetime(2023, 3, 31),
+            None,
+            None,
+        )
+
+    # then
+    assert exception.value.code == ErrorCode.NOT_ACCESSIBLE
+
+
+@pytest.mark.asyncio
+async def test_find_reviews_by_center_with_invalid_date(session: AsyncSession,
+                                                        mock_repo: dict,
+                                                        mock_another_center: Center,
+                                                        center_service: CenterService):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [mock_another_center]
+    params = Params(page=1, size=10)
+
+    with pytest.raises(BadRequestException) as exception:
+        # when
+        await center_service.find_reviews_by_center(
+            session,
+            params,
+            mock_another_center.id,
+            datetime(2023, 4, 1),
+            datetime(2022, 3, 31),
+            None,
+            None,
+        )
+
+    # then
+    assert exception.value.code == ErrorCode.WRONG_DATE_RANGE

@@ -165,8 +165,7 @@ async def review_fixture(session: AsyncSession, user_fixture: User, center_fixtu
         center=center_fixture,
         content="content",
         created_at=datetime(2023, 1, 1),
-        tag=[ReviewTag(word="tag")],
-        is_review=True
+        tag=[ReviewTag(word="tag"), ReviewTag(word="tag2")]
     )
 
     review = await review_repository.save(session, review)
@@ -300,6 +299,7 @@ async def test_delete_center(
     assert await center_fee_repository.find_all_by_center_id(session, center_fixture.id) == []
     assert await center_approved_file_repository.find_all_by_center_id(session, center_fixture.id) == []
 
+
 @pytest.mark.asyncio
 async def test_find_all_center_by_approved_false(
         session: AsyncSession,
@@ -310,6 +310,7 @@ async def test_find_all_center_by_approved_false(
 
     # then
     assert result == [center_fixture]
+
 
 @pytest.mark.asyncio
 async def test_save_center_approved_file(
@@ -597,3 +598,72 @@ async def test_find_posts_by_center_included_hold(
         start=datetime(2022, 3, 1),
         end=datetime(2023, 2, 28)
     ) == Page.create(items=[post_fixture], params=params, total=1)
+
+
+@pytest.mark.asyncio
+async def test_find_reviews_by_center_not_filter(
+        session: AsyncSession,
+        center_fixture: Center,
+        review_fixture: Review,
+        post_fixture: Post,
+        review_answer_fixture: ReviewAnswer
+):
+    # given
+    params = Params(page=1, size=10)
+
+    # then
+    assert await review_repository.find_reviews_by_center(
+        session=session,
+        params=params,
+        center_id=center_fixture.id,
+        start=datetime(2022, 3, 1),
+        end=datetime(2023, 2, 28),
+        tag=None,
+        is_answered=None
+    ) == Page.create(items=[(review_fixture, 1)], params=params, total=1)
+
+
+@pytest.mark.asyncio
+async def test_find_reviews_by_center_with_tag(
+        session: AsyncSession,
+        center_fixture: Center,
+        review_fixture: Review,
+        post_fixture: Post,
+        review_answer_fixture: ReviewAnswer
+):
+    # given
+    params = Params(page=1, size=10)
+
+    # then
+    assert await review_repository.find_reviews_by_center(
+        session=session,
+        params=params,
+        center_id=center_fixture.id,
+        start=datetime(2022, 3, 1),
+        end=datetime(2023, 2, 28),
+        tag="tag",
+        is_answered=None
+    ) == Page.create(items=[(review_fixture, 1)], params=params, total=1)
+
+
+@pytest.mark.asyncio
+async def test_find_reviews_with_by_center_only_not_answered(
+        session: AsyncSession,
+        center_fixture: Center,
+        review_fixture: Review,
+        post_fixture: Post,
+        review_answer_fixture: ReviewAnswer
+):
+    # given
+    params = Params(page=1, size=10)
+
+    # then
+    assert await review_repository.find_reviews_by_center(
+        session=session,
+        params=params,
+        center_id=center_fixture.id,
+        start=datetime(2022, 3, 1),
+        end=datetime(2023, 2, 28),
+        tag=None,
+        is_answered=False
+    ) == Page.create(items=[], params=params, total=0)
