@@ -8,13 +8,13 @@ from fastapi_pagination import Params, Page
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.enum import WallType, Role
-from claon_admin.common.error.exception import BadRequestException, UnauthorizedException, ErrorCode
+from claon_admin.common.error.exception import BadRequestException, UnauthorizedException, ErrorCode, NotFoundException
 from claon_admin.common.util.pagination import PaginationFactory, Pagination
 from claon_admin.model.post import PostBriefResponseDto
-from claon_admin.model.review import ReviewBriefResponseDto
+from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterFeeImage, \
     Post, PostImage, ClimbingHistory, PostRepository, CenterHold, CenterWall, ReviewRepository, Review, ReviewTag, \
-    ReviewAnswer
+    ReviewAnswer, ReviewAnswerRepository
 from claon_admin.schema.user import User
 from claon_admin.service.center import CenterService
 
@@ -24,12 +24,14 @@ def mock_repo():
     center_repository = AsyncMock(spec=CenterRepository)
     post_repository = AsyncMock(spec=PostRepository)
     review_repository = AsyncMock(spec=ReviewRepository)
+    review_answer_repository = AsyncMock(spec=ReviewAnswerRepository)
     pagination_factory = AsyncMock(spec=PaginationFactory)
 
     return {
         "center": center_repository,
         "post": post_repository,
         "review": review_repository,
+        "review_answer": review_answer_repository,
         "pagination_factory": pagination_factory
     }
 
@@ -40,6 +42,7 @@ def center_service(mock_repo: dict):
         mock_repo["center"],
         mock_repo["post"],
         mock_repo["review"],
+        mock_repo["review_answer"],
         mock_repo["pagination_factory"]
     )
 
@@ -218,6 +221,18 @@ def mock_review(mock_user: User, mock_center: Center):
 
 
 @pytest.fixture
+def mock_not_answered_review(mock_user: User, mock_center: Center):
+    yield Review(
+        id=str(uuid.uuid4()),
+        user=mock_user,
+        center=mock_center,
+        content="content",
+        created_at=datetime(2023, 2, 5),
+        tag=[ReviewTag(word="tag")]
+    )
+
+
+@pytest.fixture
 def mock_other_review(mock_pending_user: User, mock_center: Center):
     yield Review(
         id=str(uuid.uuid4()),
@@ -257,6 +272,16 @@ def mock_another_review_answer(mock_another_review: Review):
         id=str(uuid.uuid4()),
         review=mock_another_review,
         content="answer",
+        created_at=datetime(2023, 2, 7)
+    )
+
+
+@pytest.fixture
+def mock_new_review_answer(mock_not_answered_review: Review):
+    yield ReviewAnswer(
+        id=str(uuid.uuid4()),
+        review=mock_not_answered_review,
+        content="new answer",
         created_at=datetime(2023, 2, 7)
     )
 
@@ -349,7 +374,7 @@ async def test_find_posts_by_center_with_wrong_center_id(session: AsyncSession,
     mock_repo["center"].find_by_id.side_effect = [None]
     params = Params(page=1, size=10)
 
-    with pytest.raises(BadRequestException) as exception:
+    with pytest.raises(NotFoundException) as exception:
         # when
         await center_service.find_posts_by_center(
             session,
@@ -373,7 +398,7 @@ async def test_find_posts_by_center_not_included_hold_in_center(session: AsyncSe
     mock_repo["center"].find_by_id.side_effect = [mock_center]
     params = Params(page=1, size=10)
 
-    with pytest.raises(BadRequestException) as exception:
+    with pytest.raises(NotFoundException) as exception:
         # when
         await center_service.find_posts_by_center(
             session,
@@ -493,7 +518,7 @@ async def test_find_reviews_by_center_not_answered(session: AsyncSession,
         datetime(2022, 4, 1),
         datetime(2023, 3, 31),
         None,
-        "false"
+        False
     )
 
     # then
@@ -564,7 +589,7 @@ async def test_find_reviews_by_center_not_exist_center(session: AsyncSession,
     mock_repo["center"].find_by_id.side_effect = [None]
     params = Params(page=1, size=10)
 
-    with pytest.raises(BadRequestException) as exception:
+    with pytest.raises(NotFoundException) as exception:
         # when
         await center_service.find_reviews_by_center(
             session,
@@ -628,3 +653,333 @@ async def test_find_reviews_by_center_with_invalid_date(session: AsyncSession,
 
     # then
     assert exception.value.code == ErrorCode.WRONG_DATE_RANGE
+
+
+@pytest.mark.asyncio
+async def test_create_review_answer(session: AsyncSession,
+                                    center_service: CenterService,
+                                    mock_repo: dict,
+                                    mock_center: Center,
+                                    mock_not_answered_review: Review,
+                                    mock_new_review_answer: ReviewAnswer):
+    # given
+    dto = ReviewAnswerRequestDto(
+        answer_content="new answer"
+    )
+
+    mock_repo["center"].find_by_id.side_effect = [mock_center]
+    mock_repo["review"].find_by_id_and_center_id.side_effect = [mock_not_answered_review]
+    mock_repo["review_answer"].find_by_review_id.side_effect = [None]
+    mock_repo["review_answer"].save.side_effect = [mock_new_review_answer]
+
+    # when
+    result: ReviewAnswerResponseDto = await center_service.create_review_answer(
+        session,
+        dto,
+        mock_center.id,
+        mock_not_answered_review.id
+    )
+
+    # then
+    assert result.review_id == mock_not_answered_review.id
+
+
+@pytest.mark.asyncio
+async def test_update_review_answer(session: AsyncSession,
+                                    center_service: CenterService,
+                                    mock_repo: dict,
+                                    mock_center: Center,
+                                    mock_review: Review,
+                                    mock_review_answer: ReviewAnswer):
+    # given
+    dto = ReviewAnswerRequestDto(
+        answer_content="updated answer"
+    )
+
+    mock_repo["center"].find_by_id.side_effect = [mock_center]
+    mock_repo["review"].find_by_id_and_center_id.side_effect = [mock_review]
+    mock_repo["review_answer"].find_by_review_id.side_effect = [mock_review_answer]
+
+    mock_review_answer.content = dto.answer_content
+    mock_repo["review_answer"].update.side_effect = [mock_review_answer]
+
+    # when
+    result: ReviewAnswerResponseDto = await center_service.update_review_answer(
+        session,
+        dto,
+        mock_center.id,
+        mock_review.id
+    )
+
+    # then
+    assert result.content == mock_review_answer.content == "updated answer"
+
+
+@pytest.mark.asyncio
+async def test_delete_review_answer(session: AsyncSession,
+                                    center_service: CenterService,
+                                    mock_repo: dict,
+                                    mock_center: Center,
+                                    mock_review: Review,
+                                    mock_review_answer: ReviewAnswer):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [mock_center]
+    mock_repo["review"].find_by_id_and_center_id.side_effect = [mock_review]
+    mock_repo["review_answer"].find_by_review_id.side_effect = [mock_review_answer]
+    mock_repo["review_answer"].delete.side_effect = [mock_review_answer]
+
+    # when
+    result = await center_service.delete_review_answer(
+        session,
+        mock_center.id,
+        mock_review.id
+    )
+
+    # then
+    assert result is mock_review_answer
+
+
+@pytest.mark.asyncio
+async def test_create_review_answer_with_not_exist_center(
+        session: AsyncSession,
+        center_service: CenterService,
+        mock_repo: dict,
+        mock_review: Review
+):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [None]
+    wrong_id = "wrong id"
+    dto = ReviewAnswerRequestDto(answer_content="content")
+
+    with pytest.raises(NotFoundException) as exception:
+        # when
+        await center_service.create_review_answer(session, dto, wrong_id, mock_review.id)
+
+    # then
+    assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
+
+
+@pytest.mark.asyncio
+async def test_create_review_answer_with_not_center_admin(
+        session: AsyncSession,
+        center_service: CenterService,
+        mock_repo: dict,
+        mock_another_center: Center,
+        mock_review: Review
+):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [mock_another_center]
+    dto = ReviewAnswerRequestDto(answer_content="content")
+
+    with pytest.raises(UnauthorizedException) as exception:
+        # when
+        await center_service.create_review_answer(session, dto, mock_another_center.id, mock_review.id)
+
+    # then
+    assert exception.value.code == ErrorCode.NOT_ACCESSIBLE
+
+
+@pytest.mark.asyncio
+async def test_create_review_answer_with_not_exist_review(
+        session: AsyncSession,
+        center_service: CenterService,
+        mock_repo: dict,
+        mock_center: Center
+):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [mock_center]
+    mock_repo["review"].find_by_id_and_center_id.side_effect = [None]
+    dto = ReviewAnswerRequestDto(answer_content="content")
+    wrong_review_id = "wrong id"
+
+    with pytest.raises(NotFoundException) as exception:
+        # when
+        await center_service.create_review_answer(session, dto, mock_center.id, wrong_review_id)
+
+    # then
+    assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
+
+
+@pytest.mark.asyncio
+async def test_create_review_answer_with_already_exist_answer(
+        session: AsyncSession,
+        center_service: CenterService,
+        mock_repo: dict,
+        mock_center: Center,
+        mock_review: Review,
+        mock_review_answer: ReviewAnswer
+):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [mock_center]
+    mock_repo["review"].find_by_id_and_center_id.side_effect = [mock_review]
+    mock_repo["review_answer"].find_by_review_id.side_effect = [mock_review_answer]
+    dto = ReviewAnswerRequestDto(answer_content="content")
+
+    with pytest.raises(NotFoundException) as exception:
+        # when
+        await center_service.create_review_answer(session, dto, mock_center.id, mock_review.id)
+
+    # then
+    assert exception.value.code == ErrorCode.ROW_ALREADY_EXIST
+
+
+@pytest.mark.asyncio
+async def test_update_review_answer_with_not_exist_center(
+        session: AsyncSession,
+        center_service: CenterService,
+        mock_repo: dict,
+        mock_review: Review
+):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [None]
+    wrong_id = "wrong id"
+    dto = ReviewAnswerRequestDto(answer_content="content")
+
+    with pytest.raises(NotFoundException) as exception:
+        # when
+        await center_service.update_review_answer(session, dto, wrong_id, mock_review.id)
+
+    # then
+    assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
+
+
+@pytest.mark.asyncio
+async def test_update_review_answer_with_not_center_admin(
+        session: AsyncSession,
+        center_service: CenterService,
+        mock_repo: dict,
+        mock_another_center: Center,
+        mock_review: Review
+):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [mock_another_center]
+    dto = ReviewAnswerRequestDto(answer_content="content")
+
+    with pytest.raises(UnauthorizedException) as exception:
+        # when
+        await center_service.update_review_answer(session, dto, mock_another_center.id, mock_review.id)
+
+    # then
+    assert exception.value.code == ErrorCode.NOT_ACCESSIBLE
+
+
+@pytest.mark.asyncio
+async def test_update_review_answer_with_not_exist_review(
+        session: AsyncSession,
+        center_service: CenterService,
+        mock_repo: dict,
+        mock_center: Center
+):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [mock_center]
+    mock_repo["review"].find_by_id_and_center_id.side_effect = [None]
+    dto = ReviewAnswerRequestDto(answer_content="content")
+    wrong_review_id = "wrong id"
+
+    with pytest.raises(NotFoundException) as exception:
+        # when
+        await center_service.update_review_answer(session, dto, mock_center.id, wrong_review_id)
+
+    # then
+    assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
+
+
+@pytest.mark.asyncio
+async def test_update_review_answer_with_not_exist_answer(
+        session: AsyncSession,
+        center_service: CenterService,
+        mock_repo: dict,
+        mock_center: Center,
+        mock_review: Review
+):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [mock_center]
+    mock_repo["review"].find_by_id_and_center_id.side_effect = [mock_review]
+    mock_repo["review_answer"].find_by_review_id.side_effect = [None]
+    dto = ReviewAnswerRequestDto(answer_content="content")
+
+    with pytest.raises(NotFoundException) as exception:
+        # when
+        await center_service.update_review_answer(session, dto, mock_center.id, mock_review.id)
+
+    # then
+    assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
+
+
+@pytest.mark.asyncio
+async def test_delete_review_answer_with_not_exist_center(
+        session: AsyncSession,
+        center_service: CenterService,
+        mock_repo: dict,
+        mock_review: Review
+):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [None]
+    wrong_id = "wrong id"
+
+    with pytest.raises(NotFoundException) as exception:
+        # when
+        await center_service.delete_review_answer(session, wrong_id, mock_review.id)
+
+    # then
+    assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
+
+
+@pytest.mark.asyncio
+async def test_delete_review_answer_with_not_center_admin(
+        session: AsyncSession,
+        center_service: CenterService,
+        mock_repo: dict,
+        mock_another_center: Center,
+        mock_review: Review
+):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [mock_another_center]
+
+    with pytest.raises(UnauthorizedException) as exception:
+        # when
+        await center_service.delete_review_answer(session, mock_another_center.id, mock_review.id)
+
+    # then
+    assert exception.value.code == ErrorCode.NOT_ACCESSIBLE
+
+
+@pytest.mark.asyncio
+async def test_delete_review_answer_with_not_exist_review(
+        session: AsyncSession,
+        center_service: CenterService,
+        mock_repo: dict,
+        mock_center: Center
+):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [mock_center]
+    mock_repo["review"].find_by_id_and_center_id.side_effect = [None]
+    wrong_review_id = "wrong id"
+
+    with pytest.raises(NotFoundException) as exception:
+        # when
+        await center_service.delete_review_answer(session, mock_center.id, wrong_review_id)
+
+    # then
+    assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
+
+
+@pytest.mark.asyncio
+async def test_delete_review_answer_with_not_exist_answer(
+        session: AsyncSession,
+        center_service: CenterService,
+        mock_repo: dict,
+        mock_center: Center,
+        mock_review: Review
+):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [mock_center]
+    mock_repo["review"].find_by_id_and_center_id.side_effect = [mock_review]
+    mock_repo["review_answer"].find_by_review_id.side_effect = [None]
+
+    with pytest.raises(NotFoundException) as exception:
+        # when
+        await center_service.delete_review_answer(session, mock_center.id, mock_review.id)
+
+    # then
+    assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST

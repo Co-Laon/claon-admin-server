@@ -667,3 +667,45 @@ async def test_find_reviews_with_by_center_only_not_answered(
         tag=None,
         is_answered=False
     ) == Page.create(items=[], params=params, total=0)
+
+
+@pytest.mark.asyncio
+async def test_update_review_answer(
+        session: AsyncSession,
+        review_answer_fixture: ReviewAnswer
+):
+    # when
+    updated_answer = await review_answer_repository.update(
+        session=session,
+        answer=review_answer_fixture,
+        content="updated answer"
+    )
+
+    # then
+    assert review_answer_fixture.content == updated_answer.content
+
+
+@pytest.mark.asyncio
+async def test_delete_review_answer(
+        session: AsyncSession,
+        review_fixture: Review,
+        review_answer_fixture: ReviewAnswer
+):
+    # when
+    await review_answer_repository.delete(
+        session=session,
+        answer=review_answer_fixture
+    )
+
+    # then
+    assert await review_answer_repository.find_by_review_id(session, review_fixture.id) is None
+
+
+@pytest.mark.asyncio
+async def test_find_review_by_id_and_center_id(
+        session: AsyncSession,
+        center_fixture: Center,
+        review_fixture: Review
+):
+    # then
+    assert await review_repository.find_by_id_and_center_id(session, review_fixture.id, center_fixture.id) == review_fixture

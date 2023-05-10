@@ -136,5 +136,21 @@ class CenterRouter:
     async def create_review_answer(self,
                                    request_dto: ReviewAnswerRequestDto,
                                    center_id: str,
-                                   review_id: str):
-        pass
+                                   review_id: str,
+                                   session: AsyncSession = Depends(db.get_db)):
+        return await self.center_service.create_review_answer(session, request_dto, center_id, review_id)
+
+    @router.put('/{center_id}/reviews/{review_id}', response_model=ReviewAnswerResponseDto)
+    async def update_review_answer(self,
+                                   request_dto: ReviewAnswerRequestDto,
+                                   center_id: str,
+                                   review_id: str,
+                                   session: AsyncSession = Depends(db.get_db)):
+        return await self.center_service.update_review_answer(session, request_dto, center_id, review_id)
+
+    @router.delete('/{center_id}/reviews/{review_id}')
+    async def delete_review_answer(self,
+                                   center_id: str,
+                                   review_id: str,
+                                   session: AsyncSession = Depends(db.get_db)):
+        return await self.center_service.delete_review_answer(session, center_id, review_id)

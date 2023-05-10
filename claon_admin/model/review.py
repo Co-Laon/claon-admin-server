@@ -27,7 +27,7 @@ class ReviewAnswerResponseDto(BaseModel):
             review_answer_id=entity.id,
             content=entity.content,
             created_at=entity.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-            review_id=entity.review_id
+            review_id=entity.review.id
         )
 
 
