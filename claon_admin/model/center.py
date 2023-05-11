@@ -264,7 +264,7 @@ class CenterResponseDto(BaseModel):
             tel=entity.tel,
             web_url=entity.web_url if entity.web_url is not None else None,
             instagram_name=entity.instagram_name if entity.instagram_name is not None else None,
-            youtube_code=str(entity.youtube_url).split("/")[-1] if entity.youtube_url is not None else None,
+            youtube_code=entity.youtube_url.rsplit("/", maxsplit=1)[-1] if entity.youtube_url is not None else None,
             image_list=[e.url for e in entity.center_img],
             utility_list=[e.name for e in entity.utility],
             fee_image_list=[e.url for e in entity.fee_img],

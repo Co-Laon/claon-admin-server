@@ -71,7 +71,7 @@ class UserService:
             tel=dto.tel,
             web_url=dto.web_url,
             instagram_name=dto.instagram_name,
-            youtube_url="https://www.youtube.com/%s" % str(dto.youtube_code),
+            youtube_url=f"https://www.youtube.com/{str(dto.youtube_code)}",
             center_img=[CenterImage(url=e) for e in dto.image_list],
             operating_time=[
                 OperatingTime(day_of_week=e.day_of_week, start_time=e.start_time, end_time=e.end_time)
@@ -193,6 +193,7 @@ class UserService:
                 oauth_id=dto.id_token,
                 nickname=str(uuid.uuid4()),
                 sns="coraon.dev@gmail.com",
+                email="coraon.dev@gmail.com",
                 profile_img="",
                 role=Role.PENDING
             )

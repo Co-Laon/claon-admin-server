@@ -25,23 +25,23 @@ else:
 
 
 def create_app() -> FastAPI:
-    app = FastAPI()
+    claon_app = FastAPI()
     container = Container()
 
     """ Define Container """
     container.wire(modules=[auth, admin, center, user])
-    app.container = container
+    claon_app.container = container
 
     """ Define Routers """
     api_version = "v1"
     api_prefix = "/api/" + api_version
 
-    app.include_router(auth.router, prefix=api_prefix + "/auth")
-    app.include_router(center.router, prefix=api_prefix + "/centers")
-    app.include_router(admin.router, prefix=api_prefix + "/admin")
-    app.include_router(user.router, prefix=api_prefix + "/users")
+    claon_app.include_router(auth.router, prefix=api_prefix + "/auth")
+    claon_app.include_router(center.router, prefix=api_prefix + "/centers")
+    claon_app.include_router(admin.router, prefix=api_prefix + "/admin")
+    claon_app.include_router(user.router, prefix=api_prefix + "/users")
 
-    app.add_middleware(
+    claon_app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
         allow_credentials=True,
@@ -49,13 +49,13 @@ def create_app() -> FastAPI:
         allow_headers=["*"]
     )
 
-    app.add_middleware(SessionMiddleware, secret_key=conf().SESSION_SECRET_KEY)
-    app.add_middleware(LoggerMiddleware)
-    add_pagination(app)
+    claon_app.add_middleware(SessionMiddleware, secret_key=conf().SESSION_SECRET_KEY)
+    claon_app.add_middleware(LoggerMiddleware)
+    add_pagination(claon_app)
 
-    add_http_exception_handler(app)
+    add_http_exception_handler(claon_app)
 
-    return app
+    return claon_app
 
 
 app = create_app()
