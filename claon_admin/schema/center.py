@@ -6,7 +6,7 @@ from uuid import uuid4
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import String, Column, ForeignKey, Boolean, select, exists, Integer, DateTime, Enum, delete, and_, desc, \
-    func, or_, null, not_
+    func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload, backref, aliased
 from sqlalchemy.dialects.postgresql import TEXT
@@ -437,6 +437,14 @@ class ReviewRepository:
 
         return await paginate(query=query, conn=session, params=params)
 
+    @staticmethod
+    async def find_by_id_and_center_id(session: AsyncSession,
+                                       review_id: str,
+                                       center_id: str):
+        result = await session.execute(select(Review).where(and_(Review.center_id == center_id, Review.id == review_id)))
+
+        return result.scalars().one_or_none()
+
 
 class ReviewAnswerRepository:
     @staticmethod
@@ -444,6 +452,22 @@ class ReviewAnswerRepository:
         session.add(answer)
         await session.merge(answer)
         return answer
+
+    @staticmethod
+    async def update(session: AsyncSession, answer: ReviewAnswer, content: str):
+        answer.content = content
+        await session.merge(answer)
+        return answer
+
+    @staticmethod
+    async def delete(session: AsyncSession, answer: ReviewAnswer):
+        await session.delete(answer)
+
+    @staticmethod
+    async def find_by_review_id(session: AsyncSession, review_id: str):
+        result = await session.execute(select(ReviewAnswer).where(ReviewAnswer.review_id == review_id))
+
+        return result.scalars().one_or_none()
 
 
 class ClimbingHistoryRepository:
