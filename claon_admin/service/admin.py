@@ -130,7 +130,7 @@ class AdminService:
         result = list()
 
         for center in centers:
-            centor_approved_file = await self.center_approved_file_repository.find_all_by_center_id(session, center.id)
-            result.append(CenterResponseDto.from_entity(center, centor_approved_file))
+            center_approved_file = await self.center_approved_file_repository.find_all_by_center_id(session, center.id)
+            result.append(CenterResponseDto.from_entity(center, center_approved_file))
 
         return result

@@ -4,7 +4,7 @@ from typing import Optional, List
 from pydantic import BaseModel
 
 from claon_admin.common.enum import WallType
-from claon_admin.model.user import UserProfileDto, UserProfileResponseDto
+from claon_admin.model.user import UserProfileResponseDto
 from claon_admin.schema.center import Center, CenterApprovedFile
 from claon_admin.schema.user import Lector, LectorApprovedFile
 
@@ -65,7 +65,7 @@ class CenterResponseDto(BaseModel):
             tel=center.tel,
             web_url=center.web_url if center.web_url is not None else None,
             instagram_name=center.instagram_name if center.instagram_name is not None else None,
-            youtube_code=str(center.youtube_url).split("/")[-1] if center.youtube_url is not None else None,
+            youtube_code=center.youtube_url.rsplit("/", maxsplit=1)[-1] if center.youtube_url is not None else None,
             approved=center.approved,
             image_list=[e.url for e in center.center_img],
             utility_list=[e.name for e in center.utility],

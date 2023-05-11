@@ -12,6 +12,7 @@ from claon_admin.container import Container
 from claon_admin.model.auth import RequestUser
 from claon_admin.schema.user import UserRepository
 
+
 @inject
 async def get_subject(
     response: Response,
@@ -93,8 +94,8 @@ async def get_subject(
                 instagram_nickname=user.instagram_name,
                 role=user.role
             )
-    except Exception:
+    except Exception as e:
         raise InternalServerException(
             ErrorCode.INTERNAL_SERVER_ERROR,
             "Unexpected error occurred when getting and parsing tokens."
-        )
+        ) from e

@@ -27,8 +27,8 @@ async def upload_file(file: UploadFile, domain: str, purpose: str):
             )
 
             return os.path.join("https://" + conf().BUCKET + ".s3." + conf().REGION_NAME + ".amazonaws.com", key_name)
-    except Exception:
-        raise InternalServerException(ErrorCode.INTERNAL_SERVER_ERROR, "S3 객체 업로드를 실패했습니다.")
+    except Exception as e:
+        raise InternalServerException(ErrorCode.INTERNAL_SERVER_ERROR, "S3 객체 업로드를 실패했습니다.") from e
 
 
 async def delete_file(url: str):
@@ -37,5 +37,5 @@ async def delete_file(url: str):
 
     try:
         s3.delete_object(Bucket=conf().BUCKET, Key=key_name)
-    except Exception:
-        raise InternalServerException(ErrorCode.INTERNAL_SERVER_ERROR, "S3 객체 제거에 실패했습니다.")
+    except Exception as e:
+        raise InternalServerException(ErrorCode.INTERNAL_SERVER_ERROR, "S3 객체 제거에 실패했습니다.") from e

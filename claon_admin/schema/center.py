@@ -5,10 +5,10 @@ from uuid import uuid4
 
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate
-from sqlalchemy import String, Column, ForeignKey, Boolean, select, exists, Integer, DateTime, Enum, delete, and_, desc, \
-    func
+from sqlalchemy import String, Column, ForeignKey, Boolean, select, exists, Integer, DateTime, Enum, delete, and_, \
+    desc, func, null
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import relationship, selectinload, backref, aliased
+from sqlalchemy.orm import relationship, selectinload, backref
 from sqlalchemy.dialects.postgresql import TEXT
 
 from claon_admin.common.enum import PeriodType, MembershipType, WallType
@@ -275,7 +275,7 @@ class CenterRepository:
 
     @staticmethod
     async def find_all_by_approved_false(session: AsyncSession):
-        result = await session.execute(select(Center).where(Center.approved == False)
+        result = await session.execute(select(Center).where(Center.approved.is_(False))
                                        .options(selectinload(Center.user))
                                        .options(selectinload(Center.holds))
                                        .options(selectinload(Center.walls))
@@ -413,27 +413,24 @@ class ReviewRepository:
                                      end: date,
                                      tag: Optional[str],
                                      is_answered: Optional[bool]):
-        post_aliased = aliased(Post)
-        center_aliased = aliased(Center)
-        review_answer_aliased = aliased(ReviewAnswer)
         query = select(Review, func.count(Post.id)) \
             .select_from(Review) \
-            .join(center_aliased, Review.center_id == center_aliased.id) \
-            .join(post_aliased, and_(Review.user_id == post_aliased.user_id, Review.center_id == post_aliased.center_id)) \
-            .outerjoin(review_answer_aliased, review_answer_aliased.review_id == Review.id) \
+            .join(Post, and_(Review.user_id == Post.user_id, Review.center_id == Post.center_id)) \
             .where(and_(Review.center_id == center_id, Review.created_at.between(start, end))) \
             .group_by(Review.id) \
             .order_by(desc(Review.created_at)) \
-            .options(selectinload(Review.user))
+            .options(selectinload(Review.user)) \
+            .options(selectinload(Review.center)) \
+            .options(selectinload(Review.answer))
 
         if tag is not None:
             query = query.where(Review._tag.like(f'%{{"word": "{tag}"%'))
 
         if is_answered is not None:
             if is_answered is False:
-                query = query.where(Review.answer == None)
+                query = query.where(Review.answer == null())
             else:
-                query = query.where(Review.answer != None)
+                query = query.where(Review.answer != null())
 
         return await paginate(query=query, conn=session, params=params)
 
@@ -441,7 +438,8 @@ class ReviewRepository:
     async def find_by_id_and_center_id(session: AsyncSession,
                                        review_id: str,
                                        center_id: str):
-        result = await session.execute(select(Review).where(and_(Review.center_id == center_id, Review.id == review_id)))
+        result = await session.execute(select(Review)
+                                       .where(and_(Review.center_id == center_id, Review.id == review_id)))
 
         return result.scalars().one_or_none()
 

@@ -41,11 +41,11 @@ def resolve_access_token(access_token: str) -> dict:
             algorithms=[conf().JWT_ALGORITHM],
             options={"verify_exp": False}
         )
-    except jwt.JWTError:
+    except jwt.JWTError as e:
         raise UnauthorizedException(
             ErrorCode.INVALID_JWT,
             "Invalid access token."
-        )
+        ) from e
 
 
 def resolve_refresh_token(refresh_token: str) -> dict:
@@ -56,11 +56,11 @@ def resolve_refresh_token(refresh_token: str) -> dict:
             algorithms=[conf().JWT_ALGORITHM],
             options={"verify_exp": False}
         )
-    except jwt.JWTError:
+    except jwt.JWTError as e:
         raise UnauthorizedException(
             ErrorCode.INVALID_JWT,
             "Invalid refresh token."
-        )
+        ) from e
 
 
 def is_expired(payload: dict):

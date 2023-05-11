@@ -185,7 +185,7 @@ class LectorRepository:
     async def find_all_by_approved_false(session: AsyncSession):
         result = await session.execute(
             select(Lector)
-            .where(Lector.approved == False)
+            .where(Lector.approved.is_(False))
             .options(selectinload(Lector.user))
         )
 

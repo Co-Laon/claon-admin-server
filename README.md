@@ -1,6 +1,7 @@
 # claon-admin-server
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-31010/)
 [![CI](https://github.com/Co-Laon/claon-admin-server/actions/workflows/ci.yml/badge.svg)](https://github.com/Co-Laon/claon-admin-server/actions/workflows/ci.yml)
+[![linting: pylint](https://img.shields.io/badge/linting-pylint-yellowgreen)](https://github.com/pylint-dev/pylint)
 [![codecov](https://codecov.io/gh/Co-Laon/claon-admin-server/branch/develop/graph/badge.svg?token=it2dGzqx3z)](https://codecov.io/gh/Co-Laon/claon-admin-server)
 
 

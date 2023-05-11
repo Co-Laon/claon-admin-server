@@ -33,7 +33,11 @@ jobs:
         
     - name: Install Dependencies using Poetry
       run: poetry install
-        
+
+    - name: Check Linting
+      run: |
+        poetry run task lint
+
     - name: Test with Pytest
       run: |
         poetry run task test

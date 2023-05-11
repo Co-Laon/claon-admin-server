@@ -39,35 +39,28 @@ class BaseRuntimeException(Exception):
 
 
 class BadRequestException(BaseRuntimeException):
-    def __init__(self, code: ErrorCode, message: str):
-        super().__init__(code, message)
+    pass
 
 
 class UnauthorizedException(BaseRuntimeException):
-    def __init__(self, code: ErrorCode, message: str):
-        super().__init__(code, message)
+    pass
 
 
 class NotFoundException(BaseRuntimeException):
-    def __init__(self, code: ErrorCode, message: str):
-        super().__init__(code, message)
+    pass
 
 
 class ConflictException(BaseRuntimeException):
-    def __init__(self, code: ErrorCode, message: str):
-        super().__init__(code, message)
+    pass
 
 
 class UnprocessableEntityException(BaseRuntimeException):
-    def __init__(self, code: ErrorCode, message: str):
-        super().__init__(code, message)
+    pass
 
 
 class InternalServerException(BaseRuntimeException):
-    def __init__(self, code: ErrorCode, message: str):
-        super().__init__(code, message)
+    pass
 
 
 class ServiceUnavailableException(BaseRuntimeException):
-    def __init__(self, code: ErrorCode, message: str):
-        super().__init__(code, message)
+    pass

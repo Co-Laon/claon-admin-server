@@ -27,11 +27,11 @@ class GoogleUserInfoProvider(UserInfoProvider):
                 )
 
             return OAuthUserInfoDto(oauth_id=id_token['sub'], sns_email=id_token['email'])
-        except Exception:
+        except Exception as e:
             raise InternalServerException(
                 ErrorCode.INTERNAL_SERVER_ERROR,
                 "Failed to get user information because of incorrect oauth token"
-            )
+            ) from e
 
 
 class KakaoUserInfoProvider(UserInfoProvider):
@@ -42,18 +42,19 @@ class KakaoUserInfoProvider(UserInfoProvider):
                 headers={
                     "Authorization": "Bearer " + token,
                     "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
-                }
+                },
+                timeout=5
             )
 
             response.raise_for_status()
 
             user = response.json()
             return OAuthUserInfoDto(oauth_id=user['id'], sns_email=user['kakao_account']['email'])
-        except Exception:
+        except Exception as e:
             raise InternalServerException(
                 ErrorCode.INTERNAL_SERVER_ERROR,
                 "Failed to Kakao login"
-            )
+            ) from e
 
 
 class OAuthUserInfoProviderSupplier:
@@ -68,8 +69,8 @@ class OAuthUserInfoProviderSupplier:
     async def get_provider(self, provider: OAuthProvider):
         try:
             return self.supplier.get(provider)
-        except Exception:
+        except Exception as e:
             raise InternalServerException(
                 ErrorCode.INTERNAL_SERVER_ERROR,
                 "Failed to get provider because of incorrect provider name"
-            )
+            ) from e
