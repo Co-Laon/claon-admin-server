@@ -13,6 +13,7 @@ from claon_admin.config.consts import TIME_ZONE_KST
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.post import PostBriefResponseDto
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
+from claon_admin.model.center import CenterNameResponseDto
 from claon_admin.schema.center import PostRepository, CenterRepository, ReviewRepository, ReviewAnswerRepository, \
     ReviewAnswer
 
@@ -228,3 +229,14 @@ class CenterService:
 
         url = await upload_file(file=file, domain="center", purpose=purpose.value)
         return UploadFileResponseDto(file_url=url)
+
+    async def find_center_by_name(self,
+                                  session: AsyncSession,
+                                  name: str):
+        center = await self.center_repository.find_by_name(session, name)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+        return CenterNameResponseDto.from_entity(center)

@@ -33,7 +33,7 @@ class CenterRouter:
     async def get_name(self,
                        name: str,
                        session: AsyncSession = Depends(db.get_db)):
-        pass
+        return await self.center_service.find_center_by_name(session=session, name=name)
 
     @router.get('/{center_id}', response_model=CenterResponseDto)
     async def find_by_id(self,

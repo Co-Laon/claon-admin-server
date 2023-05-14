@@ -14,6 +14,7 @@ from claon_admin.common.util.pagination import PaginationFactory, Pagination
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.post import PostBriefResponseDto
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
+from claon_admin.model.center import CenterNameResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterFeeImage, \
     Post, PostImage, ClimbingHistory, PostRepository, CenterHold, CenterWall, ReviewRepository, Review, ReviewTag, \
     ReviewAnswer, ReviewAnswerRepository
@@ -1053,3 +1054,22 @@ async def test_upload_file_with_second_invalid_format(center_service: CenterServ
 
     # then
     assert exception.value.code == ErrorCode.INVALID_FORMAT
+
+
+async def test_find_center_by_name(
+        session: AsyncSession,
+        center_service: CenterService,
+        mock_repo: dict,
+        mock_center: Center
+):
+    # given
+    response = CenterNameResponseDto.from_entity(mock_center)
+    mock_repo["center"].find_by_name.side_effect = [mock_center]
+
+    # when
+    result = await center_service.find_center_by_name(session, mock_center.name)
+
+    # then
+    assert result.center_id == response.center_id
+    assert result.address == response.address
+    assert result.address == response.address

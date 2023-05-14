@@ -345,6 +345,18 @@ async def test_find_all_center_by_approved_false(
 
 
 @pytest.mark.asyncio
+async def test_find_center_by_name(
+    session: AsyncSession,
+    center_fixture: Center
+):
+    # when
+    result = await center_repository.find_by_name(session, center_fixture.name)
+
+    # then
+    assert result == center_fixture
+
+
+@pytest.mark.asyncio
 async def test_save_center_approved_file(
         session: AsyncSession,
         user_fixture: User,

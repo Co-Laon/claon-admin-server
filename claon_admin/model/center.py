@@ -91,6 +91,14 @@ class CenterNameResponseDto(BaseModel):
     name: str
     address: str
 
+    @classmethod
+    def from_entity(cls, entity: Center):
+        return CenterNameResponseDto(
+            center_id=entity.id,
+            name=entity.name,
+            address=entity.address
+        )
+
 
 class CenterRequestDto(BaseModel):
     profile_image: str
