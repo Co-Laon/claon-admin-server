@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List
 from unittest.mock import AsyncMock
 
@@ -10,7 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from claon_admin.common.enum import WallType, Role
 from claon_admin.common.error.exception import BadRequestException, UnauthorizedException, ErrorCode, NotFoundException
 from claon_admin.common.util.pagination import PaginationFactory, Pagination
-from claon_admin.model.post import PostBriefResponseDto
+from claon_admin.config.consts import TIME_ZONE_KST
+from claon_admin.model.post import PostBriefResponseDto, PostSummaryResponseDto
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterFeeImage, \
     Post, PostImage, ClimbingHistory, PostRepository, CenterHold, CenterWall, ReviewRepository, Review, ReviewTag, \
@@ -189,6 +190,30 @@ def mock_another_post(mock_review_user: User, mock_center: Center):
         center=mock_center,
         content="content",
         created_at=datetime(2023, 2, 3),
+        img=[PostImage(url="https://test.post.img.png")]
+    )
+
+
+@pytest.fixture
+def mock_yesterday_post(mock_user: User, mock_center: Center):
+    yield Post(
+        id=str(uuid.uuid4()),
+        user=mock_user,
+        center=mock_center,
+        content="content",
+        created_at=datetime.now(TIME_ZONE_KST) - timedelta(days=1),
+        img=[PostImage(url="https://test.post.img.png")]
+    )
+
+
+@pytest.fixture
+def mock_today_post(mock_user: User, mock_center: Center):
+    yield Post(
+        id=str(uuid.uuid4()),
+        user=mock_user,
+        center=mock_center,
+        content="content",
+        created_at=datetime.now(TIME_ZONE_KST),
         img=[PostImage(url="https://test.post.img.png")]
     )
 
@@ -983,3 +1008,83 @@ async def test_delete_review_answer_with_not_exist_answer(
 
     # then
     assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
+
+
+@pytest.mark.asyncio
+async def test_find_posts_summary_by_center(
+        session: AsyncSession,
+        center_service: CenterService,
+        mock_repo: dict,
+        mock_center: Center,
+        mock_yesterday_post: Post,
+        mock_today_post: Post,
+        mock_post: Post
+):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [mock_center]
+    mock_repo["post"].find_posts_summary_by_center.side_effect = [
+        [
+            1, 2, 2, 3,
+            [
+                (mock_yesterday_post.id, mock_yesterday_post.created_at),
+                (mock_today_post.id, mock_today_post.created_at)
+            ],
+            [
+                (mock_post.id, mock_post.created_at),
+                (mock_yesterday_post.id, mock_yesterday_post.created_at),
+                (mock_today_post.id, mock_today_post.created_at)
+            ]
+        ]
+    ]
+
+    # when
+    results: PostSummaryResponseDto = await center_service.find_posts_summary_by_center(session, mock_center.id)
+
+    # then
+    assert results.center_id == mock_center.id
+    assert results.center_name == mock_center.name
+    assert results.count_today == 1
+    assert results.count_week == 2
+    assert results.count_month == 2
+    assert results.count_total == 3
+    assert len(results.count_per_day) == 7
+    assert results.count_per_day[5].count == 1
+    assert results.count_per_day[6].count == 1
+    assert len(results.count_per_week) == 52
+    assert results.count_per_week[51].count == 2
+
+
+@pytest.mark.asyncio
+async def test_find_posts_summary_by_center_with_not_exist_center(
+        session: AsyncSession,
+        center_service: CenterService,
+        mock_repo: dict
+):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [None]
+    wrong_id = "wrong id"
+
+    with pytest.raises(NotFoundException) as exception:
+        # when
+        await center_service.find_posts_summary_by_center(session, wrong_id)
+
+    # then
+    assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
+
+
+@pytest.mark.asyncio
+async def test_find_posts_summary_by_center_with_not_center_admin(
+        session: AsyncSession,
+        center_service: CenterService,
+        mock_repo: dict,
+        mock_another_center: Center
+):
+    # given
+    mock_repo["center"].find_by_id.side_effect = [mock_another_center]
+
+    with pytest.raises(UnauthorizedException) as exception:
+        # when
+        await center_service.find_posts_summary_by_center(session, mock_another_center.id)
+
+    # then
+    assert exception.value.code == ErrorCode.NOT_ACCESSIBLE

@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import date, datetime, timedelta
 from typing import List, Optional
 from uuid import uuid4
 
@@ -13,6 +13,7 @@ from sqlalchemy.dialects.postgresql import TEXT
 
 from claon_admin.common.enum import PeriodType, MembershipType, WallType
 from claon_admin.common.util.db import Base
+from claon_admin.config.consts import TIME_ZONE_KST
 
 
 class OperatingTime:
@@ -396,6 +397,45 @@ class PostRepository:
                 .options(selectinload(Post.user))
 
             return await paginate(query=query, conn=session, params=params)
+
+    @staticmethod
+    async def find_posts_summary_by_center(session: AsyncSession, center_id: str):
+        counts = []
+        end_date = datetime.now(TIME_ZONE_KST)
+        criteria = ["today", "week", "month", "all", "weeks", "years"]
+
+        for c in criteria:
+            if c == "all":
+                query = select(func.count(Post.id)).where(Post.center_id == center_id)
+                result = await session.execute(query)
+                counts.append(result.scalar())
+
+            elif c == "today":
+                query = select(func.count(Post.id))\
+                    .where(and_(Post.center_id == center_id,
+                                Post.created_at >= datetime(end_date.year, end_date.month, end_date.day)))
+                result = await session.execute(query)
+                counts.append(result.scalar())
+
+            elif c == "week" or c == "month":
+                days = 7 if c == "week" else 30
+                start_date = end_date - timedelta(days=days)
+                query = select(func.count(Post.id))\
+                    .where(and_(Post.center_id == center_id,
+                                Post.created_at.between(start_date, end_date)))
+                result = await session.execute(query)
+                counts.append(result.scalar())
+
+            elif c == "weeks" or c == "years":
+                days = 7 if c == "weeks" else 365
+                start_date = end_date - timedelta(days=days)
+                query = select(Post.id, Post.created_at) \
+                    .where(Post.created_at.between(start_date, end_date)) \
+                    .order_by(desc(Post.created_at))
+                result = await session.execute(query)
+                counts.append(result.fetchall())
+
+        return counts
 
 
 class ReviewRepository:

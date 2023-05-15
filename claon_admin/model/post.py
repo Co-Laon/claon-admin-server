@@ -42,6 +42,19 @@ class PostSummaryResponseDto(BaseModel):
     count_per_day: List[PostCount]
     count_per_week: List[PostCount]
 
+    @classmethod
+    def from_entity(cls, center_id: str, center_name: str, count_list: List):
+        return PostSummaryResponseDto(
+            center_id=center_id,
+            center_name=center_name,
+            count_today=count_list[0],
+            count_week=count_list[1],
+            count_month=count_list[2],
+            count_total=count_list[3],
+            count_per_day=count_list[4],
+            count_per_week=count_list[5]
+        )
+
 
 class PostCommentResponseDto(BaseModel):
     user_id: str

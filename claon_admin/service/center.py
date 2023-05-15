@@ -8,7 +8,7 @@ from claon_admin.common.enum import Role
 from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException
 from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.config.consts import TIME_ZONE_KST
-from claon_admin.model.post import PostBriefResponseDto
+from claon_admin.model.post import PostBriefResponseDto, PostSummaryResponseDto, PostCount
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
 from claon_admin.schema.center import PostRepository, CenterRepository, ReviewRepository, ReviewAnswerRepository, \
     ReviewAnswer
@@ -215,3 +215,54 @@ class CenterService:
             )
 
         return await self.review_answer_repository.delete(session, answer)
+
+    async def find_posts_summary_by_center(self,
+                                           session: AsyncSession,
+                                           center_id: str):
+        center = await self.center_repository.find_by_id(session, center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if center.user.role != Role.CENTER_ADMIN:
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        counts = await self.post_repository.find_posts_summary_by_center(session, center.id)
+
+        standard_year = datetime.now(TIME_ZONE_KST).isocalendar()[0]
+        standard_week = datetime.now(TIME_ZONE_KST).isocalendar()[1]
+        standard_day = datetime.now(TIME_ZONE_KST).isocalendar()[2]
+
+        weeks_posts = counts[4]
+        count_per_day = [PostCount(unit=f"{7 - day - 1}일 전", count=0) for day in range(0, 7)]
+        for w_post in weeks_posts:
+            created_at: datetime = w_post[1]
+            week = created_at.isocalendar()[1]
+            day = created_at.isocalendar()[2]
+            if week == standard_week:
+                count_per_day[day + (7 - standard_day - 1)].count += 1
+            else:
+                count_per_day[day - standard_day - 1].count += 1
+
+        counts[4] = count_per_day
+
+        years_posts = counts[5]
+        count_per_week = [PostCount(unit=f"{52 - week - 1}주 전", count=0) for week in range(0, 52)]
+
+        for post in years_posts:
+            created_at: datetime = post[1]
+            year = created_at.isocalendar()[0]
+            week = created_at.isocalendar()[1]
+            if year == standard_year:
+                count_per_week[week + (52 - standard_week - 1)].count += 1
+            else:
+                count_per_week[week - standard_week - 1].count += 1
+
+        counts[5] = count_per_week
+
+        return PostSummaryResponseDto.from_entity(center.id, center.name, counts)
