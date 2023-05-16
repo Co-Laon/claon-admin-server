@@ -201,6 +201,7 @@ async def test_approve_center(
     mock_repo["center"].find_by_id.side_effect = [mock_center]
     mock_center.approved = True
     mock_repo["center"].approve.side_effect = [mock_center]
+    mock_repo["center"].exists_by_name_and_approved.side_effect = [False]
     mock_center.user.role = Role.CENTER_ADMIN
     mock_repo["user"].update_role.side_effect = [mock_center.user]
     mock_repo["center_approved_file"].find_all_by_center_id.side_effect = [mock_center_approved_files]
@@ -251,6 +252,28 @@ async def test_approve_not_existing_center(
 
     # then
     assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
+
+
+@pytest.mark.asyncio
+async def test_approve_duplicated_center_name(
+        session: AsyncSession,
+        mock_repo: dict,
+        admin_service: AdminService,
+        mock_center: Center
+):
+    # given
+    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    center_id = mock_center.id
+
+    mock_repo["center"].find_by_id.side_effect = [mock_center]
+    mock_repo["center"].exists_by_name_and_approved.side_effect = [True]
+
+    with pytest.raises(BadRequestException) as exception:
+        # when
+        await admin_service.approve_center(session, request_user, center_id)
+
+    # then
+    assert exception.value.code == ErrorCode.DUPLICATED_NICKNAME
 
 
 @pytest.mark.asyncio
