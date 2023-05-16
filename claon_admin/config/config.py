@@ -54,8 +54,8 @@ class ProdConfig(Config):
         db_name=db_config.get("DB", "DB_NAME", fallback="")
     )
     REDIS_ENABLE: bool = True
-    REDIS_HOST: str = redis_config.get("REDIS", "REDIS_IP", fallback="")
-    REDIS_PORT: str = redis_config.get("REDIS", "REDIS_PORT", fallback="")
+    REDIS_HOST: str = redis_config.get("REDIS", "IP", fallback="")
+    REDIS_PORT: str = redis_config.get("REDIS", "PORT", fallback="")
 
     # JWT
     JWT_ALGORITHM = config.get("JWT", "ALGORITHM", fallback="")
