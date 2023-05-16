@@ -35,11 +35,11 @@ class Career:
 
 class User(Base):
     __tablename__ = 'tb_user'
-    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     oauth_id = Column(String(length=255), nullable=False)
     nickname = Column(String(length=40), nullable=False, unique=True)
     profile_img = Column(TEXT, nullable=False)
-    sns = Column(String(length=500), nullable=False, unique=True)
+    sns = Column(String(length=500), nullable=False)
     email = Column(String(length=500), unique=True)
     instagram_name = Column(String(length=255), unique=True)
     role = Column(Enum(Role), nullable=False)
@@ -53,7 +53,7 @@ class User(Base):
 
 class Lector(Base):
     __tablename__ = 'tb_lector'
-    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     is_setter = Column(Boolean, default=False, nullable=False)
     approved = Column(Boolean, default=False, nullable=False)
 
@@ -103,7 +103,7 @@ class Lector(Base):
 
 class LectorApprovedFile(Base):
     __tablename__ = 'tb_lector_approved_file'
-    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     url = Column(String(length=255))
 
     lector_id = Column(String(length=255), ForeignKey('tb_lector.id', ondelete="CASCADE"), nullable=False)

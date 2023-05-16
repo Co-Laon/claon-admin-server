@@ -156,7 +156,6 @@ class UserService:
         oauth_dto: OAuthUserInfoDto = await provider.get_user_info(token=dto.id_token)
 
         user = await self.user_repository.find_by_oauth_id_and_sns(session, oauth_dto.oauth_id, oauth_dto.sns_email)
-
         if user is None:
             user = await self.user_repository.save(session, User(
                 oauth_id=oauth_dto.oauth_id,
@@ -192,8 +191,8 @@ class UserService:
             user = User(
                 oauth_id=dto.id_token,
                 nickname=str(uuid.uuid4()),
-                sns="coraon.dev@gmail.com",
-                email="coraon.dev@gmail.com",
+                sns=dto.id_token + "@gmail.com",
+                email=dto.id_token + "@gmail.com",
                 profile_img="",
                 role=Role.PENDING
             )
