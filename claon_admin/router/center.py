@@ -10,9 +10,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from claon_admin.common.util.db import db
 from claon_admin.common.util.pagination import Pagination
 from claon_admin.container import Container
-from claon_admin.model.center import CenterNameResponseDto, CenterResponseDto, UploadFileResponseDto, \
+from claon_admin.model.center import CenterNameResponseDto, CenterResponseDto, \
     CenterUpdateRequestDto, CenterBriefResponseDto, CenterRequestDto
 from claon_admin.common.enum import CenterUploadPurpose
+from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.post import PostResponseDto, PostSummaryResponseDto, PostCommentResponseDto, PostBriefResponseDto
 from claon_admin.model.review import ReviewSummaryResponseDto, ReviewAnswerResponseDto, ReviewAnswerRequestDto, \
     ReviewBriefResponseDto

@@ -21,6 +21,10 @@ class CenterUploadPurpose(Enum):
     PROOF = "proof"
 
 
+class LectorUploadPurpose(Enum):
+    PROOF = "proof"
+
+
 class WallType(Enum):
     ENDURANCE = "endurance"
     BOULDERING = "bouldering"

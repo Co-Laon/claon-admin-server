@@ -14,8 +14,9 @@ from claon_admin.model.auth import OAuthUserInfoDto
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.center import CenterAuthRequestDto, CenterFeeDto, CenterHoldDto, CenterWallDto, \
     CenterOperatingTimeDto
-from claon_admin.common.enum import OAuthProvider
+from claon_admin.common.enum import OAuthProvider, LectorUploadPurpose
 from claon_admin.common.enum import WallType, Role
+from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.user import LectorRequestDto, LectorContestDto, LectorCertificateDto, \
     LectorCareerDto, UserProfileDto
 from claon_admin.model.user import SignInRequestDto, JwtResponseDto
@@ -614,9 +615,9 @@ async def test_upload_profile(mock_upload_file,
     result = await user_service.upload_profile(upload_file)
 
     # then
-    assert result.split('.')[-1] == "png"
-    assert result.split('/')[-2] == "profile"
-    assert result.split('/')[-3] == "user"
+    assert result.file_url.split('.')[-1] == "png"
+    assert result.file_url.split('/')[-2] == "profile"
+    assert result.file_url.split('/')[-3] == "user"
 
 
 @pytest.mark.asyncio
@@ -628,6 +629,40 @@ async def test_upload_profile_with_invalid_format(user_service: UserService):
     with pytest.raises(BadRequestException) as exception:
         # when
         await user_service.upload_profile(upload_file)
+
+    # then
+    assert exception.value.code == ErrorCode.INVALID_FORMAT
+
+
+@pytest.mark.asyncio
+@patch("claon_admin.service.user.upload_file")
+async def test_upload_file_with_purpose(mock_upload_file,
+                                        user_service: UserService):
+    # given
+    upload_file = AsyncMock(spec=UploadFile)
+    upload_file.filename = "test.pdf"
+    mock_upload_file.return_value = "https://test_upload_lector_proof/lector/proof/uuid.pdf"
+    purpose = LectorUploadPurpose.PROOF
+
+    # when
+    result: UploadFileResponseDto = await user_service.upload_file(purpose, upload_file)
+
+    # then
+    assert result.file_url.split('.')[-1] == "pdf"
+    assert result.file_url.split('/')[-2] == "proof"
+    assert result.file_url.split('/')[-3] == "lector"
+
+
+@pytest.mark.asyncio
+async def test_upload_file_with_invalid_format(user_service: UserService):
+    # given
+    upload_file = AsyncMock(spec=UploadFile)
+    upload_file.filename = "test.gif"
+    purpose = LectorUploadPurpose.PROOF
+
+    with pytest.raises(BadRequestException) as exception:
+        # when
+        await user_service.upload_file(purpose, upload_file)
 
     # then
     assert exception.value.code == ErrorCode.INVALID_FORMAT
