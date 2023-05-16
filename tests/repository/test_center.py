@@ -59,7 +59,7 @@ async def center_fixture(session: AsyncSession, user_fixture: User):
         operating_time=[OperatingTime(day_of_week="월", start_time="09:00", end_time="18:00")],
         utility=[Utility(name="test_utility")],
         fee_img=[CenterFeeImage(url="https://test.fee.png")],
-        approved=False
+        approved=True
     )
 
     center = await center_repository.save(session, center)
@@ -209,7 +209,7 @@ async def test_save_center(
     assert center_fixture.operating_time[0].end_time == "18:00"
     assert center_fixture.utility[0].name == "test_utility"
     assert center_fixture.fee_img[0].url == "https://test.fee.png"
-    assert center_fixture.approved is False
+    assert center_fixture.approved is True
     assert await center_repository.find_by_id(session, center_fixture.id) == center_fixture
     assert await center_repository.exists_by_id(session, center_fixture.id) is True
 
@@ -273,6 +273,35 @@ async def test_exists_center_by_non_existing_id(
 
 
 @pytest.mark.asyncio
+async def test_exists_center_by_name_and_approved(
+        session: AsyncSession,
+        center_fixture: Center
+):
+    # given
+    center_name = center_fixture.name
+
+    # when
+    result = await center_repository.exists_by_name_and_approved(session, center_name)
+
+    # then
+    assert result is True
+
+
+@pytest.mark.asyncio
+async def test_exists_center_by_non_existing_name_and_approved(
+        session: AsyncSession
+):
+    # given
+    center_name = "non_existing_name"
+
+    # when
+    result = await center_repository.exists_by_id(session, center_name)
+
+    # then
+    assert result is False
+
+
+@pytest.mark.asyncio
 async def test_approve_center(
         session: AsyncSession,
         center_fixture: Center
@@ -305,6 +334,9 @@ async def test_find_all_center_by_approved_false(
         session: AsyncSession,
         center_fixture: Center
 ):
+    # given
+    center_fixture.approved = False
+
     # when
     result = await center_repository.find_all_by_approved_false(session)
 

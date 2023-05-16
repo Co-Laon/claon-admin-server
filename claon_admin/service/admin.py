@@ -74,11 +74,16 @@ class AdminService:
             )
 
         center = await self.center_repository.find_by_id(session, center_id)
-
         if center is None:
             raise BadRequestException(
                 ErrorCode.DATA_DOES_NOT_EXIST,
                 "선택한 센터의 정보가 존재하지 않습니다."
+            )
+
+        if await self.center_repository.exists_by_name_and_approved(session, center.name):
+            raise BadRequestException(
+                ErrorCode.DUPLICATED_NICKNAME,
+                "이미 등록된 암장 이름 입니다."
             )
 
         center = await self.center_repository.approve(session, center)

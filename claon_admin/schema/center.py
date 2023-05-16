@@ -264,6 +264,11 @@ class CenterRepository:
         return result.scalar()
 
     @staticmethod
+    async def exists_by_name_and_approved(session: AsyncSession, name: str):
+        result = await session.execute(select(exists().where(Center.name == name).where(Center.approved.is_(True))))
+        return result.scalar()
+
+    @staticmethod
     async def approve(session: AsyncSession, center: Center):
         center.approved = True
         await session.merge(center)
@@ -377,25 +382,18 @@ class PostRepository:
                                    hold_id: Optional[str],
                                    start: date,
                                    end: date):
+        query = select(Post).where(and_(Post.center_id == center_id,
+                                        Post.created_at >= start,
+                                        Post.created_at < end))
+
         if hold_id is not None:
-            query = select(Post) \
+            query = query \
                 .join(ClimbingHistory) \
-                .where(and_(Post.center_id == center_id,
-                            Post.created_at.between(start, end),
-                            ClimbingHistory.hold_id == hold_id)) \
-                .order_by(desc(Post.created_at)) \
-                .options(selectinload(Post.user))
+                .where(ClimbingHistory.hold_id == hold_id)
 
-            return await paginate(query=query, conn=session, params=params)
+        query = query.order_by(desc(Post.created_at)).options(selectinload(Post.user))
 
-        else:
-            query = select(Post) \
-                .where(and_(Post.center_id == center_id,
-                            Post.created_at.between(start, end))) \
-                .order_by(desc(Post.created_at)) \
-                .options(selectinload(Post.user))
-
-            return await paginate(query=query, conn=session, params=params)
+        return await paginate(query=query, conn=session, params=params)
 
 
 class ReviewRepository:
@@ -416,7 +414,9 @@ class ReviewRepository:
         query = select(Review, func.count(Post.id)) \
             .select_from(Review) \
             .join(Post, and_(Review.user_id == Post.user_id, Review.center_id == Post.center_id)) \
-            .where(and_(Review.center_id == center_id, Review.created_at.between(start, end))) \
+            .where(and_(Review.center_id == center_id,
+                        Review.created_at >= start,
+                        Review.created_at < end)) \
             .group_by(Review.id) \
             .order_by(desc(Review.created_at)) \
             .options(selectinload(Review.user)) \

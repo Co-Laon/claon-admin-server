@@ -6,7 +6,7 @@ from pydantic import BaseModel, validator
 from claon_admin.config.consts import KOR_BEGIN_CODE, KOR_END_CODE
 from claon_admin.common.enum import WallType
 from claon_admin.model.user import UserProfileDto
-from claon_admin.schema.center import Center
+from claon_admin.schema.center import Center, CenterFee, CenterHold, CenterWall
 
 
 class CenterOperatingTimeDto(BaseModel):
@@ -254,7 +254,7 @@ class CenterResponseDto(BaseModel):
     approved: bool
 
     @classmethod
-    def from_entity(cls, entity: Center):
+    def from_entity(cls, entity: Center, fees: List[CenterFee], holds: List[CenterHold], walls: List[CenterWall]):
         return CenterResponseDto(
             center_id=entity.id,
             profile_image=entity.profile_img,
@@ -274,17 +274,17 @@ class CenterResponseDto(BaseModel):
             ],
             fee_list=[
                 CenterFeeDto(name=e.name, price=e.price, count=e.count)
-                for e in entity.fees
+                for e in fees
             ],
             hold_list=[
                 CenterHoldDto(difficulty=e.difficulty, name=e.name, is_color=e.is_color)
-                for e in entity.holds
+                for e in holds
             ],
             wall_list=[
                 CenterWallDto(
                     wall_type=WallType.BOULDERING if e.type == "bouldering" else WallType.ENDURANCE,
                     name=e.name
-                ) for e in entity.walls
+                ) for e in walls
             ],
             approved=entity.approved
         )
