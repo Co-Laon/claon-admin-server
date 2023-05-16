@@ -49,7 +49,7 @@ class ReviewTag:
 
 class Center(Base):
     __tablename__ = 'tb_center'
-    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     name = Column(String(length=30), nullable=False)
     profile_img = Column(TEXT, nullable=False)
     address = Column(String(length=255), nullable=False)
@@ -123,7 +123,7 @@ class Center(Base):
 
 class CenterFee(Base):
     __tablename__ = 'tb_center_fee'
-    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     name = Column(String(length=50), nullable=False)
     membership_type = Column(Enum(MembershipType), nullable=False)
     price = Column(Integer, nullable=False)
@@ -137,7 +137,7 @@ class CenterFee(Base):
 
 class CenterHold(Base):
     __tablename__ = 'tb_center_hold'
-    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     name = Column(String(length=10))
     difficulty = Column(String(length=10))
     is_color = Column(Boolean, default=False, nullable=False)
@@ -149,7 +149,7 @@ class CenterHold(Base):
 
 class CenterWall(Base):
     __tablename__ = 'tb_center_wall'
-    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     name = Column(String(length=20))
     type = Column(String(length=20))
 
@@ -159,7 +159,7 @@ class CenterWall(Base):
 
 class CenterApprovedFile(Base):
     __tablename__ = 'tb_center_approved_file'
-    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     url = Column(String(length=255))
 
     user_id = Column(String(length=255), ForeignKey('tb_user.id', ondelete="CASCADE"), nullable=False)
@@ -170,7 +170,7 @@ class CenterApprovedFile(Base):
 
 class Post(Base):
     __tablename__ = 'tb_post'
-    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     content = Column(String(length=500), nullable=False)
     created_at = Column(DateTime, nullable=False)
     _img = Column(TEXT, nullable=False)
@@ -196,7 +196,7 @@ class Post(Base):
 
 class ClimbingHistory(Base):
     __tablename__ = 'tb_climbing_history'
-    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     hold_id = Column(String(length=255), nullable=False)
     hold_url = Column(TEXT, nullable=False)
     difficulty = Column(String(length=10), nullable=False)
@@ -210,7 +210,7 @@ class ClimbingHistory(Base):
 
 class Review(Base):
     __tablename__ = "tb_review"
-    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     content = Column(String(length=500), nullable=False)
     created_at = Column(DateTime, nullable=False)
     _tag = Column(TEXT, nullable=False)
@@ -236,7 +236,7 @@ class Review(Base):
 
 class ReviewAnswer(Base):
     __tablename__ = 'tb_review_answer'
-    id = Column(String(length=255), primary_key=True, default=str(uuid4()))
+    id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     content = Column(String(length=500), nullable=False)
     created_at = Column(DateTime, nullable=False)
 
