@@ -3,6 +3,7 @@ from enum import Enum
 
 class Role(Enum):
     PENDING = "pending"
+    NOT_APPROVED = "not_approved"
     ADMIN = "admin"
     USER = "user"
     LECTOR = "lector"

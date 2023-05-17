@@ -36,7 +36,7 @@ class Career:
 class User(Base):
     __tablename__ = 'tb_user'
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
-    oauth_id = Column(String(length=255), nullable=False)
+    oauth_id = Column(String(length=255), nullable=False, unique=True)
     nickname = Column(String(length=40), nullable=False, unique=True)
     profile_img = Column(TEXT, nullable=False)
     sns = Column(String(length=500), nullable=False)
