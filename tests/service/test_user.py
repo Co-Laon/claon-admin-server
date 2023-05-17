@@ -272,7 +272,7 @@ async def test_sign_up_center(
         center_request_dto: CenterAuthRequestDto
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.PENDING)
     mock_repo["user"].exist_by_nickname.side_effect = [False]
     mock_repo["center"].save.side_effect = [mock_center]
     mock_repo["center_fee"].save_all.side_effect = [mock_center_fees]
@@ -309,7 +309,7 @@ async def test_sign_up_center_existing_nickname(
         center_request_dto: CenterAuthRequestDto
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.PENDING)
     mock_repo["user"].exist_by_nickname.side_effect = [True]
 
     with pytest.raises(BadRequestException) as exception:
@@ -328,7 +328,7 @@ async def test_sign_up_center_already_sign_up(
         center_request_dto: CenterAuthRequestDto
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.CENTER_ADMIN)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.CENTER_ADMIN)
 
     with pytest.raises(BadRequestException) as exception:
         # when
@@ -353,7 +353,7 @@ async def test_sign_up_lector(
     mock_repo["lector"].save.side_effect = [mock_lector]
     mock_repo["lector_approved_file"].save_all.side_effect = [mock_lector_approved_files]
 
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.PENDING)
 
     # when
     result = await user_service.sign_up_lector(session, request_user, lector_request_dto)
@@ -393,7 +393,7 @@ async def test_sign_up_lector_existing_nickname(
         lector_request_dto: LectorRequestDto
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.PENDING)
     mock_repo["user"].exist_by_nickname.side_effect = [True]
 
     with pytest.raises(BadRequestException) as exception:
@@ -412,7 +412,7 @@ async def test_sign_up_lector_already_sign_up(
         lector_request_dto: LectorRequestDto
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.LECTOR)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.LECTOR)
 
     with pytest.raises(BadRequestException) as exception:
         # when

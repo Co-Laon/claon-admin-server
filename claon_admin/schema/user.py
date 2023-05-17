@@ -40,7 +40,7 @@ class User(Base):
     nickname = Column(String(length=40), nullable=False, unique=True)
     profile_img = Column(TEXT, nullable=False)
     sns = Column(String(length=500), nullable=False)
-    email = Column(String(length=500), unique=True)
+    email = Column(String(length=500))
     instagram_name = Column(String(length=255), unique=True)
     role = Column(Enum(Role), nullable=False)
 

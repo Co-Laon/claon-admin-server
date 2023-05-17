@@ -9,7 +9,8 @@ class RequestUser(BaseModel):
     id: str
     profile_image: Optional[str]
     nickname: Optional[str]
-    email: str
+    sns: str
+    email: Optional[str]
     instagram_nickname: Optional[str]
     role: Optional[Role]
 
