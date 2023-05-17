@@ -383,7 +383,3 @@ class CenterAuthRequestDto(BaseModel):
         if len(value) > 5:
             raise ValueError('증빙자료는 5개 이하로 입력해 주세요.')
         return value
-
-
-class UploadFileResponseDto(BaseModel):
-    file_url: str

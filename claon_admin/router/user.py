@@ -1,12 +1,14 @@
 from typing import List
 
 from dependency_injector.wiring import Provide, inject
-from fastapi import APIRouter, Depends, UploadFile
+from fastapi import APIRouter, Depends, UploadFile, File
 from fastapi_utils.cbv import cbv
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from claon_admin.common.enum import LectorUploadPurpose
 from claon_admin.common.util.db import db
 from claon_admin.container import Container
+from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.user import CenterNameResponseDto
 from claon_admin.service.user import UserService
 
@@ -26,7 +28,13 @@ class UserRouter:
         pass
 
     # s3 upload
-    @router.post('/profile')
+    @router.post('/profile', response_model=UploadFileResponseDto)
     async def upload_profile(self,
                              file: UploadFile):
         return await self.user_service.upload_profile(file)
+
+    @router.post('/{purpose}/file', response_model=UploadFileResponseDto)
+    async def upload(self,
+                     purpose: LectorUploadPurpose,
+                     file: UploadFile = File(...)):
+        return await self.user_service.upload_file(purpose, file)
