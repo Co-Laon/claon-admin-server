@@ -195,7 +195,7 @@ async def test_approve_center(
         mock_center_approved_files: List[CenterApprovedFile]
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
     center_id = mock_center.id
 
     mock_repo["center"].find_by_id.side_effect = [mock_center]
@@ -223,7 +223,7 @@ async def test_approve_center_with_non_admin(
         mock_center: Center
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.PENDING)
     center_id = mock_center.id
 
     with pytest.raises(UnauthorizedException) as exception:
@@ -241,7 +241,7 @@ async def test_approve_not_existing_center(
         admin_service: AdminService
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
     center_id = "not_existing_id"
 
     mock_repo["center"].find_by_id.side_effect = [None]
@@ -262,7 +262,7 @@ async def test_approve_duplicated_center_name(
         mock_center: Center
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
     center_id = mock_center.id
 
     mock_repo["center"].find_by_id.side_effect = [mock_center]
@@ -287,7 +287,7 @@ async def test_approve_lector(
         mock_lector_approved_files: List[LectorApprovedFile]
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
     lector_id = mock_lector.id
 
     mock_repo["lector"].find_by_id.side_effect = [mock_lector]
@@ -314,7 +314,7 @@ async def test_approve_lector_with_non_admin(
         mock_lector: Lector
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.PENDING)
     lector_id = mock_lector.id
 
     with pytest.raises(UnauthorizedException) as exception:
@@ -333,7 +333,7 @@ async def test_approve_not_existing_lector(
         mock_lector: Lector
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
     lector_id = "not_existing_id"
 
     mock_repo["lector"].find_by_id.side_effect = [None]
@@ -354,7 +354,7 @@ async def test_reject_center(
         mock_center: Center
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
     center_id = mock_center.id
 
     mock_repo["center"].find_by_id.side_effect = [mock_center]
@@ -374,7 +374,7 @@ async def test_reject_center_with_non_admin(
         mock_center: Center
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.PENDING)
     center_id = mock_center.id
 
     with pytest.raises(UnauthorizedException) as exception:
@@ -392,7 +392,7 @@ async def test_reject_not_existing_center(
         admin_service: AdminService
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
     center_id = "not_existing_id"
 
     mock_repo["center"].find_by_id.side_effect = [None]
@@ -413,7 +413,7 @@ async def test_reject_lector(
         mock_lector: Lector
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
     lector_id = mock_lector.id
 
     mock_repo["lector"].find_by_id.side_effect = [mock_lector]
@@ -434,7 +434,7 @@ async def test_reject_lector_with_non_admin(
         mock_lector: Lector
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.PENDING)
     lector_id = mock_lector.id
 
     with pytest.raises(UnauthorizedException) as exception:
@@ -452,7 +452,7 @@ async def test_reject_not_existing_lector(
         admin_service: AdminService
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
     lector_id = "not_existing_id"
 
     mock_repo["lector"].find_by_id.side_effect = [None]
@@ -474,7 +474,7 @@ async def test_get_unapproved_lectors(
 ):
     # given
     response = LectorResponseDto.from_entity(mock_lector, mock_lector_approved_files)
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
     mock_repo["lector"].find_all_by_approved_false.side_effect = [[mock_lector]]
     mock_repo["lector_approved_file"].find_all_by_lector_id.side_effect = [mock_lector_approved_files]
 
@@ -497,7 +497,7 @@ async def test_get_unapproved_lectors_with_non_admin(
         mock_lector_approved_files: List[LectorApprovedFile]
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.PENDING)
     mock_repo["lector"].find_all_by_approved_false.side_effect = [[mock_lector]]
     mock_repo["lector_approved_file"].find_all_by_lector_id.side_effect = [mock_lector_approved_files]
     
@@ -518,7 +518,7 @@ async def test_get_unapproved_centers(
 ):
     # given
     response = CenterResponseDto.from_entity(mock_center, mock_center_approved_files)
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.ADMIN)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
     mock_repo["center"].find_all_by_approved_false.side_effect = [[mock_center]]
     mock_repo["center_approved_file"].find_all_by_center_id.side_effect = [mock_center_approved_files]
 
@@ -541,7 +541,7 @@ async def test_get_unapproved_centers_with_non_admin(
         mock_center_approved_files: List[CenterApprovedFile]
 ):
     # given
-    request_user = RequestUser(id="123456", email="test@claon.com", role=Role.PENDING)
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.PENDING)
     mock_repo["center"].find_all_by_approved_false.side_effect = [[mock_center]]
     mock_repo["center_approved_file"].find_all_by_center_id.side_effect = [mock_center_approved_files]
     

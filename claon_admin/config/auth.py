@@ -90,6 +90,7 @@ async def get_subject(
                 id=user.id,
                 profile_img=user.profile_img,
                 nickname=user.nickname,
+                sns=user.sns,
                 email=user.email,
                 instagram_nickname=user.instagram_name,
                 role=user.role
