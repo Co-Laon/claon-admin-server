@@ -107,6 +107,8 @@ class UserService:
              for e in dto.proof_list]
         )
 
+        user = await self.user_repository.find_by_id(session, subject.id)
+        await self.user_repository.update_role(session, user, Role.NOT_APPROVED)
         return CenterResponseDto.from_entity(center, fees, holds, walls)
 
     async def sign_up_lector(self, session: AsyncSession, subject: RequestUser, dto: LectorRequestDto):
@@ -143,6 +145,8 @@ class UserService:
              for e in dto.proof_list]
         )
 
+        user = await self.user_repository.find_by_id(session, subject.id)
+        await self.user_repository.update_role(session, user, Role.NOT_APPROVED)
         return LectorResponseDto.from_entity(lector)
 
     async def sign_in(self,

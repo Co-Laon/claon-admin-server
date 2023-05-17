@@ -240,7 +240,7 @@ class ReviewAnswer(Base):
     content = Column(String(length=500), nullable=False)
     created_at = Column(DateTime, nullable=False)
 
-    review_id = Column(String(length=255), ForeignKey("tb_review.id", ondelete="CASCADE"), nullable=False)
+    review_id = Column(String(length=255), ForeignKey("tb_review.id", ondelete="CASCADE"), nullable=False, unique=True)
     review = relationship("Review", back_populates="answer")
 
 
