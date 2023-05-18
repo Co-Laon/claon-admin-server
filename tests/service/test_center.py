@@ -1,15 +1,17 @@
 import uuid
 from datetime import datetime
 from typing import List
-from unittest.mock import AsyncMock
+from unittest.mock import AsyncMock, patch
 
 import pytest
+from fastapi import UploadFile
 from fastapi_pagination import Params, Page
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.common.enum import WallType, Role
+from claon_admin.common.enum import WallType, Role, CenterUploadPurpose
 from claon_admin.common.error.exception import BadRequestException, UnauthorizedException, ErrorCode, NotFoundException
 from claon_admin.common.util.pagination import PaginationFactory, Pagination
+from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.post import PostBriefResponseDto
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterFeeImage, \
@@ -983,3 +985,71 @@ async def test_delete_review_answer_with_not_exist_answer(
 
     # then
     assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
+
+
+@pytest.mark.asyncio
+@patch("claon_admin.service.center.upload_file")
+async def test_upload_file_with_purpose(mock_upload_file,
+                                        center_service: CenterService):
+    # given
+    upload_file = AsyncMock(spec=UploadFile)
+    upload_file.filename = "test.png"
+    mock_upload_file.return_value = "https://test_upload_center/center/image/uuid.png"
+    purpose = CenterUploadPurpose.IMAGE
+
+    # when
+    result: UploadFileResponseDto = await center_service.upload_file(purpose, upload_file)
+
+    # then
+    assert result.file_url.split('.')[-1] == "png"
+    assert result.file_url.split('/')[-2] == "image"
+    assert result.file_url.split('/')[-3] == "center"
+
+
+@pytest.mark.asyncio
+@patch("claon_admin.service.center.upload_file")
+async def test_upload_file_with_purpose_proof(mock_upload_file,
+                                              center_service: CenterService):
+    # given
+    upload_file = AsyncMock(spec=UploadFile)
+    upload_file.filename = "test.pdf"
+    mock_upload_file.return_value = "https://test_upload_center_proof/center/proof/uuid.pdf"
+    purpose = CenterUploadPurpose.PROOF
+
+    # when
+    result: UploadFileResponseDto = await center_service.upload_file(purpose, upload_file)
+
+    # then
+    assert result.file_url.split('.')[-1] == "pdf"
+    assert result.file_url.split('/')[-2] == "proof"
+    assert result.file_url.split('/')[-3] == "center"
+
+
+@pytest.mark.asyncio
+async def test_upload_file_with_invalid_format(center_service: CenterService):
+    # given
+    upload_file = AsyncMock(spec=UploadFile)
+    upload_file.filename = "test.gif"
+    purpose = CenterUploadPurpose.PROOF
+
+    with pytest.raises(BadRequestException) as exception:
+        # when
+        await center_service.upload_file(purpose, upload_file)
+
+    # then
+    assert exception.value.code == ErrorCode.INVALID_FORMAT
+
+
+@pytest.mark.asyncio
+async def test_upload_file_with_second_invalid_format(center_service: CenterService):
+    # given
+    upload_file = AsyncMock(spec=UploadFile)
+    upload_file.filename = "test.pdf"
+    purpose = CenterUploadPurpose.IMAGE
+
+    with pytest.raises(BadRequestException) as exception:
+        # when
+        await center_service.upload_file(purpose, upload_file)
+
+    # then
+    assert exception.value.code == ErrorCode.INVALID_FORMAT

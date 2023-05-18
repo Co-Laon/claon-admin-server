@@ -21,9 +21,28 @@ class CenterUploadPurpose(Enum):
     FEE = "fee"
     PROOF = "proof"
 
+    def get_extensions(purpose: str):
+        if purpose == "profile" or purpose == "image" or purpose == "fee":
+            return ["jpg", "jpeg", "png"]
+
+        if purpose == "proof":
+            return ["jpg", "jpeg", "png", "pdf"]
+
 
 class LectorUploadPurpose(Enum):
     PROOF = "proof"
+
+    def get_extensions(purpose: str):
+        if purpose == "proof":
+            return ["jpg", "jpeg", "png", "pdf"]
+
+
+class UserUploadPurpose(Enum):
+    PROFILE = "profile"
+
+    def get_extensions(purpose: str):
+        if purpose == "profile":
+            return ["jpg", "jpeg", "png"]
 
 
 class WallType(Enum):

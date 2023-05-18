@@ -11,7 +11,7 @@ from claon_admin.model.auth import OAuthUserInfoDto
 from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.center import CenterAuthRequestDto, CenterResponseDto
-from claon_admin.common.enum import OAuthProvider, Role, LectorUploadPurpose
+from claon_admin.common.enum import OAuthProvider, Role, LectorUploadPurpose, UserUploadPurpose
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.user import IsDuplicatedNicknameResponseDto, LectorRequestDto, LectorResponseDto, \
     UserProfileResponseDto
@@ -174,17 +174,18 @@ class UserService:
         )
 
     async def upload_profile(self, file: UploadFile):
-        if file.filename.split('.')[-1] not in ['jpeg', 'png', 'jpg']:
+        purpose = UserUploadPurpose.PROFILE
+        if file.filename.split('.')[-1] not in UserUploadPurpose.get_extensions(purpose.value):
             raise BadRequestException(
                 ErrorCode.INVALID_FORMAT,
                 "지원하지 않는 포맷입니다."
             )
 
-        url = await upload_file(file=file, domain="user", purpose="profile")
+        url = await upload_file(file=file, domain="user", purpose=purpose.value)
         return UploadFileResponseDto(file_url=url)
 
     async def upload_file(self, purpose: LectorUploadPurpose, file: UploadFile):
-        if file.filename.split('.')[-1] not in ['jpeg', 'png', 'jpg', 'pdf']:
+        if file.filename.split('.')[-1] not in LectorUploadPurpose.get_extensions(purpose.value):
             raise BadRequestException(
                 ErrorCode.INVALID_FORMAT,
                 "지원하지 않는 포맷입니다."
