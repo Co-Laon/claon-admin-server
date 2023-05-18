@@ -1056,20 +1056,22 @@ async def test_upload_file_with_second_invalid_format(center_service: CenterServ
     assert exception.value.code == ErrorCode.INVALID_FORMAT
 
 
-async def test_find_center_by_name(
+async def test_find_centers_by_name(
         session: AsyncSession,
         center_service: CenterService,
         mock_repo: dict,
-        mock_center: Center
+        mock_center: Center,
+        mock_another_center: Center
 ):
     # given
     response = CenterNameResponseDto.from_entity(mock_center)
-    mock_repo["center"].find_by_name.side_effect = [mock_center]
+    another_response = CenterNameResponseDto.from_entity(mock_another_center)
+    mock_repo["center"].find_by_name.side_effect = [[mock_center, mock_another_center]]
 
     # when
-    result = await center_service.find_center_by_name(session, mock_center.name)
+    result = await center_service.find_centers_by_name(session, mock_center.name)
 
     # then
-    assert result.center_id == response.center_id
-    assert result.address == response.address
-    assert result.address == response.address
+    assert len(result) == 2
+    assert response in result
+    assert another_response in result

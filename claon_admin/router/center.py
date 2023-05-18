@@ -29,11 +29,11 @@ class CenterRouter:
                  center_service: CenterService = Depends(Provide[Container.center_service])):
         self.center_service = center_service
 
-    @router.get('/name/{name}', response_model=CenterNameResponseDto)
+    @router.get('/name/{name}', response_model=List[CenterNameResponseDto])
     async def get_name(self,
                        name: str,
                        session: AsyncSession = Depends(db.get_db)):
-        return await self.center_service.find_center_by_name(session=session, name=name)
+        return await self.center_service.find_centers_by_name(session=session, name=name)
 
     @router.get('/{center_id}', response_model=CenterResponseDto)
     async def find_by_id(self,

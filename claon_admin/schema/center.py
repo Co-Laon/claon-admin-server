@@ -289,8 +289,10 @@ class CenterRepository:
 
     @staticmethod
     async def find_by_name(session:AsyncSession, name: str):
-        result = await session.execute(select(Center).where(Center.name == name))
-        return result.scalars().one_or_none()
+        result = await session.execute(select(Center)
+                                       .where(and_(Center.name.contains(name), Center.user_id == null()))
+                                       .limit(5))
+        return result.scalars().all()
 
 
 class CenterApprovedFileRepository:

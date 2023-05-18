@@ -230,13 +230,8 @@ class CenterService:
         url = await upload_file(file=file, domain="center", purpose=purpose.value)
         return UploadFileResponseDto(file_url=url)
 
-    async def find_center_by_name(self,
+    async def find_centers_by_name(self,
                                   session: AsyncSession,
                                   name: str):
-        center = await self.center_repository.find_by_name(session, name)
-        if center is None:
-            raise NotFoundException(
-                ErrorCode.DATA_DOES_NOT_EXIST,
-                "해당 암장이 존재하지 않습니다."
-            )
-        return CenterNameResponseDto.from_entity(center)
+        centers = await self.center_repository.find_by_name(session, name)
+        return [CenterNameResponseDto.from_entity(center) for center in centers]
