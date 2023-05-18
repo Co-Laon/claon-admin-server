@@ -1,13 +1,16 @@
 from datetime import date, datetime
 from typing import Optional
 
+from fastapi import UploadFile
 from fastapi_pagination import Params
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.common.enum import Role
+from claon_admin.common.enum import Role, CenterUploadPurpose
 from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException
 from claon_admin.common.util.pagination import PaginationFactory
+from claon_admin.common.util.s3 import upload_file
 from claon_admin.config.consts import TIME_ZONE_KST
+from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.post import PostBriefResponseDto
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
 from claon_admin.schema.center import PostRepository, CenterRepository, ReviewRepository, ReviewAnswerRepository, \
@@ -215,3 +218,13 @@ class CenterService:
             )
 
         return await self.review_answer_repository.delete(session, answer)
+
+    async def upload_file(self, purpose: CenterUploadPurpose, file: UploadFile):
+        if file.filename.split('.')[-1] not in CenterUploadPurpose.get_extensions(purpose.value):
+            raise BadRequestException(
+                ErrorCode.INVALID_FORMAT,
+                "지원하지 않는 포맷입니다."
+            )
+
+        url = await upload_file(file=file, domain="center", purpose=purpose.value)
+        return UploadFileResponseDto(file_url=url)

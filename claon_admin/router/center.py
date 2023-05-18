@@ -45,7 +45,7 @@ class CenterRouter:
     async def upload(self,
                      purpose: CenterUploadPurpose,
                      file: UploadFile = File(...)):
-        pass
+        return await self.center_service.upload_file(purpose, file)
 
     @router.get('/', response_model=List[CenterBriefResponseDto])
     async def find_centers(self,
