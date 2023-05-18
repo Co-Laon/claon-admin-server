@@ -1,4 +1,5 @@
 import json
+import traceback
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
@@ -59,7 +60,6 @@ def add_http_exception_handler(app: FastAPI) -> None:
         message = [{"loc": error["loc"], "message": error["msg"], "type": error["type"]} for error in details]
         logger.error("[REQUEST] [%s] path: %s [RESPONSE] message: %s",
                      request.method, request.url.path, ','.join([json.dumps(m) for m in message]))
-        logger.error(','.join([json.dumps(m) for m in message]))
 
         return JSONResponse(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -70,8 +70,20 @@ def add_http_exception_handler(app: FastAPI) -> None:
     async def internal_server_exception(request: Request, exc: InternalServerException):
         logger.error("[REQUEST] [%s] path: %s [RESPONSE] code: %d, message: %s",
                      request.method, request.url.path, exc.code.value, exc.message)
+        logger.error(traceback.format_exc())
         return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             content={"code": exc.code.value, "message": exc.message})
+
+    @app.exception_handler(Exception)
+    async def exception(request: Request, exc: Exception):
+        logger.error("[REQUEST] [%s] path: %s [RESPONSE] code: %d",
+                     request.method, request.url.path, ErrorCode.INTERNAL_SERVER_ERROR.value)
+        logger.error(traceback.format_exc())
+        return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            content={
+                                "code": ErrorCode.INTERNAL_SERVER_ERROR.value,
+                                "message": traceback.format_exception_only(exc)
+                            })
 
     @app.exception_handler(ServiceUnavailableException)
     async def service_unavailable_exception(request: Request, exc: ServiceUnavailableException):
