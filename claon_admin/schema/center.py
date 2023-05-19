@@ -287,6 +287,13 @@ class CenterRepository:
                                        .options(selectinload(Center.fees)))
         return result.scalars().all()
 
+    @staticmethod
+    async def find_by_name(session:AsyncSession, name: str):
+        result = await session.execute(select(Center)
+                                       .where(and_(Center.name.contains(name), Center.user_id == null()))
+                                       .limit(5))
+        return result.scalars().all()
+
 
 class CenterApprovedFileRepository:
     @staticmethod

@@ -13,6 +13,7 @@ from claon_admin.config.consts import TIME_ZONE_KST
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.post import PostBriefResponseDto
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
+from claon_admin.model.center import CenterNameResponseDto
 from claon_admin.schema.center import PostRepository, CenterRepository, ReviewRepository, ReviewAnswerRepository, \
     ReviewAnswer
 
@@ -228,3 +229,9 @@ class CenterService:
 
         url = await upload_file(file=file, domain="center", purpose=purpose.value)
         return UploadFileResponseDto(file_url=url)
+
+    async def find_centers_by_name(self,
+                                  session: AsyncSession,
+                                  name: str):
+        centers = await self.center_repository.find_by_name(session, name)
+        return [CenterNameResponseDto.from_entity(center) for center in centers]

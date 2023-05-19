@@ -1,3 +1,4 @@
+import uuid
 from datetime import datetime
 
 import pytest
@@ -60,6 +61,30 @@ async def center_fixture(session: AsyncSession, user_fixture: User):
         utility=[Utility(name="test_utility")],
         fee_img=[CenterFeeImage(url="https://test.fee.png")],
         approved=True
+    )
+
+    center = await center_repository.save(session, center)
+    yield center
+    await session.rollback()
+
+
+@pytest.fixture
+async def mock_another_center(session: AsyncSession):
+    center = Center(
+        id=str(uuid.uuid4()),
+        name="another test center",
+        profile_img="https://another.test.profile.png",
+        address="another_test_address",
+        detail_address="another_test_detail_address",
+        tel="010-1234-3333",
+        web_url="http://another.test.com",
+        instagram_name="another_instagram",
+        youtube_url="https://www.another.youtube.com/@test",
+        center_img=[CenterImage(url="https://another.test.image.png")],
+        operating_time=[OperatingTime(day_of_week="월", start_time="09:00", end_time="18:00")],
+        utility=[Utility(name="another_utility")],
+        fee_img=[CenterFeeImage(url="https://another.test.fee.png")],
+        approved=False
     )
 
     center = await center_repository.save(session, center)
@@ -342,6 +367,19 @@ async def test_find_all_center_by_approved_false(
 
     # then
     assert result == [center_fixture]
+
+
+@pytest.mark.asyncio
+async def test_find_centers_by_name(
+    session: AsyncSession,
+    center_fixture: Center,
+    mock_another_center: Center
+):
+    # when
+    result = await center_repository.find_by_name(session, center_fixture.name)
+
+    # then
+    assert result == [mock_another_center]
 
 
 @pytest.mark.asyncio
