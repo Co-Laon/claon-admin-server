@@ -171,12 +171,12 @@ class LectorResponseDto(BaseModel):
         for career in entity.career:
             total_experience += (
                     datetime.strptime(career.end_date, "%Y-%m-%d") - datetime.strptime(career.start_date, "%Y-%m-%d")
-            ).total_seconds()
+            ).days
 
         return LectorResponseDto(
             lector_id=entity.id,
             is_setter=entity.is_setter,
-            total_experience=total_experience // (365 * 24 * 60 * 60),
+            total_experience=total_experience // 365,
             contest_list=[LectorContestDto(year=e.year, title=e.title, name=e.name) for e in entity.contest],
             certificate_list=[LectorCertificateDto(
                 acquisition_date=e.acquisition_date,
