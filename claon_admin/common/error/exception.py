@@ -22,6 +22,12 @@ class ErrorCode(Enum):
     # 409 Conflict
     CONFLICT_STATE = 40900
 
+    # 411 Length Required
+    LENGTH_REQUIRED = 41100
+
+    # 413 Request Entity Too Large
+    REQUEST_ENTITY_TOO_LARGE = 41300
+
     # 422
     UNPROCESSABLE_ENTITY = 42200
 
