@@ -20,7 +20,7 @@ async def set_body(request: Request):
 
 class LoggerMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
-        if request.url.path in ["/docs", "/redoc", "/openapi.json"]:
+        if request.url.path in ["/docs", "/redoc", "/openapi.json", "/log"]:
             return await call_next(request)
 
         idem = ''.join(str(uuid.uuid4()))

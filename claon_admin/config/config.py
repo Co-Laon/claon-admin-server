@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from os import environ
+from os import environ, path
 from urllib.parse import quote
 
 from claon_admin.config.env import config, db_config, redis_config
@@ -10,6 +10,8 @@ class Config:
     TRUSTED_HOSTS = ["*"]
     ALLOW_SITE = ["*"]
     SESSION_SECRET_KEY = config.get("SESSION", "SECRET_KEY", fallback="")
+    BASE_DIR: str = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
+    HTML_DIR: str = BASE_DIR + "/claon_admin/template"
 
 
 @dataclass
