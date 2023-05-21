@@ -12,6 +12,7 @@ from claon_admin.common.error.handler import add_http_exception_handler
 from claon_admin.common.util.db import db
 from claon_admin.config.config import conf
 from claon_admin.container import Container
+from claon_admin.middleware.file import LimitUploadSize
 from claon_admin.middleware.log import LoggerMiddleware
 from claon_admin.router import center, auth, admin, user
 
@@ -51,6 +52,7 @@ def create_app() -> FastAPI:
 
     claon_app.add_middleware(SessionMiddleware, secret_key=conf().SESSION_SECRET_KEY)
     claon_app.add_middleware(LoggerMiddleware)
+    claon_app.add_middleware(LimitUploadSize)
     add_pagination(claon_app)
 
     add_http_exception_handler(claon_app)
