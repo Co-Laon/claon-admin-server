@@ -2,6 +2,7 @@ from typing import List, Optional, Tuple
 
 from pydantic import BaseModel, validator
 
+from claon_admin.common.util.time import get_relative_time
 from claon_admin.schema.center import Review, ReviewAnswer
 
 
@@ -26,7 +27,7 @@ class ReviewAnswerResponseDto(BaseModel):
         return ReviewAnswerResponseDto(
             review_answer_id=entity.id,
             content=entity.content,
-            created_at=entity.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            created_at=get_relative_time(entity.created_at),
             review_id=entity.review.id
         )
 
@@ -49,7 +50,7 @@ class ReviewBriefResponseDto(BaseModel):
         return ReviewBriefResponseDto(
             review_id=review.id,
             content=review.content,
-            created_at=review.created_at.strftime("%Y-%m-%d %H:%M:%S"),
+            created_at=get_relative_time(review.created_at),
             answer=ReviewAnswerResponseDto.from_entity(review.answer) if review.answer is not None else None,
             user_id=review.user.id,
             user_nickname=review.user.nickname,

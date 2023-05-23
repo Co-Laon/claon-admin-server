@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from claon_admin.common.enum import WallType, Role, CenterUploadPurpose
 from claon_admin.common.error.exception import BadRequestException, UnauthorizedException, ErrorCode, NotFoundException
 from claon_admin.common.util.pagination import PaginationFactory, Pagination
+from claon_admin.common.util.time import get_relative_time
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.post import PostBriefResponseDto
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
@@ -323,7 +324,7 @@ async def test_find_posts_by_center_without_hold(session: AsyncSession,
     assert pages.results[0].post_id == mock_post.id
     assert pages.results[0].content == mock_post.content
     assert pages.results[0].image == mock_post.img[0].url
-    assert pages.results[0].created_at == mock_post.created_at.strftime("%Y-%m-%d %H:%M:%S")
+    assert pages.results[0].created_at == get_relative_time(mock_post.created_at)
     assert pages.results[0].user_id == mock_post.user.id
     assert pages.results[0].user_nickname == mock_post.user.nickname
 
@@ -363,7 +364,7 @@ async def test_find_posts_by_center_with_hold(session: AsyncSession,
     assert pages.results[0].post_id == mock_post.id
     assert pages.results[0].content == mock_post.content
     assert pages.results[0].image == mock_post.img[0].url
-    assert pages.results[0].created_at == mock_post.created_at.strftime("%Y-%m-%d %H:%M:%S")
+    assert pages.results[0].created_at == get_relative_time(mock_post.created_at)
     assert pages.results[0].user_id == mock_post.user.id
     assert pages.results[0].user_nickname == mock_post.user.nickname
 
@@ -482,7 +483,7 @@ async def test_find_reviews_by_center_not_filter(session: AsyncSession,
     # then
     assert len(pages.results) == 3
     assert pages.results[0].content == mock_review.content
-    assert pages.results[0].created_at == mock_review.created_at.strftime("%Y-%m-%d %H:%M:%S")
+    assert pages.results[0].created_at == get_relative_time(mock_review.created_at)
     assert pages.results[0].user_id == mock_user.id == mock_review.user.id
     assert pages.results[0].user_nickname == mock_review.user.nickname
     assert pages.results[0].user_profile_image == mock_review.user.profile_img
@@ -527,7 +528,7 @@ async def test_find_reviews_by_center_not_answered(session: AsyncSession,
     # then
     assert len(pages.results) == 1
     assert pages.results[0].content == mock_other_review.content
-    assert pages.results[0].created_at == mock_other_review.created_at.strftime("%Y-%m-%d %H:%M:%S")
+    assert pages.results[0].created_at == get_relative_time(mock_other_review.created_at)
     assert pages.results[0].user_id == mock_pending_user.id == mock_other_review.user.id
     assert pages.results[0].user_nickname == mock_other_review.user.nickname
     assert pages.results[0].user_profile_image == mock_other_review.user.profile_img
@@ -574,7 +575,7 @@ async def test_find_reviews_by_center_with_tag(session: AsyncSession,
     # then
     assert len(pages.results) == 2
     assert pages.results[0].content == mock_review.content
-    assert pages.results[0].created_at == mock_review.created_at.strftime("%Y-%m-%d %H:%M:%S")
+    assert pages.results[0].created_at == get_relative_time(mock_review.created_at)
     assert pages.results[0].user_id == mock_user.id == mock_review.user.id == mock_post.user.id
     assert pages.results[0].user_nickname == mock_review.user.nickname
     assert pages.results[0].user_profile_image == mock_review.user.profile_img

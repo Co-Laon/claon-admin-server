@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date
 from typing import Optional
 
 from fastapi import UploadFile
@@ -9,7 +9,7 @@ from claon_admin.common.enum import Role, CenterUploadPurpose
 from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException
 from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.common.util.s3 import upload_file
-from claon_admin.config.consts import TIME_ZONE_KST
+from claon_admin.common.util.time import now
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.post import PostBriefResponseDto
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
@@ -143,7 +143,7 @@ class CenterService:
 
         new_answer = ReviewAnswer(
             content=dto.answer_content,
-            created_at=datetime.now(TIME_ZONE_KST),
+            created_at=now(),
             review=review
         )
 
