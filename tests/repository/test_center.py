@@ -671,6 +671,25 @@ async def test_find_posts_by_center_included_hold(
 
 
 @pytest.mark.asyncio
+async def test_find_posts_summary_by_center(
+        session: AsyncSession,
+        center_fixture: Center,
+        post_fixture: Post
+):
+    # then
+    assert await post_repository.find_posts_summary_by_center(
+        session, center_fixture.id
+    ) == {
+        "today": 0,
+        "week": 0,
+        "month": 0,
+        "total": 1,
+        "per_day": [],
+        "per_week": [(post_fixture.id, post_fixture.created_at)]
+    }
+
+
+@pytest.mark.asyncio
 async def test_find_reviews_by_center_not_filter(
         session: AsyncSession,
         center_fixture: Center,

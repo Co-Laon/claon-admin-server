@@ -106,7 +106,7 @@ class CenterRouter:
     async def find_posts_summary_by_center(self,
                                            center_id: str,
                                            session: AsyncSession = Depends(db.get_db)):
-        pass
+        return await self.center_service.find_posts_summary_by_center(session, center_id)
 
     @router.get('/{center_id}/reviews', response_model=Pagination[ReviewBriefResponseDto])
     async def find_reviews_by_center(self,

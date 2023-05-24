@@ -7,11 +7,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.enum import Role, CenterUploadPurpose
 from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException
+from claon_admin.common.util.counter import DateCounter
 from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.common.util.s3 import upload_file
 from claon_admin.common.util.time import now
 from claon_admin.model.file import UploadFileResponseDto
-from claon_admin.model.post import PostBriefResponseDto
+from claon_admin.model.post import PostBriefResponseDto, PostSummaryResponseDto, PostCount
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
 from claon_admin.model.center import CenterNameResponseDto
 from claon_admin.schema.center import PostRepository, CenterRepository, ReviewRepository, ReviewAnswerRepository, \
@@ -231,7 +232,34 @@ class CenterService:
         return UploadFileResponseDto(file_url=url)
 
     async def find_centers_by_name(self,
-                                  session: AsyncSession,
-                                  name: str):
+                                   session: AsyncSession,
+                                   name: str):
         centers = await self.center_repository.find_by_name(session, name)
         return [CenterNameResponseDto.from_entity(center) for center in centers]
+
+    async def find_posts_summary_by_center(self,
+                                           session: AsyncSession,
+                                           center_id: str):
+        center = await self.center_repository.find_by_id(session, center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if center.user.role != Role.CENTER_ADMIN:
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        counts = await self.post_repository.find_posts_summary_by_center(session, center.id)
+        day_manager = DateCounter(unit="day", data=counts["per_day"])
+        week_manager = DateCounter(unit="week", data=counts["per_week"])
+
+        counts["per_day"] = [PostCount(unit=day_week, count=count) for (day_week, count) in
+                             dict(day_manager.get_count()).items()]
+        counts["per_week"] = [PostCount(unit=day_week, count=count) for (day_week, count) in
+                              dict(week_manager.get_count()).items()]
+
+        return PostSummaryResponseDto.from_entity(center.id, center.name, counts)
