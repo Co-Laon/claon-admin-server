@@ -5,12 +5,13 @@ from fastapi import UploadFile
 from fastapi_pagination import Params
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.common.enum import Role, CenterUploadPurpose
+from claon_admin.common.enum import CenterUploadPurpose
 from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException
 from claon_admin.common.util.counter import DateCounter
 from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.common.util.s3 import upload_file
 from claon_admin.common.util.time import now
+from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.post import PostBriefResponseDto, PostSummaryResponseDto, PostCount
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
@@ -34,6 +35,7 @@ class CenterService:
 
     async def find_posts_by_center(self,
                                    session: AsyncSession,
+                                   subject: RequestUser,
                                    params: Params,
                                    center_id: str,
                                    hold_id: Optional[str],
@@ -46,7 +48,7 @@ class CenterService:
                 "해당 암장이 존재하지 않습니다."
             )
 
-        if center.user.role != Role.CENTER_ADMIN:
+        if center.user.id != subject.id:
             raise UnauthorizedException(
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."
@@ -73,6 +75,7 @@ class CenterService:
 
     async def find_reviews_by_center(self,
                                      session: AsyncSession,
+                                     subject: RequestUser,
                                      params: Params,
                                      center_id: str,
                                      start: date,
@@ -86,16 +89,16 @@ class CenterService:
                 "해당 암장이 존재하지 않습니다."
             )
 
+        if center.user.id != subject.id:
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
         if (end - start).days > 365 or (end - start).days < 0:
             raise BadRequestException(
                 ErrorCode.WRONG_DATE_RANGE,
                 "잘못된 날짜 범위입니다."
-            )
-
-        if center.user.role != Role.CENTER_ADMIN:
-            raise UnauthorizedException(
-                ErrorCode.NOT_ACCESSIBLE,
-                "암장 관리자가 아닙니다."
             )
 
         pages = await self.review_repository.find_reviews_by_center(
@@ -112,6 +115,7 @@ class CenterService:
 
     async def create_review_answer(self,
                                    session: AsyncSession,
+                                   subject: RequestUser,
                                    dto: ReviewAnswerRequestDto,
                                    center_id: str,
                                    review_id: str):
@@ -122,7 +126,7 @@ class CenterService:
                 "해당 암장이 존재하지 않습니다."
             )
 
-        if center.user.role != Role.CENTER_ADMIN:
+        if center.user.id != subject.id:
             raise UnauthorizedException(
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."
@@ -154,6 +158,7 @@ class CenterService:
 
     async def update_review_answer(self,
                                    session: AsyncSession,
+                                   subject: RequestUser,
                                    dto: ReviewAnswerRequestDto,
                                    center_id: str,
                                    review_id: str):
@@ -164,7 +169,7 @@ class CenterService:
                 "해당 암장이 존재하지 않습니다."
             )
 
-        if center.user.role != Role.CENTER_ADMIN:
+        if center.user.id != subject.id:
             raise UnauthorizedException(
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."
@@ -190,6 +195,7 @@ class CenterService:
 
     async def delete_review_answer(self,
                                    session: AsyncSession,
+                                   subject: RequestUser,
                                    center_id: str,
                                    review_id: str):
         center = await self.center_repository.find_by_id(session, center_id)
@@ -199,7 +205,7 @@ class CenterService:
                 "해당 암장이 존재하지 않습니다."
             )
 
-        if center.user.role != Role.CENTER_ADMIN:
+        if center.user.id != subject.id:
             raise UnauthorizedException(
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."
@@ -239,6 +245,7 @@ class CenterService:
 
     async def find_posts_summary_by_center(self,
                                            session: AsyncSession,
+                                           subject: RequestUser,
                                            center_id: str):
         center = await self.center_repository.find_by_id(session, center_id)
         if center is None:
@@ -247,7 +254,7 @@ class CenterService:
                 "해당 암장이 존재하지 않습니다."
             )
 
-        if center.user.role != Role.CENTER_ADMIN:
+        if center.user.id != subject.id:
             raise UnauthorizedException(
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."

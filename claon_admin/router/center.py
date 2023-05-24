@@ -9,7 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.util.db import db
 from claon_admin.common.util.pagination import Pagination
+from claon_admin.config.auth import get_subject
 from claon_admin.container import Container
+from claon_admin.model.auth import RequestUser
 from claon_admin.model.center import CenterNameResponseDto, CenterResponseDto, \
     CenterUpdateRequestDto, CenterBriefResponseDto, CenterRequestDto
 from claon_admin.common.enum import CenterUploadPurpose
@@ -44,7 +46,8 @@ class CenterRouter:
     @router.post('/{purpose}/file', response_model=UploadFileResponseDto)
     async def upload(self,
                      purpose: CenterUploadPurpose,
-                     file: UploadFile = File(...)):
+                     file: UploadFile = File(...),
+                     subject: RequestUser = Depends(get_subject)):
         return await self.center_service.upload_file(purpose, file)
 
     @router.get('/', response_model=List[CenterBriefResponseDto])
@@ -92,9 +95,11 @@ class CenterRouter:
                                    start: date,
                                    end: date,
                                    params: Params = Depends(),
-                                   session: AsyncSession = Depends(db.get_db)):
+                                   session: AsyncSession = Depends(db.get_db),
+                                   subject: RequestUser = Depends(get_subject)):
         return await self.center_service.find_posts_by_center(
             session=session,
+            subject=subject,
             params=params,
             hold_id=hold_id,
             center_id=center_id,
@@ -105,8 +110,9 @@ class CenterRouter:
     @router.get('/{center_id}/posts/summary', response_model=PostSummaryResponseDto)
     async def find_posts_summary_by_center(self,
                                            center_id: str,
-                                           session: AsyncSession = Depends(db.get_db)):
-        return await self.center_service.find_posts_summary_by_center(session, center_id)
+                                           session: AsyncSession = Depends(db.get_db),
+                                           subject: RequestUser = Depends(get_subject)):
+        return await self.center_service.find_posts_summary_by_center(session, subject, center_id)
 
     @router.get('/{center_id}/reviews', response_model=Pagination[ReviewBriefResponseDto])
     async def find_reviews_by_center(self,
@@ -116,9 +122,11 @@ class CenterRouter:
                                      tag: Optional[str],
                                      is_answered: Optional[bool],
                                      params: Params = Depends(),
-                                     session: AsyncSession = Depends(db.get_db)):
+                                     session: AsyncSession = Depends(db.get_db),
+                                     subject: RequestUser = Depends(get_subject)):
         return await self.center_service.find_reviews_by_center(
             session=session,
+            subject=subject,
             params=params,
             center_id=center_id,
             start=start,
@@ -138,20 +146,23 @@ class CenterRouter:
                                    request_dto: ReviewAnswerRequestDto,
                                    center_id: str,
                                    review_id: str,
-                                   session: AsyncSession = Depends(db.get_db)):
-        return await self.center_service.create_review_answer(session, request_dto, center_id, review_id)
+                                   session: AsyncSession = Depends(db.get_db),
+                                   subject: RequestUser = Depends(get_subject)):
+        return await self.center_service.create_review_answer(session, subject, request_dto, center_id, review_id)
 
     @router.put('/{center_id}/reviews/{review_id}', response_model=ReviewAnswerResponseDto)
     async def update_review_answer(self,
                                    request_dto: ReviewAnswerRequestDto,
                                    center_id: str,
                                    review_id: str,
-                                   session: AsyncSession = Depends(db.get_db)):
-        return await self.center_service.update_review_answer(session, request_dto, center_id, review_id)
+                                   session: AsyncSession = Depends(db.get_db),
+                                   subject: RequestUser = Depends(get_subject)):
+        return await self.center_service.update_review_answer(session, subject, request_dto, center_id, review_id)
 
     @router.delete('/{center_id}/reviews/{review_id}')
     async def delete_review_answer(self,
                                    center_id: str,
                                    review_id: str,
-                                   session: AsyncSession = Depends(db.get_db)):
-        return await self.center_service.delete_review_answer(session, center_id, review_id)
+                                   session: AsyncSession = Depends(db.get_db),
+                                   subject: RequestUser = Depends(get_subject)):
+        return await self.center_service.delete_review_answer(session, subject, center_id, review_id)
