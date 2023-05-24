@@ -8,7 +8,8 @@
 
 <body class="dark:bg-gray-900">
 <div class="flex items-center py-2 px-3">
-    <h1 class="text-3xl text-slate-300">CLAON ADMIN Streaming Log Viewer over WebSockets</h1>
+    <h1 id="domain" class="text-3xl text-slate-300">{{ context.domain }}</h1><br/>
+    <h1 class="text-3xl text-slate-300">Streaming Log Viewer over WebSockets</h1>
 </div>
 <br/>
 
@@ -25,7 +26,7 @@
 </div>
 
 <script>
-    let ws_log = new WebSocket("ws://localhost:8000/ws/log");
+    let ws_log = new WebSocket("ws://" + document.getElementById("domain").innerText + ":8000/ws/log");
 
     ws_log.onmessage = function (event) {
         let logs = document.getElementById("logs");

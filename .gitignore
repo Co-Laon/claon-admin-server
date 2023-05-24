@@ -16,3 +16,5 @@ deploy_*.sh
 !pytest.ini
 !test_config.ini
 test.db
+
+logs
