@@ -1,76 +1,11 @@
-from datetime import date
-
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.enum import Role
 from claon_admin.schema.user import (
-    UserRepository,
-    LectorRepository,
-    User,
-    LectorApprovedFileRepository, LectorApprovedFile, Lector, Career, Contest, Certificate
+    User, LectorApprovedFile, Lector
 )
-
-user_repository = UserRepository()
-lector_repository = LectorRepository()
-lector_approved_file_repository = LectorApprovedFileRepository()
-
-
-@pytest.fixture(autouse=True)
-async def user_fixture(session: AsyncSession):
-    user = User(
-        oauth_id="oauth_id",
-        nickname="nickname",
-        profile_img="profile_img",
-        sns="sns",
-        email="test@test.com",
-        instagram_name="instagram_name",
-        role=Role.PENDING,
-    )
-
-    user = await user_repository.save(session, user)
-    yield user
-    await session.rollback()
-
-
-@pytest.fixture(autouse=True)
-async def lector_fixture(session: AsyncSession, user_fixture: User):
-    lector = Lector(
-        is_setter=True,
-        approved=False,
-        contest=[Contest(year=2021, title="title", name="name")],
-        certificate=[
-            Certificate(
-                acquisition_date=date.fromisoformat("2012-10-15"),
-                rate=4,
-                name="certificate"
-            )
-        ],
-        career=[
-            Career(
-                start_date=date.fromisoformat("2016-01-01"),
-                end_date=date.fromisoformat("2020-01-01"),
-                name="career"
-            )
-        ],
-        user=user_fixture
-    )
-
-    lector = await lector_repository.save(session, lector)
-    yield lector
-    await session.rollback()
-
-
-@pytest.fixture(autouse=True)
-async def lector_approved_file_fixture(session: AsyncSession, lector_fixture: Lector):
-    lector_approved_file = LectorApprovedFile(
-        lector=lector_fixture,
-        url="https://test.com/test.pdf"
-    )
-
-    lector_approved_file = await lector_approved_file_repository.save(session, lector_approved_file)
-    yield lector_approved_file
-    await session.rollback()
+from tests.repository.user.conftest import user_repository, lector_repository, lector_approved_file_repository
 
 
 @pytest.mark.asyncio
@@ -83,12 +18,6 @@ async def test_save_user(session: AsyncSession, user_fixture: User):
     assert user_fixture.email == "test@test.com"
     assert user_fixture.instagram_name == "instagram_name"
     assert user_fixture.role == Role.PENDING
-    assert await user_repository.find_by_id(session, user_fixture.id) == user_fixture
-    assert await user_repository.find_by_nickname(session, user_fixture.nickname) == user_fixture
-    assert await user_repository.find_by_oauth_id(session, user_fixture.oauth_id) == user_fixture
-    assert await user_repository.find_by_oauth_id_and_sns(session, user_fixture.oauth_id, user_fixture.sns) == user_fixture
-    assert await user_repository.exist_by_id(session, user_fixture.id) is True
-    assert await user_repository.exist_by_nickname(session, user_fixture.nickname) is True
 
 
 @pytest.mark.asyncio
@@ -227,6 +156,7 @@ async def test_approve_lector(
     # then
     assert result.approved is True
 
+
 @pytest.mark.asyncio
 async def test_find_all_lector_by_approved_false(
         session: AsyncSession,
@@ -237,6 +167,7 @@ async def test_find_all_lector_by_approved_false(
 
     # then
     assert result == [lector_fixture]
+
 
 @pytest.mark.asyncio
 async def test_exist_user_by_valid_id(
@@ -337,7 +268,8 @@ async def test_save_lector_approved_file(
     # then
     assert lector_approved_file_fixture.lector == lector_fixture
     assert lector_approved_file_fixture.url == "https://test.com/test.pdf"
-    assert await lector_approved_file_repository.find_all_by_lector_id(session, lector_fixture.id) == [lector_approved_file_fixture]
+    assert await lector_approved_file_repository.find_all_by_lector_id(session, lector_fixture.id) == [
+        lector_approved_file_fixture]
 
 
 @pytest.mark.asyncio
