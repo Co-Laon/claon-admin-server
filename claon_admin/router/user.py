@@ -7,7 +7,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.enum import LectorUploadPurpose
 from claon_admin.common.util.db import db
+from claon_admin.config.auth import get_subject
 from claon_admin.container import Container
+from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.user import CenterNameResponseDto
 from claon_admin.service.user import UserService
@@ -30,11 +32,13 @@ class UserRouter:
     # s3 upload
     @router.post('/profile', response_model=UploadFileResponseDto)
     async def upload_profile(self,
-                             file: UploadFile):
+                             file: UploadFile,
+                             subject: RequestUser = Depends(get_subject)):
         return await self.user_service.upload_profile(file)
 
     @router.post('/{purpose}/file', response_model=UploadFileResponseDto)
     async def upload(self,
                      purpose: LectorUploadPurpose,
-                     file: UploadFile = File(...)):
-        return await self.user_service.upload_file(purpose, file)
+                     file: UploadFile = File(...),
+                     subject: RequestUser = Depends(get_subject)):
+        return await self.user_service.upload_file(subject, purpose, file)
