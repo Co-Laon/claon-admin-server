@@ -50,10 +50,12 @@ class CenterRouter:
                      subject: RequestUser = Depends(get_subject)):
         return await self.center_service.upload_file(purpose, file)
 
-    @router.get('/', response_model=List[CenterBriefResponseDto])
+    @router.get('/', response_model=Pagination[CenterBriefResponseDto])
     async def find_centers(self,
-                           session: AsyncSession = Depends(db.get_db)):
-        pass
+                           session: AsyncSession = Depends(db.get_db),
+                           params: Params = Depends(),
+                           subject: RequestUser = Depends(get_subject)):
+        return await self.center_service.find_centers(session=session, params=params, subject=subject)
 
     @router.post('/', response_model=CenterResponseDto)
     async def create(self,

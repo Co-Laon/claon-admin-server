@@ -5,7 +5,7 @@ from fastapi import UploadFile
 from fastapi_pagination import Params
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.common.enum import CenterUploadPurpose
+from claon_admin.common.enum import CenterUploadPurpose, Role
 from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException
 from claon_admin.common.util.counter import DateCounter
 from claon_admin.common.util.pagination import PaginationFactory
@@ -15,7 +15,7 @@ from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.post import PostBriefResponseDto, PostSummaryResponseDto, PostCount
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
-from claon_admin.model.center import CenterNameResponseDto
+from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto
 from claon_admin.schema.center import PostRepository, CenterRepository, ReviewRepository, ReviewAnswerRepository, \
     ReviewAnswer
 
@@ -270,3 +270,23 @@ class CenterService:
                               dict(week_manager.get_count()).items()]
 
         return PostSummaryResponseDto.from_entity(center.id, center.name, counts)
+
+    async def find_centers(self,
+                           session: AsyncSession,
+                           params: Params,
+                           subject: RequestUser):
+        if subject.role != Role.CENTER_ADMIN:
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        pages = await self.center_repository.find_all_by_user_id(session, subject.id, params)
+
+        if not pages.items:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "등록된 암장이 존재하지 않습니다."
+            )
+
+        return await self.pagination_factory.create(CenterBriefResponseDto, pages)

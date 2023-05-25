@@ -173,13 +173,13 @@ async def test_find_all_center_by_approved_false(
 async def test_find_centers_by_name(
     session: AsyncSession,
     center_fixture: Center,
-    mock_another_center: Center
+    center_another_fixture: Center
 ):
     # when
     result = await center_repository.find_by_name(session, center_fixture.name)
 
     # then
-    assert result == [mock_another_center]
+    assert result == [center_another_fixture]
 
 
 @pytest.mark.asyncio
@@ -596,3 +596,19 @@ async def test_find_review_by_id_and_center_id(
 ):
     # then
     assert await review_repository.find_by_id_and_center_id(session, review_fixture.id, center_fixture.id) == review_fixture
+
+
+@pytest.mark.asyncio
+async def test_find_centers(
+        session: AsyncSession,
+        user_fixture: User,
+        center_fixture: Center,
+        center_another_fixture: Center
+):
+    # given
+    params = Params(page=1, size=10)
+
+    # then
+    assert await center_repository.find_all_by_user_id(
+        session, user_fixture.id, params
+    ) == Page.create(items=[center_fixture], params=params, total=1)
