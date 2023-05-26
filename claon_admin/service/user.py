@@ -16,9 +16,9 @@ from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.user import IsDuplicatedNicknameResponseDto, LectorRequestDto, LectorResponseDto, \
     UserProfileResponseDto
 from claon_admin.model.user import SignInRequestDto, JwtResponseDto
-from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterFee, \
-    CenterFeeImage, CenterHold, CenterWall, CenterApprovedFile, CenterHoldRepository, CenterWallRepository, \
-    CenterApprovedFileRepository, CenterFeeRepository
+from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterHold, \
+    CenterWall, CenterApprovedFile, CenterHoldRepository, CenterWallRepository, CenterApprovedFileRepository, \
+    CenterFeeRepository
 from claon_admin.schema.user import UserRepository, LectorRepository, Lector, Contest, Certificate, Career, \
     LectorApprovedFile, LectorApprovedFileRepository, User
 
@@ -79,15 +79,8 @@ class UserService:
                 for e in dto.operating_time_list
             ],
             utility=[Utility(name=e) for e in dto.utility_list],
-            fee_img=[CenterFeeImage(url=e) for e in dto.fee_image_list],
             approved=False
         ))
-
-        fees = await self.center_fee_repository.save_all(
-            session,
-            [CenterFee(center=center, name=e.name, price=e.price, count=e.count)
-             for e in dto.fee_list]
-        )
 
         holds = await self.center_hold_repository.save_all(
             session,
@@ -109,7 +102,7 @@ class UserService:
 
         user = await self.user_repository.find_by_id(session, subject.id)
         await self.user_repository.update_role(session, user, Role.NOT_APPROVED)
-        return CenterResponseDto.from_entity(center, fees, holds, walls)
+        return CenterResponseDto.from_entity(center, holds, walls)
 
     async def sign_up_lector(self, session: AsyncSession, subject: RequestUser, dto: LectorRequestDto):
         if subject.role != Role.PENDING:

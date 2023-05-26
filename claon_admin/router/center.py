@@ -91,9 +91,9 @@ class CenterRouter:
     @router.get('/{center_id}/posts', response_model=Pagination[PostBriefResponseDto])
     async def find_posts_by_center(self,
                                    center_id: str,
-                                   hold_id: Optional[str],
                                    start: date,
                                    end: date,
+                                   hold_id: Optional[str] = None,
                                    params: Params = Depends(),
                                    session: AsyncSession = Depends(db.get_db),
                                    subject: RequestUser = Depends(get_subject)):
@@ -119,8 +119,8 @@ class CenterRouter:
                                      center_id: str,
                                      start: date,
                                      end: date,
-                                     tag: Optional[str],
-                                     is_answered: Optional[bool],
+                                     tag: Optional[str] = None,
+                                     is_answered: Optional[bool] = None,
                                      params: Params = Depends(),
                                      session: AsyncSession = Depends(db.get_db),
                                      subject: RequestUser = Depends(get_subject)):
