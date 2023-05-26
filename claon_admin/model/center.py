@@ -6,7 +6,7 @@ from pydantic import BaseModel, validator
 from claon_admin.config.consts import KOR_BEGIN_CODE, KOR_END_CODE
 from claon_admin.common.enum import WallType
 from claon_admin.model.user import UserProfileDto
-from claon_admin.schema.center import Center, CenterFee, CenterHold, CenterWall
+from claon_admin.schema.center import Center, CenterHold, CenterWall
 
 
 class CenterOperatingTimeDto(BaseModel):
@@ -113,9 +113,7 @@ class CenterRequestDto(BaseModel):
     youtube_code: Optional[str]
     image_list: List[str]
     utility_list: List[str]
-    fee_image_list: List[str]
     operating_time_list: List[CenterOperatingTimeDto]
-    fee_list: List[CenterFeeDto]
     hold_list: List[CenterHoldDto]
     wall_list: List[CenterWallDto]
     proof_list: List[str]
@@ -162,12 +160,6 @@ class CenterRequestDto(BaseModel):
     def validate_image_list(cls, value):
         if len(value) > 10:
             raise ValueError('이미지는 최대 10장까지 등록 가능해요.')
-        return value
-
-    @validator('fee_image_list')
-    def validate_fee_image_list(cls, value):
-        if len(value) > 5:
-            raise ValueError('이용요금 이미지는 최대 10장까지 등록 가능해요.')
         return value
 
     @validator('operating_time_list')
@@ -264,7 +256,7 @@ class CenterResponseDto(BaseModel):
     approved: bool
 
     @classmethod
-    def from_entity(cls, entity: Center, fees: List[CenterFee], holds: List[CenterHold], walls: List[CenterWall]):
+    def from_entity(cls, entity: Center, holds: List[CenterHold], walls: List[CenterWall]):
         return CenterResponseDto(
             center_id=entity.id,
             profile_image=entity.profile_img,
@@ -282,10 +274,7 @@ class CenterResponseDto(BaseModel):
                 CenterOperatingTimeDto(day_of_week=e.day_of_week, start_time=e.start_time, end_time=e.end_time)
                 for e in entity.operating_time
             ],
-            fee_list=[
-                CenterFeeDto(name=e.name, price=e.price, count=e.count)
-                for e in fees
-            ],
+            fee_list=[],
             hold_list=[
                 CenterHoldDto(difficulty=e.difficulty, name=e.name, is_color=e.is_color)
                 for e in holds
@@ -325,9 +314,7 @@ class CenterAuthRequestDto(BaseModel):
     youtube_code: Optional[str]
     image_list: List[str]
     utility_list: List[str]
-    fee_image_list: List[str]
     operating_time_list: List[CenterOperatingTimeDto]
-    fee_list: List[CenterFeeDto]
     hold_list: List[CenterHoldDto]
     wall_list: List[CenterWallDto]
     proof_list: List[str]
@@ -374,12 +361,6 @@ class CenterAuthRequestDto(BaseModel):
     def validate_image_list(cls, value):
         if len(value) > 10:
             raise ValueError('이미지는 최대 10장까지 등록 가능해요.')
-        return value
-
-    @validator('fee_image_list')
-    def validate_fee_image_list(cls, value):
-        if len(value) > 5:
-            raise ValueError('이용요금 이미지는 최대 10장까지 등록 가능해요.')
         return value
 
     @validator('operating_time_list')

@@ -248,7 +248,6 @@ async def test_save_center_hold(
     assert center_holds_fixture.name == "hold_name"
     assert center_holds_fixture.difficulty == "hard"
     assert center_holds_fixture.is_color is False
-    assert center_holds_fixture.img == "hold_img"
     assert await center_hold_repository.find_all_by_center_id(session, center_fixture.id) == [center_holds_fixture]
 
 
@@ -402,7 +401,6 @@ async def test_save_climbing_history(
         climbing_history_fixture: ClimbingHistory
 ):
     assert climbing_history_fixture.post == post_fixture
-    assert climbing_history_fixture.hold_url == "hold_img"
     assert climbing_history_fixture.difficulty == "hard"
     assert climbing_history_fixture.challenge_count == 2
     assert climbing_history_fixture.wall_name == "wall"

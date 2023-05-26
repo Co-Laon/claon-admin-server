@@ -142,7 +142,6 @@ class CenterHold(Base):
     name = Column(String(length=10))
     difficulty = Column(String(length=10))
     is_color = Column(Boolean, default=False, nullable=False)
-    img = Column(TEXT, nullable=False)
 
     center_id = Column(String(length=255), ForeignKey('tb_center.id', ondelete="CASCADE"), nullable=False)
     center = relationship("Center", back_populates="holds")
@@ -199,7 +198,6 @@ class ClimbingHistory(Base):
     __tablename__ = 'tb_climbing_history'
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     hold_id = Column(String(length=255), nullable=False)
-    hold_url = Column(TEXT, nullable=False)
     difficulty = Column(String(length=10), nullable=False)
     challenge_count = Column(Integer, nullable=False)
     wall_name = Column(String(length=20), nullable=False)
@@ -255,6 +253,7 @@ class CenterRepository:
     @staticmethod
     async def find_by_id(session: AsyncSession, center_id: str):
         result = await session.execute(select(Center).where(Center.id == center_id)
+                                       .options(selectinload(Center.user))
                                        .options(selectinload(Center.holds))
                                        .options(selectinload(Center.walls)))
         return result.scalars().one_or_none()

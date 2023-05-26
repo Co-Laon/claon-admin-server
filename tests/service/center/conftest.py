@@ -114,8 +114,7 @@ def mock_center_holds(mock_center: Center):
             center=mock_center,
             name="hold",
             difficulty="hard",
-            is_color=False,
-            img="hold_url"
+            is_color=False
         )
     ]
 
@@ -199,7 +198,6 @@ def mock_climbing_history(mock_post: Post, mock_center_holds: List[CenterHold], 
             id=str(uuid.uuid4()),
             post=mock_post,
             hold_id=mock_center_holds[0].id,
-            hold_url=mock_center_holds[0].img,
             difficulty=mock_center_holds[0].difficulty,
             challenge_count=3,
             wall_name=mock_center_walls[0].name,

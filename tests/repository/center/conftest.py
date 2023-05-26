@@ -127,8 +127,7 @@ async def center_holds_fixture(session: AsyncSession, center_fixture: Center):
         center=center_fixture,
         name="hold_name",
         difficulty="hard",
-        is_color=False,
-        img="hold_img"
+        is_color=False
     )
 
     center_hold = await center_hold_repository.save(session, center_hold)
@@ -170,7 +169,6 @@ async def climbing_history_fixture(session: AsyncSession, post_fixture: Post, ce
     history = ClimbingHistory(
         post=post_fixture,
         hold_id=center_holds_fixture.id,
-        hold_url=center_holds_fixture.img,
         difficulty=center_holds_fixture.difficulty,
         challenge_count=2,
         wall_name=center_walls_fixture.name,

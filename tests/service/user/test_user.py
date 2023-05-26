@@ -54,9 +54,7 @@ async def test_sign_up_center(
     assert result.youtube_code == center_request_dto.youtube_code
     assert result.image_list == center_request_dto.image_list
     assert result.utility_list == center_request_dto.utility_list
-    assert result.fee_image_list == center_request_dto.fee_image_list
     assert result.operating_time_list == center_request_dto.operating_time_list
-    assert result.fee_list == center_request_dto.fee_list
     assert result.hold_list == center_request_dto.hold_list
     assert result.wall_list == center_request_dto.wall_list
 
