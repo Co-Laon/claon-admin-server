@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException
+from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException
 from claon_admin.common.util.s3 import delete_file
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.admin import CenterResponseDto, LectorResponseDto
@@ -75,7 +75,7 @@ class AdminService:
 
         center = await self.center_repository.find_by_id(session, center_id)
         if center is None:
-            raise BadRequestException(
+            raise NotFoundException(
                 ErrorCode.DATA_DOES_NOT_EXIST,
                 "선택한 센터의 정보가 존재하지 않습니다."
             )

@@ -7,12 +7,9 @@ import pytest
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository
 from claon_admin.schema.user import UserRepository, LectorRepository, LectorApprovedFileRepository
 from claon_admin.service.admin import AdminService
-from claon_admin.common.enum import Role, WallType
+from claon_admin.common.enum import Role
 from claon_admin.schema.center import Center, CenterApprovedFile, CenterImage, OperatingTime, Utility, CenterFeeImage
 from claon_admin.schema.user import Lector, LectorApprovedFile, User, Contest, Certificate, Career
-from claon_admin.model.admin import CenterResponseDto, LectorResponseDto
-from claon_admin.model.user import LectorCareerDto, LectorCertificateDto, LectorContestDto, UserProfileResponseDto
-from claon_admin.model.center import CenterFeeDto, CenterHoldDto, CenterOperatingTimeDto, CenterWallDto
 
 
 @pytest.fixture
@@ -44,7 +41,7 @@ def admin_service(mock_repo: dict):
 
 
 @pytest.fixture
-def mock_user():
+def user_fixture():
     yield User(
         id=str(uuid.uuid4()),
         oauth_id="oauth_id",
@@ -58,64 +55,10 @@ def mock_user():
 
 
 @pytest.fixture
-def lector_response_dto(mock_user: User):
-    yield LectorResponseDto(
-        user_profile=UserProfileResponseDto.from_entity(mock_user),
-        is_setter=True,
-        contest_list=[
-            LectorContestDto(
-                year=2021,
-                title='testtitle',
-                name='testname'
-            )
-        ],
-        certificate_list=[
-            LectorCertificateDto(
-                acquisition_date=date.fromisoformat('2012-10-15'),
-                rate=4,
-                name='testcertificate'
-            )
-        ],
-        career_list=[
-            LectorCareerDto(
-                start_date=date.fromisoformat('2016-01-01'),
-                end_date=date.fromisoformat('2020-01-01'),
-                name='testcareer'
-            )
-        ],
-        proof_list=['https://test.com/test.pdf']
-    )
-
-
-@pytest.fixture
-async def center_response_dto(mock_user: User):
-    yield CenterResponseDto(
-        user_profile=UserProfileResponseDto.from_entity(mock_user),
-        cetner_id=str(uuid.uuid4()),
-        profile_image="https://test.profile.png",
-        name="test center",
-        address="test_address",
-        detail_address="test_detail_address",
-        tel="010-1234-5678",
-        web_url="http://test.com",
-        instagram_name="test_instagram",
-        youtube_code="@test",
-        image_list=["https://test.image.png"],
-        utility_list=["test_utility"],
-        fee_image_list=["https://test.fee.png"],
-        operating_time_list=[CenterOperatingTimeDto(day_of_week="월", start_time="09:00", end_time="18:00")],
-        fee_list=[CenterFeeDto(name="test_fee_name", price=1000, count=10)],
-        hold_list=[CenterHoldDto(name="hold", difficulty="hard", is_color=False)],
-        wall_list=[CenterWallDto(name="wall", wall_type=WallType.ENDURANCE)],
-        proof_list=["https://example.com/approved.jpg"]
-    )
-
-
-@pytest.fixture
-def mock_lector(mock_user: User):
+def lector_fixture(user_fixture: User):
     yield Lector(
         id=str(uuid.uuid4()),
-        user=mock_user,
+        user=user_fixture,
         is_setter=True,
         contest=[Contest(year=2021, title="title", name="name")],
         certificate=[
@@ -137,21 +80,21 @@ def mock_lector(mock_user: User):
 
 
 @pytest.fixture
-def mock_lector_approved_files(mock_lector: Lector):
+def lector_approved_files_fixture(lector_fixture: Lector):
     yield [
         LectorApprovedFile(
             id=str(uuid.uuid4()),
-            lector=mock_lector,
+            lector=lector_fixture,
             url="https://test.com/test.pdf"
         )
     ]
 
 
 @pytest.fixture
-def mock_center(mock_user: User):
+def center_fixture(user_fixture: User):
     yield Center(
         id=str(uuid.uuid4()),
-        user=mock_user,
+        user=user_fixture,
         name="test center",
         profile_img="https://test.profile.png",
         address="test_address",
@@ -169,12 +112,12 @@ def mock_center(mock_user: User):
 
 
 @pytest.fixture
-def mock_center_approved_files(mock_user: User, mock_center: Center):
+def center_approved_files_fixture(user_fixture: User, center_fixture: Center):
     yield [
         CenterApprovedFile(
             id=str(uuid.uuid4()),
-            user=mock_user,
-            center=mock_center,
+            user=user_fixture,
+            center=center_fixture,
             url="https://example.com/approved.jpg"
         )
     ]

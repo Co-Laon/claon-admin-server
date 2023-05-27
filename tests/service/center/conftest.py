@@ -44,7 +44,7 @@ def center_service(mock_repo: dict):
 
 
 @pytest.fixture
-def mock_user():
+def user_fixture():
     yield User(
         id=str(uuid.uuid4()),
         oauth_id="oauth_id",
@@ -58,7 +58,7 @@ def mock_user():
 
 
 @pytest.fixture
-def mock_pending_user():
+def pending_user_fixture():
     yield User(
         id=str(uuid.uuid4()),
         oauth_id="pending_oauth_id",
@@ -72,7 +72,7 @@ def mock_pending_user():
 
 
 @pytest.fixture
-def mock_review_user():
+def review_user_fixture():
     yield User(
         id=str(uuid.uuid4()),
         oauth_id="r_oauth_id",
@@ -86,10 +86,10 @@ def mock_review_user():
 
 
 @pytest.fixture
-def mock_center(mock_user: User):
+def center_fixture(user_fixture: User):
     yield Center(
         id=str(uuid.uuid4()),
-        user=mock_user,
+        user=user_fixture,
         name="test center",
         profile_img="https://test.profile.png",
         address="test_address",
@@ -107,10 +107,10 @@ def mock_center(mock_user: User):
 
 
 @pytest.fixture
-def mock_other_center(mock_user: User):
+def another_center_fixture(user_fixture: User):
     yield Center(
         id=str(uuid.uuid4()),
-        user=mock_user,
+        user=user_fixture,
         name="other test center",
         profile_img="https://test.profile.png",
         address="other_test_address",
@@ -128,11 +128,11 @@ def mock_other_center(mock_user: User):
 
 
 @pytest.fixture
-def mock_center_holds(mock_center: Center):
+def center_holds_fixture(center_fixture: Center):
     yield [
         CenterHold(
             id=str(uuid.uuid4()),
-            center=mock_center,
+            center=center_fixture,
             name="hold",
             difficulty="hard",
             is_color=False
@@ -141,11 +141,11 @@ def mock_center_holds(mock_center: Center):
 
 
 @pytest.fixture
-async def mock_center_walls(mock_center: Center):
+async def center_walls_fixture(center_fixture: Center):
     yield [
         CenterWall(
             id=str(uuid.uuid4()),
-            center=mock_center,
+            center=center_fixture,
             name="wall",
             type=WallType.ENDURANCE.value
         )
@@ -153,11 +153,11 @@ async def mock_center_walls(mock_center: Center):
 
 
 @pytest.fixture
-def mock_post(mock_user: User, mock_center: Center):
+def post_fixture(user_fixture: User, center_fixture: Center):
     yield Post(
         id=str(uuid.uuid4()),
-        user=mock_user,
-        center=mock_center,
+        user=user_fixture,
+        center=center_fixture,
         content="content",
         created_at=datetime(2023, 2, 3),
         img=[PostImage(url="https://test.post.img.png")]
@@ -165,11 +165,11 @@ def mock_post(mock_user: User, mock_center: Center):
 
 
 @pytest.fixture
-def mock_other_post(mock_pending_user: User, mock_center: Center):
+def other_post_fixture(pending_user_fixture: User, center_fixture: Center):
     yield Post(
         id=str(uuid.uuid4()),
-        user=mock_pending_user,
-        center=mock_center,
+        user=pending_user_fixture,
+        center=center_fixture,
         content="content",
         created_at=datetime(2023, 2, 3),
         img=[PostImage(url="https://test.post.img.png")]
@@ -177,11 +177,11 @@ def mock_other_post(mock_pending_user: User, mock_center: Center):
 
 
 @pytest.fixture
-def mock_another_post(mock_review_user: User, mock_center: Center):
+def another_post_fixture(review_user_fixture: User, center_fixture: Center):
     yield Post(
         id=str(uuid.uuid4()),
-        user=mock_review_user,
-        center=mock_center,
+        user=review_user_fixture,
+        center=center_fixture,
         content="content",
         created_at=datetime(2023, 2, 3),
         img=[PostImage(url="https://test.post.img.png")]
@@ -189,11 +189,11 @@ def mock_another_post(mock_review_user: User, mock_center: Center):
 
 
 @pytest.fixture
-def mock_yesterday_post(mock_user: User, mock_center: Center):
+def yesterday_post_fixture(user_fixture: User, center_fixture: Center):
     yield Post(
         id=str(uuid.uuid4()),
-        user=mock_user,
-        center=mock_center,
+        user=user_fixture,
+        center=center_fixture,
         content="content",
         created_at=now() - timedelta(days=1),
         img=[PostImage(url="https://test.post.img.png")]
@@ -201,11 +201,11 @@ def mock_yesterday_post(mock_user: User, mock_center: Center):
 
 
 @pytest.fixture
-def mock_today_post(mock_user: User, mock_center: Center):
+def today_post_fixture(user_fixture: User, center_fixture: Center):
     yield Post(
         id=str(uuid.uuid4()),
-        user=mock_user,
-        center=mock_center,
+        user=user_fixture,
+        center=center_fixture,
         content="content",
         created_at=now(),
         img=[PostImage(url="https://test.post.img.png")]
@@ -213,25 +213,25 @@ def mock_today_post(mock_user: User, mock_center: Center):
 
 
 @pytest.fixture
-def mock_climbing_history(mock_post: Post, mock_center_holds: List[CenterHold], mock_center_walls: List[CenterWall]):
+def climbing_history_fixture(post_fixture: Post, center_holds_fixture: List[CenterHold], center_walls_fixture: List[CenterWall]):
     yield [
         ClimbingHistory(
             id=str(uuid.uuid4()),
-            post=mock_post,
-            hold_id=mock_center_holds[0].id,
-            difficulty=mock_center_holds[0].difficulty,
+            post=post_fixture,
+            hold_id=center_holds_fixture[0].id,
+            difficulty=center_holds_fixture[0].difficulty,
             challenge_count=3,
-            wall_name=mock_center_walls[0].name,
-            wall_type=mock_center_walls[0].type)
+            wall_name=center_walls_fixture[0].name,
+            wall_type=center_walls_fixture[0].type)
     ]
 
 
 @pytest.fixture
-def mock_review(mock_user: User, mock_center: Center):
+def review_fixture(user_fixture: User, center_fixture: Center):
     yield Review(
         id=str(uuid.uuid4()),
-        user=mock_user,
-        center=mock_center,
+        user=user_fixture,
+        center=center_fixture,
         content="content",
         created_at=datetime(2023, 2, 5),
         tag=[ReviewTag(word="tag")]
@@ -239,11 +239,11 @@ def mock_review(mock_user: User, mock_center: Center):
 
 
 @pytest.fixture
-def mock_not_answered_review(mock_user: User, mock_center: Center):
+def not_answered_review_fixture(user_fixture: User, center_fixture: Center):
     yield Review(
         id=str(uuid.uuid4()),
-        user=mock_user,
-        center=mock_center,
+        user=user_fixture,
+        center=center_fixture,
         content="content",
         created_at=datetime(2023, 2, 5),
         tag=[ReviewTag(word="tag")]
@@ -251,11 +251,11 @@ def mock_not_answered_review(mock_user: User, mock_center: Center):
 
 
 @pytest.fixture
-def mock_other_review(mock_pending_user: User, mock_center: Center):
+def other_review_fixture(pending_user_fixture: User, center_fixture: Center):
     yield Review(
         id=str(uuid.uuid4()),
-        user=mock_pending_user,
-        center=mock_center,
+        user=pending_user_fixture,
+        center=center_fixture,
         content="content",
         created_at=datetime(2023, 2, 5),
         tag=[ReviewTag(word="tag")]
@@ -263,11 +263,11 @@ def mock_other_review(mock_pending_user: User, mock_center: Center):
 
 
 @pytest.fixture
-def mock_another_review(mock_review_user: User, mock_center: Center):
+def another_review_fixture(review_user_fixture: User, center_fixture: Center):
     yield Review(
         id=str(uuid.uuid4()),
-        user=mock_review_user,
-        center=mock_center,
+        user=review_user_fixture,
+        center=center_fixture,
         content="content",
         created_at=datetime(2023, 2, 5),
         tag=[ReviewTag(word="other_tag")]
@@ -275,30 +275,30 @@ def mock_another_review(mock_review_user: User, mock_center: Center):
 
 
 @pytest.fixture
-def mock_review_answer(mock_review: Review):
+def review_answer_fixture(review_fixture: Review):
     yield ReviewAnswer(
         id=str(uuid.uuid4()),
-        review=mock_review,
+        review=review_fixture,
         content="answer",
         created_at=datetime(2023, 2, 7)
     )
 
 
 @pytest.fixture
-def mock_another_review_answer(mock_another_review: Review):
+def another_review_answer_fixture(another_review_fixture: Review):
     yield ReviewAnswer(
         id=str(uuid.uuid4()),
-        review=mock_another_review,
+        review=another_review_fixture,
         content="answer",
         created_at=datetime(2023, 2, 7)
     )
 
 
 @pytest.fixture
-def mock_new_review_answer(mock_not_answered_review: Review):
+def new_review_answer_fixture(not_answered_review_fixture: Review):
     yield ReviewAnswer(
         id=str(uuid.uuid4()),
-        review=mock_not_answered_review,
+        review=not_answered_review_fixture,
         content="new answer",
         created_at=datetime(2023, 2, 7)
     )
