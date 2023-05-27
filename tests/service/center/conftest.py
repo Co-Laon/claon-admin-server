@@ -107,6 +107,27 @@ def mock_center(mock_user: User):
 
 
 @pytest.fixture
+def mock_other_center(mock_user: User):
+    yield Center(
+        id=str(uuid.uuid4()),
+        user=mock_user,
+        name="other test center",
+        profile_img="https://test.profile.png",
+        address="other_test_address",
+        detail_address="other_test_detail_address",
+        tel="010-1234-5678",
+        web_url="http://othertest.com",
+        instagram_name="other_test_instagram",
+        youtube_url="https://www.youtube.com/@othertest",
+        center_img=[CenterImage(url="https://othertest.image.png")],
+        operating_time=[OperatingTime(day_of_week="월", start_time="09:00", end_time="18:00")],
+        utility=[Utility(name="test_utility")],
+        fee_img=[CenterFeeImage(url="https://test.fee.png")],
+        approved=False
+    )
+
+
+@pytest.fixture
 def mock_center_holds(mock_center: Center):
     yield [
         CenterHold(

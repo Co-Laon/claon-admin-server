@@ -14,7 +14,7 @@ from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.post import PostBriefResponseDto, PostSummaryResponseDto
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
-from claon_admin.model.center import CenterNameResponseDto
+from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto
 from claon_admin.schema.center import Center, Post, ClimbingHistory, Review, ReviewAnswer
 from claon_admin.schema.user import User
 from claon_admin.service.center import CenterService
@@ -931,3 +931,74 @@ async def test_find_posts_summary_by_center_with_not_center_admin(
 
     # then
     assert exception.value.code == ErrorCode.NOT_ACCESSIBLE
+
+
+@pytest.mark.asyncio
+async def test_find_centers(
+        center_service: CenterService,
+        mock_repo: dict,
+        mock_center: Center,
+        mock_other_center: Center
+):
+    # given
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.CENTER_ADMIN)
+    params = Params(page=1, size=10)
+    items = [mock_center, mock_other_center]
+    center_page = Page(items=items, params=params, total=2)
+    mock_repo["center"].find_all_by_user_id.return_value = center_page
+    mock_pagination = Pagination(
+        next_page_num=2,
+        previous_page_num=0,
+        total_num=1,
+        results=[CenterBriefResponseDto.from_entity(item) for item in items]
+    )
+    mock_repo["pagination_factory"].create.side_effect = [mock_pagination]
+
+    # when
+    pages: Pagination[CenterBriefResponseDto] = await center_service.find_centers(
+        None,
+        params=params,
+        subject=request_user
+    )
+
+    # then
+    assert len(pages.results) == 2
+    assert pages.results[0].center_id == mock_center.id
+    assert pages.results[1].center_id == mock_other_center.id
+
+
+@pytest.mark.asyncio
+async def test_find_centers_with_not_center_admin(
+        center_service: CenterService,
+        mock_repo: dict
+):
+    # given
+    request_user = RequestUser(id="111111", sns="test@claon.com", role=Role.LECTOR)
+    params = Params(page=1, size=10)
+
+    with pytest.raises(UnauthorizedException) as exception:
+        # when
+        await center_service.find_centers(None, params, request_user)
+
+    # then
+    assert exception.value.code == ErrorCode.NOT_ACCESSIBLE
+
+
+@pytest.mark.asyncio
+async def test_find_centers_with_not_exist_center(
+        center_service: CenterService,
+        mock_repo: dict
+):
+    # given
+    request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.CENTER_ADMIN)
+    params = Params(page=1, size=10)
+    items = []
+    center_page = Page(items=items, params=params, total=0)
+    mock_repo["center"].find_all_by_user_id.return_value = center_page
+
+    with pytest.raises(NotFoundException) as exception:
+        # when
+        await center_service.find_centers(None, params, request_user)
+
+    # then
+    assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST

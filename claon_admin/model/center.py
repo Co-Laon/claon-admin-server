@@ -301,6 +301,22 @@ class CenterBriefResponseDto(BaseModel):
     matching_request_count: Optional[int]
     is_approved: bool
 
+    # TODO: Need to modify matching/membe/lector count after plan for matching and member
+    @classmethod
+    def from_entity(cls, entity: Center):
+        return CenterBriefResponseDto(
+            center_id=entity.id,
+            profile_image=entity.profile_img,
+            name=entity.name,
+            address=entity.address,
+            detail_address=entity.detail_address,
+            image_list=[e.url for e in entity.center_img],
+            lector_count=0,
+            member_count=0,
+            matching_count=0,
+            is_approved=entity.approved
+        )
+
 
 class CenterAuthRequestDto(BaseModel):
     profile: UserProfileDto
