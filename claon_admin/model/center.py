@@ -235,6 +235,37 @@ class CenterUpdateRequestDto(BaseModel):
             raise ValueError('운영시간은 최대 8개까지 등록 가능해요.')
         return value
 
+    @classmethod
+    def from_entity(cls, entity: Center, fees: List[CenterFee], holds: List[CenterHold], walls: List[CenterWall]):
+        return CenterUpdateRequestDto(
+            profile_image=entity.profile_img,
+            tel=entity.tel,
+            web_url=entity.web_url if entity.web_url is not None else None,
+            instagram_name=entity.instagram_name if entity.instagram_name is not None else None,
+            youtube_code=entity.youtube_url.rsplit("/", maxsplit=1)[-1] if entity.youtube_url is not None else None,
+            image_list=[e.url for e in entity.center_img],
+            utility_list=[e.name for e in entity.utility],
+            fee_image_list=[e.url for e in entity.fee_img],
+            operating_time_list=[
+                CenterOperatingTimeDto(day_of_week=e.day_of_week, start_time=e.start_time, end_time=e.end_time)
+                for e in entity.operating_time
+            ],
+            fee_list=[
+                CenterFeeDto(name=e.name, price=e.price, count=e.count)
+                for e in fees
+            ],
+            hold_list=[
+                CenterHoldDto(difficulty=e.difficulty, name=e.name, is_color=e.is_color)
+                for e in holds
+            ],
+            wall_list=[
+                CenterWallDto(
+                    wall_type=WallType.BOULDERING if e.type == "bouldering" else WallType.ENDURANCE,
+                    name=e.name
+                ) for e in walls
+            ]
+        )
+
 
 class CenterResponseDto(BaseModel):
     center_id: str

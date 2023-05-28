@@ -2,6 +2,7 @@ import json
 from datetime import date
 from typing import List
 from uuid import uuid4
+from dataclasses import dataclass
 
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate
@@ -29,6 +30,7 @@ class Utility:
         self.name = name
 
 
+@dataclass
 class CenterImage:
     def __init__(self, url: str):
         self.url = url
@@ -236,6 +238,35 @@ class CenterRepository(Repository[Center]):
 
     async def remove_center(self, session: AsyncSession, center: Center):
         center.user_id = None
+        await session.merge(center)
+        return center
+    
+    @staticmethod
+    async def update(session: AsyncSession, center: Center, request: dict):
+        center.profile_img = request.get('profile_image', center.profile_img)
+        center.tel = request.get('tel', center.tel)
+        center.web_url = request.get('web_url', center.web_url)
+        center.instagram_name = request.get('instagram_name', center.instagram_name) 
+        center.youtube_url = f"https://www.youtube.com/{str(request.get('youtube_code', center.youtube_url))}" \
+            if request.get('youtube_code', None) is not None else None
+        center.center_img = [CenterImage(url=e) for e in request.get('image_list', center.center_img)]
+        center.utility = [Utility(name=e) for e in request.get('utility_list', center.utility)]
+        center.fee_img = [CenterFeeImage(url=e) for e in request.get('fee_image_list', center.fee_img) or []]
+        center.operating_time = [
+            OperatingTime(day_of_week=e.day_of_week, start_time=e.start_time, end_time=e.end_time)
+            for e in request.get('operating_time_list', center.operating_time) or []
+        ]
+        center.fees = [CenterFee(center=center, 
+                                 name=e.name, 
+                                 price=e.price, 
+                                 count=e.count, 
+                                 membership_type=MembershipType.MEMBER,
+                                 period=1,
+                                 period_type=PeriodType.MONTH) for e in request.get('fee_list', center.fees) or []]
+        center.holds = [CenterHold(center=center, name=e.name, difficulty=e.difficulty, is_color=e.is_color) \
+                        for e in request.get('hold_list', center.holds) or []]
+        center.walls = [CenterWall(center=center, name=e.name, type=e.wall_type.value) for e in request.get('wall_list', center.walls) or []]
+
         await session.merge(center)
         return center
 

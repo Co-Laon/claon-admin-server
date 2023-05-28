@@ -16,8 +16,10 @@ from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.post import PostBriefResponseDto, PostSummaryResponseDto
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto, \
     ReviewTagDto, ReviewSummaryResponseDto
-from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto, CenterResponseDto
-from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, ReviewAnswer
+from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto, CenterResponseDto, \
+    CenterUpdateRequestDto
+from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, ReviewAnswer, \
+    CenterHoldRepository, CenterWallRepository, CenterFeeRepository
 from claon_admin.schema.post import PostRepository, PostCountHistoryRepository
 
 
@@ -27,12 +29,18 @@ class CenterService:
                  post_repository: PostRepository,
                  post_count_history_repository: PostCountHistoryRepository,
                  review_repository: ReviewRepository,
-                 review_answer_repository: ReviewAnswerRepository):
+                 review_answer_repository: ReviewAnswerRepository,
+                 center_hold_repository: CenterHoldRepository,
+                 center_wall_repository: CenterWallRepository,
+                 center_fee_repository: CenterFeeRepository):
         self.center_repository = center_repository
         self.post_repository = post_repository
         self.post_count_history_repository = post_count_history_repository
         self.review_repository = review_repository
         self.review_answer_repository = review_answer_repository
+        self.center_hold_repository = center_hold_repository
+        self.center_wall_repository = center_wall_repository
+        self.center_fee_repository = center_fee_repository
 
     @transactional(read_only=True)
     async def find_posts_by_center(self,
@@ -383,3 +391,36 @@ class CenterService:
 
         result = await self.center_repository.remove_center(session, center)
         return CenterResponseDto.from_entity(result, result.holds, result.walls, result.fees)
+
+    @transactional()
+    async def update(self,
+                     session: AsyncSession,
+                     subject: RequestUser,
+                     center_id: str,
+                     dto: CenterUpdateRequestDto):
+        center = await self.center_repository.find_by_id_with_details(session, center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if center.user_id is None:
+            raise BadRequestException(
+                ErrorCode.ROW_ALREADY_DETELED,
+                "이미 삭제된 암장입니다."
+            )
+
+        if subject.role != Role.ADMIN and center.user.id != subject.id:
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+        print("LOG:", dto.__dict__)
+        result = await self.center_repository.update(session, center, dto.__dict__)
+
+        fees = await self.center_fee_repository.save_all(session, result.fees)
+        holds = await self.center_hold_repository.save_all(session, result.holds)
+        walls = await self.center_wall_repository.save_all(session, result.walls)
+
+        return CenterResponseDto.from_entity(entity=result, holds=holds, walls=walls, fees=fees)

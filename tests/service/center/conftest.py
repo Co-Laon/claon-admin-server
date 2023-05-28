@@ -5,10 +5,11 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from claon_admin.common.enum import Role, WallType
+from claon_admin.common.enum import Role, WallType, MembershipType, PeriodType
 from claon_admin.common.util.time import now
 from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, Center, CenterImage, \
-    OperatingTime, Utility, CenterFeeImage, CenterFee, CenterHold, CenterWall, Review, ReviewTag, ReviewAnswer
+    OperatingTime, Utility, CenterFeeImage, CenterFee, CenterHold, CenterWall, Review, ReviewTag, ReviewAnswer, \
+    CenterHoldRepository, CenterWallRepository, CenterFeeRepository
 from claon_admin.schema.post import PostRepository, Post, PostImage, ClimbingHistory, PostCountHistoryRepository, \
     PostCountHistory
 from claon_admin.schema.user import User
@@ -22,13 +23,19 @@ def mock_repo():
     post_count_history_repository = AsyncMock(spec=PostCountHistoryRepository)
     review_repository = AsyncMock(spec=ReviewRepository)
     review_answer_repository = AsyncMock(spec=ReviewAnswerRepository)
+    center_fee_repository = AsyncMock(spec=CenterFeeRepository)
+    center_hold_repository = AsyncMock(spec=CenterHoldRepository)
+    center_wall_repository = AsyncMock(spec=CenterWallRepository)
 
     return {
         "center": center_repository,
         "post": post_repository,
         "post_count_history": post_count_history_repository,
         "review": review_repository,
-        "review_answer": review_answer_repository
+        "review_answer": review_answer_repository,
+        "center_fee": center_fee_repository,
+        "center_hold": center_hold_repository,
+        "center_wall": center_wall_repository
     }
 
 
@@ -39,7 +46,10 @@ def center_service(mock_repo: dict):
         mock_repo["post"],
         mock_repo["post_count_history"],
         mock_repo["review"],
-        mock_repo["review_answer"]
+        mock_repo["review_answer"],
+        mock_repo["center_fee"],
+        mock_repo["center_hold"],
+        mock_repo["center_wall"]
     )
 
 
@@ -188,6 +198,22 @@ def center_fees_fixture(center_fixture: Center):
 
 
 @pytest.fixture
+def another_center_fees_fixture(center_fixture: Center):
+    yield [
+        CenterFee(
+            id=str(uuid.uuid4()),
+            center=center_fixture,
+            name="another fee",
+            price=2000,
+            count=10,
+            membership_type=MembershipType.MEMBER,
+            period=12,
+            period_type=PeriodType.WEEK
+        )
+    ]
+
+
+@pytest.fixture
 def center_holds_fixture(center_fixture: Center):
     yield [
         CenterHold(
@@ -201,6 +227,19 @@ def center_holds_fixture(center_fixture: Center):
 
 
 @pytest.fixture
+def another_center_holds_fixture(center_fixture: Center):
+    yield [
+        CenterHold(
+            id=str(uuid.uuid4()),
+            center=center_fixture,
+            name="test hold",
+            difficulty="easy",
+            is_color=False
+        )
+    ]
+
+
+@pytest.fixture
 async def center_walls_fixture(center_fixture: Center):
     yield [
         CenterWall(
@@ -208,6 +247,18 @@ async def center_walls_fixture(center_fixture: Center):
             center=center_fixture,
             name="wall",
             type=WallType.ENDURANCE.value
+        )
+    ]
+
+
+@pytest.fixture
+async def another_center_walls_fixture(center_fixture: Center):
+    yield [
+        CenterWall(
+            id=str(uuid.uuid4()),
+            center=center_fixture,
+            name="another wall",
+            type=WallType.BOULDERING.value
         )
     ]
 

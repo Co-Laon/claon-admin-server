@@ -67,7 +67,10 @@ class Container(containers.DeclarativeContainer):
         post_repository=post_repository,
         post_count_history_repository=post_count_history_repository,
         review_repository=review_repository,
-        review_answer_repository=review_answer_repository
+        review_answer_repository=review_answer_repository,
+        center_fee_repository=center_fee_repository,
+        center_hold_repository=center_hold_repository,
+        center_wall_repository=center_wall_repository
     )
 
     membership_service = providers.Singleton(

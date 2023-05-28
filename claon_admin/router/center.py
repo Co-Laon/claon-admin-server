@@ -60,9 +60,10 @@ class CenterRouter:
 
     @router.put('/{center_id}', response_model=CenterResponseDto)
     async def update(self,
+                     subject: CurrentUser,
                      center_id: str,
                      request_dto: CenterUpdateRequestDto):
-        pass
+        return await self.center_service.update(center_id=center_id, subject=subject, dto=request_dto)
 
     @router.delete('/{center_id}', response_model=CenterResponseDto)
     async def delete(self,

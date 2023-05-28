@@ -185,3 +185,44 @@ class TestCenterRepository(object):
         # then
         result = await center_repository.remove_center(session, center_fixture)
         assert result.user_id is None
+
+    # @pytest.mark.asyncio
+    # async def test_update(
+    #         self,
+    #         session: AsyncSession,
+    #         center_fixture: Center,
+    # ):
+    #     # given
+    #     # {'profile_image': 'string', 'tel': '010-3392-5969', 'web_url': 'string', 'instagram_name': 'string', 'youtube_code': '@string', 'image_list': ['string'], 'utility_list': ['string'], 'fee_image_list': ['string'], 'operating_time_list': [CenterOperatingTimeDto(day_of_week='월', start_time='12:00', end_time='01:00')], 'fee_list': [CenterFeeDto(name='string', price=0, count=0)], 'hold_list': [CenterHoldDto(difficulty='string', name='string', is_color=True)], 'wall_list': [CenterWallDto(wall_type=<WallType.ENDURANCE: 'endurance'>, name='string')]}
+        
+    #     request = { # 이쪽 dict 안에 dto가 들어가서 생기는 문제 
+    #         "profile_image": "string",
+    #         "tel": "010-1234-1234",
+    #         "web_url": "string",
+    #         "instagram_name": "string",
+    #         "youtube_code": "@string",
+    #         "image_list": ["string"],
+    #         "utility_list": ["string"],
+    #         "fee_image_list": ["string"],
+    #         "operating_time_list": [{"day_of_week": "월", "start_time": "12:00", "end_time": "01:00"}],
+    #         "fee_list": [{"name": "string", "price": 0, "count": 0}],
+    #         "hold_list": [{"difficulty": "string", "name": "string", "is_color": True}],
+    #         "wall_list": [{"wall_type": "endurance", "name": "string"}]
+    #     }
+
+    #     # when
+    #     result = await center_repository.update(session, center_fixture, request)
+        
+    #     # then
+    #     print("LOG:", request)
+    #     assert result.profile_img == request['profile_image']
+    #     assert result.tel == request['tel']
+    #     assert result.web_url == request['web_url']
+    #     assert result.instagram_name == request['instagram_name']
+    #     assert result.youtube_url == f"https://www.youtube.com/{str(request['youtube_code'])}"
+    #     assert result.center_img[0].url == request['image_list'][0]
+    #     assert result.operating_time[0].day_of_week == request['operating_time_list'][0]['day_of_week']
+    #     assert result.operating_time[0].start_time == request['operating_time_list'][0]['start_time']
+    #     assert result.operating_time[0].end_time == request['operating_time_list'][0]['end_time']
+    #     assert result.utility[0].name == request['utility_list'][0]
+    #     assert result.fee_img[0].url == request['fee_image_list'][0]
