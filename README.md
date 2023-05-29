@@ -23,11 +23,13 @@ poetry install
 
 ### local
 ```bash
+poetry run task centryLocal
 poetry run task local
 ```
 
 ### prod
 ```bash
+poetry run task centryProd
 poetry run task prod
 ```
 
