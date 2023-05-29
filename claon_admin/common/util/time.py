@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 
 from claon_admin.config.consts import TIME_ZONE_KST
 
@@ -30,3 +30,8 @@ def get_relative_time(time: datetime = datetime.now(TIME_ZONE_KST)):
         return str(diff.total_seconds() // week_in_sec) + "주 전"
     else:
         return time.strftime("%Y-%m-%d")
+
+
+def get_weekday(day: date):
+    days = ["월", "화", "수", "목", "금", "토", "일"]
+    return days[day.weekday()]

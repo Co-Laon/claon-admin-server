@@ -17,3 +17,13 @@ services:
       - "mode=standalone"
     ports:
       - "6379:6379"
+  rabbit_mq:
+    image: rabbitmq:3.11.16
+    container_name: claon_admin_rabbit_mq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_ERLANG_COOKIE: "CLAON-RABBITMQ-COOKIE"
+      RABBITMQ_DEFAULT_USER: "claon_user"
+      RABBITMQ_DEFAULT_PASS: "claon_password"
