@@ -7,10 +7,6 @@ import pytest
 from claon_admin.common.enum import Role, WallType
 from claon_admin.common.util.oauth import OAuthUserInfoProviderSupplier
 from claon_admin.common.util.pagination import PaginationFactory
-from claon_admin.model.admin import CenterOperatingTimeDto
-from claon_admin.model.center import CenterAuthRequestDto, CenterFeeDto, CenterHoldDto, CenterWallDto
-from claon_admin.model.user import LectorRequestDto, UserProfileDto, LectorContestDto, LectorCertificateDto, \
-    LectorCareerDto
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, CenterFeeRepository, \
     CenterHoldRepository, CenterWallRepository, Center, CenterImage, OperatingTime, Utility, CenterFeeImage, \
     CenterApprovedFile, CenterFee, CenterHold, CenterWall
@@ -66,7 +62,7 @@ def user_service(mock_repo: dict, mock_supplier: OAuthUserInfoProviderSupplier):
 
 
 @pytest.fixture
-def mock_user():
+def user_fixture():
     yield User(
         id=str(uuid.uuid4()),
         oauth_id="oauth_id",
@@ -80,75 +76,10 @@ def mock_user():
 
 
 @pytest.fixture
-def lector_request_dto(mock_user: User):
-    yield LectorRequestDto(
-        profile=UserProfileDto(
-            profile_image=mock_user.profile_img,
-            nickname=mock_user.nickname,
-            email=mock_user.email,
-            instagram_nickname=mock_user.instagram_name,
-            role=mock_user.role
-        ),
-        is_setter=True,
-        contest_list=[
-            LectorContestDto(
-                year=2021,
-                title='testtitle',
-                name='testname'
-            )
-        ],
-        certificate_list=[
-            LectorCertificateDto(
-                acquisition_date=date.fromisoformat('2012-10-15'),
-                rate=4,
-                name='testcertificate'
-            )
-        ],
-        career_list=[
-            LectorCareerDto(
-                start_date=date.fromisoformat('2016-01-01'),
-                end_date=date.fromisoformat('2020-01-01'),
-                name='testcareer'
-            )
-        ],
-        proof_list=['https://test.com/test.pdf']
-    )
-
-
-@pytest.fixture
-async def center_request_dto(mock_user: User):
-    yield CenterAuthRequestDto(
-        profile=UserProfileDto(
-            profile_image=mock_user.profile_img,
-            nickname=mock_user.nickname,
-            email=mock_user.email,
-            instagram_nickname=mock_user.instagram_name,
-            role=mock_user.role
-        ),
-        profile_image="https://test.profile.png",
-        name="test center",
-        address="test_address",
-        detail_address="test_detail_address",
-        tel="010-1234-5678",
-        web_url="http://test.com",
-        instagram_name="test_instagram",
-        youtube_code="@test",
-        image_list=["https://test.image.png"],
-        utility_list=["test_utility"],
-        fee_image_list=["https://test.fee.png"],
-        operating_time_list=[CenterOperatingTimeDto(day_of_week="월", start_time="09:00", end_time="18:00")],
-        fee_list=[CenterFeeDto(name="fee", price=1000, count=10)],
-        hold_list=[CenterHoldDto(name="hold", difficulty="hard", is_color=False)],
-        wall_list=[CenterWallDto(name="wall", wall_type=WallType.ENDURANCE)],
-        proof_list=["https://example.com/approved.jpg"]
-    )
-
-
-@pytest.fixture
-def mock_lector(mock_user: User):
+def lector_fixture(user_fixture: User):
     yield Lector(
         id=str(uuid.uuid4()),
-        user=mock_user,
+        user=user_fixture,
         is_setter=True,
         contest=[Contest(year=2021, title="title", name="name")],
         certificate=[
@@ -170,19 +101,19 @@ def mock_lector(mock_user: User):
 
 
 @pytest.fixture
-def mock_lector_approved_files(mock_lector: Lector):
+def lector_approved_files_fixture(lector_fixture: Lector):
     yield LectorApprovedFile(
         id=str(uuid.uuid4()),
-        lector=mock_lector,
+        lector=lector_fixture,
         url="https://test.com/test.pdf"
     )
 
 
 @pytest.fixture
-def mock_center(mock_user: User):
+def center_fixture(user_fixture: User):
     yield Center(
         id=str(uuid.uuid4()),
-        user=mock_user,
+        user=user_fixture,
         name="test center",
         profile_img="https://test.profile.png",
         address="test_address",
@@ -200,23 +131,23 @@ def mock_center(mock_user: User):
 
 
 @pytest.fixture
-def mock_center_approved_files(mock_user: User, mock_center: Center):
+def center_approved_files_fixture(user_fixture: User, center_fixture: Center):
     yield [
         CenterApprovedFile(
             id=str(uuid.uuid4()),
-            user=mock_user,
-            center=mock_center,
+            user=user_fixture,
+            center=center_fixture,
             url="https://example.com/approved.jpg"
         )
     ]
 
 
 @pytest.fixture
-def mock_center_fees(mock_center: Center):
+def center_fees_fixture(center_fixture: Center):
     yield [
         CenterFee(
             id=str(uuid.uuid4()),
-            center=mock_center,
+            center=center_fixture,
             name="fee",
             price=1000,
             count=10
@@ -225,11 +156,11 @@ def mock_center_fees(mock_center: Center):
 
 
 @pytest.fixture
-def mock_center_holds(mock_center: Center):
+def center_holds_fixture(center_fixture: Center):
     yield [
         CenterHold(
             id=str(uuid.uuid4()),
-            center=mock_center,
+            center=center_fixture,
             name="hold",
             difficulty="hard",
             is_color=False
@@ -238,11 +169,11 @@ def mock_center_holds(mock_center: Center):
 
 
 @pytest.fixture
-def mock_center_walls(mock_center: Center):
+def center_walls_fixture(center_fixture: Center):
     yield [
         CenterWall(
             id=str(uuid.uuid4()),
-            center=mock_center,
+            center=center_fixture,
             name="wall",
             type=WallType.ENDURANCE.value
         )

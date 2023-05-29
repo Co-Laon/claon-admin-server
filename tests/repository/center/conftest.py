@@ -68,7 +68,7 @@ async def center_fixture(session: AsyncSession, user_fixture: User):
 
 
 @pytest.fixture
-async def center_another_fixture(session: AsyncSession):
+async def another_center_fixture(session: AsyncSession):
     center = Center(
         id=str(uuid.uuid4()),
         name="another test center",
