@@ -62,6 +62,30 @@ async def center_fixture(session: AsyncSession, user_fixture: User):
 
 
 @pytest.fixture
+async def another_center_fixture(session: AsyncSession, user_fixture: User):
+    center = Center(
+        user=user_fixture,
+        name="another test center",
+        profile_img="https://another.test.profile.png",
+        address="another_test_address",
+        detail_address="another_test_detail_address",
+        tel="010-1234-3333",
+        web_url="http://another.test.com",
+        instagram_name="another_instagram",
+        youtube_url="https://www.another.youtube.com/@test",
+        center_img=[CenterImage(url="https://another.test.image.png")],
+        operating_time=[OperatingTime(day_of_week="월", start_time="09:00", end_time="18:00")],
+        utility=[Utility(name="another_utility")],
+        fee_img=[CenterFeeImage(url="https://another.test.fee.png")],
+        approved=True
+    )
+
+    center = await center_repository.save(session, center)
+    yield center
+    await session.rollback()
+
+
+@pytest.fixture
 async def center_holds_fixture(session: AsyncSession, center_fixture: Center):
     center_hold = CenterHold(
         center=center_fixture,
@@ -94,7 +118,37 @@ async def post_fixture(session: AsyncSession, user_fixture: User, center_fixture
         user=user_fixture,
         center=center_fixture,
         content="content",
-        created_at=datetime(2023, 1, 1),
+        created_at=now(),
+        img=[PostImage(url="url")]
+    )
+
+    post = await post_repository.save(session, post)
+    yield post
+    await session.rollback()
+
+
+@pytest.fixture
+async def another_post_fixture(session: AsyncSession, user_fixture: User, another_center_fixture: Center):
+    post = Post(
+        user=user_fixture,
+        center=another_center_fixture,
+        content="content",
+        created_at=now(),
+        img=[PostImage(url="url")]
+    )
+
+    post = await post_repository.save(session, post)
+    yield post
+    await session.rollback()
+
+
+@pytest.fixture
+async def other_post_fixture(session: AsyncSession, user_fixture: User, center_fixture: Center):
+    post = Post(
+        user=user_fixture,
+        center=center_fixture,
+        content="content",
+        created_at=now(),
         img=[PostImage(url="url")]
     )
 
@@ -136,8 +190,7 @@ async def post_count_history_list_fixture(session: AsyncSession, center_fixture:
         )
     ]
 
-    post_count_history_list = [await post_count_history_repository.save(session, post_count_history)
-                               for post_count_history in post_count_history_list]
+    post_count_history_list = await post_count_history_repository.save_all(session, post_count_history_list)
     yield post_count_history_list
     await session.rollback()
 

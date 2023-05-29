@@ -12,6 +12,7 @@ from claon_admin.common.error.handler import add_http_exception_handler
 from claon_admin.common.util.db import db
 from claon_admin.config.config import conf
 from claon_admin.container import Container
+from claon_admin.job import post as job_post
 from claon_admin.middleware.file import LimitUploadSize
 from claon_admin.middleware.log import LoggerMiddleware
 from claon_admin.router import center, auth, admin, user, index
@@ -62,6 +63,16 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
+
+
+@app.on_event("startup")
+async def startup():
+    job_post.start()
+
+
+@app.on_event("shutdown")
+async def shutdown():
+    job_post.shutdown()
 
 if __name__ == "__main__":
     uvicorn.run('main:app', host='0.0.0.0', port=8000, reload=True)

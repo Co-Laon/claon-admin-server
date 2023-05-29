@@ -255,6 +255,11 @@ class CenterRepository:
         query = select(Center).where(Center.user_id == user_id).options(selectinload(Center.user))
         return await paginate(query=query, conn=session, params=params)
 
+    @staticmethod
+    async def find_all_ids_by_approved_true(session: AsyncSession):
+        result = await session.execute(select(Center.id).where(Center.approved.is_(True)))
+        return result.scalars().all()
+
 
 class CenterApprovedFileRepository:
     @staticmethod

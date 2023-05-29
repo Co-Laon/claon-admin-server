@@ -1,10 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 from fastapi_pagination import Params, Page
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.enum import WallType
+from claon_admin.common.util.time import now
 from claon_admin.schema.center import Center
 from claon_admin.schema.post import Post, ClimbingHistory
 from claon_admin.schema.user import User
@@ -23,7 +24,6 @@ class TestPostRepository(object):
         assert post_fixture.user == user_fixture
         assert post_fixture.content == "content"
         assert post_fixture.img[0].url == "url"
-        assert post_fixture.created_at == datetime(2023, 1, 1)
 
     @pytest.mark.asyncio
     async def test_find_posts_by_center(
@@ -41,8 +41,8 @@ class TestPostRepository(object):
             params,
             center_fixture.id,
             None,
-            datetime(2022, 3, 1),
-            datetime(2023, 2, 28)
+            now() - timedelta(days=1),
+            now()
         ) == Page.create(items=[post_fixture], params=params, total=1)
 
     @pytest.mark.asyncio
@@ -61,8 +61,8 @@ class TestPostRepository(object):
             params,
             center_fixture.id,
             "not included hold id",
-            datetime(2022, 3, 1),
-            datetime(2023, 2, 28)
+            now() - timedelta(days=1),
+            now()
         ) == Page.create(items=[], params=params, total=0)
 
     @pytest.mark.asyncio
@@ -82,9 +82,32 @@ class TestPostRepository(object):
             params=params,
             center_id=center_fixture.id,
             hold_id=climbing_history_fixture.hold_id,
-            start=datetime(2022, 3, 1),
-            end=datetime(2023, 2, 28)
+            start=now() - timedelta(days=1),
+            end=now()
         ) == Page.create(items=[post_fixture], params=params, total=1)
+
+    @pytest.mark.asyncio
+    async def test_count_by_center_and_date(
+            self,
+            session: AsyncSession,
+            center_fixture: Center,
+            another_center_fixture: Center,
+            post_fixture: Post,
+            another_post_fixture: Post,
+            other_post_fixture: Post
+    ):
+        # when
+        result = await post_repository.count_by_center_and_date(
+            session,
+            [center_fixture.id, another_center_fixture.id],
+            now() - timedelta(days=1),
+            now()
+        )
+
+        # then
+        assert len(result) == 2
+        assert result[center_fixture.id] == 2
+        assert result[another_center_fixture.id] == 1
 
     @pytest.mark.asyncio
     async def test_save_climbing_history(
