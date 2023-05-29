@@ -8,9 +8,9 @@ import pytest
 from claon_admin.common.enum import Role, WallType
 from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.common.util.time import now
-from claon_admin.schema.center import CenterRepository, PostRepository, ReviewRepository, ReviewAnswerRepository, \
-    Center, CenterImage, OperatingTime, Utility, CenterFeeImage, CenterHold, CenterWall, Post, PostImage, \
-    ClimbingHistory, Review, ReviewTag, ReviewAnswer
+from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, Center, CenterImage, \
+    OperatingTime, Utility, CenterFeeImage, CenterHold, CenterWall, Review, ReviewTag, ReviewAnswer
+from claon_admin.schema.post import PostRepository, Post, PostImage, ClimbingHistory
 from claon_admin.schema.user import User
 from claon_admin.service.center import CenterService
 
@@ -213,7 +213,8 @@ def today_post_fixture(user_fixture: User, center_fixture: Center):
 
 
 @pytest.fixture
-def climbing_history_fixture(post_fixture: Post, center_holds_fixture: List[CenterHold], center_walls_fixture: List[CenterWall]):
+def climbing_history_fixture(post_fixture: Post, center_holds_fixture: List[CenterHold],
+                             center_walls_fixture: List[CenterWall]):
     yield [
         ClimbingHistory(
             id=str(uuid.uuid4()),

@@ -9,9 +9,9 @@ from claon_admin.schema.center import (
     CenterRepository,
     CenterApprovedFileRepository, CenterHoldRepository, CenterWallRepository, Center, CenterHold, CenterWall,
     CenterApprovedFile, CenterImage, OperatingTime, Utility, CenterFee, CenterFeeImage, CenterFeeRepository, Review,
-    ReviewRepository, ReviewAnswerRepository, ReviewTag, ReviewAnswer, Post, PostRepository, ClimbingHistoryRepository,
-    ClimbingHistory, PostImage
+    ReviewRepository, ReviewAnswerRepository, ReviewTag, ReviewAnswer
 )
+from claon_admin.schema.post import Post, PostImage, PostRepository
 from claon_admin.schema.user import User, UserRepository
 
 user_repository = UserRepository()
@@ -20,10 +20,9 @@ center_approved_file_repository = CenterApprovedFileRepository()
 center_fee_repository = CenterFeeRepository()
 center_hold_repository = CenterHoldRepository()
 center_wall_repository = CenterWallRepository()
+post_repository = PostRepository()
 review_repository = ReviewRepository()
 review_answer_repository = ReviewAnswerRepository()
-post_repository = PostRepository()
-climbing_history_repository = ClimbingHistoryRepository()
 
 
 @pytest.fixture(autouse=True)
@@ -160,23 +159,6 @@ async def post_fixture(session: AsyncSession, user_fixture: User, center_fixture
 
     post = await post_repository.save(session, post)
     yield post
-    await session.rollback()
-
-
-@pytest.fixture
-async def climbing_history_fixture(session: AsyncSession, post_fixture: Post, center_holds_fixture: CenterHold,
-                                   center_walls_fixture: CenterWall):
-    history = ClimbingHistory(
-        post=post_fixture,
-        hold_id=center_holds_fixture.id,
-        difficulty=center_holds_fixture.difficulty,
-        challenge_count=2,
-        wall_name=center_walls_fixture.name,
-        wall_type=center_walls_fixture.type
-    )
-
-    history = await climbing_history_repository.save(session, history)
-    yield history
     await session.rollback()
 
 

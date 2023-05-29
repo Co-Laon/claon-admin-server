@@ -16,8 +16,8 @@ from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.post import PostBriefResponseDto, PostSummaryResponseDto, PostCount
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
 from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto
-from claon_admin.schema.center import PostRepository, CenterRepository, ReviewRepository, ReviewAnswerRepository, \
-    ReviewAnswer
+from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, ReviewAnswer
+from claon_admin.schema.post import PostRepository
 
 
 class CenterService:

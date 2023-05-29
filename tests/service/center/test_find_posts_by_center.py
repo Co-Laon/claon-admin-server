@@ -10,7 +10,8 @@ from claon_admin.common.util.pagination import Pagination
 from claon_admin.common.util.time import get_relative_time
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.post import PostBriefResponseDto
-from claon_admin.schema.center import Center, Post, ClimbingHistory
+from claon_admin.schema.center import Center
+from claon_admin.schema.post import Post, ClimbingHistory
 from claon_admin.service.center import CenterService
 
 

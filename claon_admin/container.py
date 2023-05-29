@@ -3,7 +3,8 @@ from dependency_injector import containers, providers
 from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.common.util.oauth import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider, KakaoUserInfoProvider
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, CenterHoldRepository, \
-    CenterWallRepository, CenterFeeRepository, PostRepository, ReviewRepository, ReviewAnswerRepository
+    CenterWallRepository, CenterFeeRepository, ReviewRepository, ReviewAnswerRepository
+from claon_admin.schema.post import PostRepository
 from claon_admin.schema.user import UserRepository, LectorRepository, LectorApprovedFileRepository
 from claon_admin.service.admin import AdminService
 from claon_admin.service.center import CenterService

@@ -5,9 +5,10 @@ from fastapi_pagination import Params, Page
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.enum import WallType
-from claon_admin.schema.center import Post, Center, ClimbingHistory
+from claon_admin.schema.center import Center
+from claon_admin.schema.post import Post, ClimbingHistory
 from claon_admin.schema.user import User
-from tests.repository.center.conftest import post_repository
+from tests.repository.post.conftest import post_repository
 
 
 @pytest.mark.describe("Test case for post repository")
