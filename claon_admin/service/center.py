@@ -264,13 +264,18 @@ class CenterService:
         total_count = await self.post_count_history_repository.sum_count_by_center(session, center.id)
 
         end_date = now().date()
-        start_date = end_date - timedelta(days=52 * 7)
+        start_date = end_date - timedelta(days=52 * 7 + end_date.weekday())
         count_history_by_year = await self.post_count_history_repository.find_by_center_and_date(session,
                                                                                                  center.id,
                                                                                                  start_date,
                                                                                                  end_date)
 
-        return PostSummaryResponseDto.from_entity(center.id, center.name, total_count, count_history_by_year)
+        return PostSummaryResponseDto.from_entity(
+            center,
+            end_date,
+            total_count,
+            count_history_by_year
+        )
 
     async def find_centers(self,
                            session: AsyncSession,
