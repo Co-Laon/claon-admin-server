@@ -5,9 +5,10 @@ from fastapi_pagination import Params, Page
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.enum import WallType
-from claon_admin.schema.center import Post, Center, ClimbingHistory
+from claon_admin.schema.center import Center
+from claon_admin.schema.post import Post, ClimbingHistory
 from claon_admin.schema.user import User
-from tests.repository.center.conftest import post_repository
+from tests.repository.post.conftest import post_repository
 
 
 @pytest.mark.describe("Test case for post repository")
@@ -84,24 +85,6 @@ class TestPostRepository(object):
             start=datetime(2022, 3, 1),
             end=datetime(2023, 2, 28)
         ) == Page.create(items=[post_fixture], params=params, total=1)
-
-    @pytest.mark.asyncio
-    async def test_find_posts_summary_by_center(
-            self,
-            session: AsyncSession,
-            center_fixture: Center,
-            post_fixture: Post
-    ):
-        # then
-        assert await post_repository.find_posts_summary_by_center(session, center_fixture.id) \
-               == {
-                   "today": 0,
-                   "week": 0,
-                   "month": 0,
-                   "total": 1,
-                   "per_day": [],
-                   "per_week": [(post_fixture.id, post_fixture.created_at)]
-               }
 
     @pytest.mark.asyncio
     async def test_save_climbing_history(

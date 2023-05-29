@@ -1,9 +1,12 @@
+from typing import List
+
 import pytest
 
 from claon_admin.common.enum import Role
 from claon_admin.common.error.exception import UnauthorizedException, ErrorCode, NotFoundException
 from claon_admin.model.auth import RequestUser
 from claon_admin.schema.center import Center, Post
+from claon_admin.schema.post import PostCountHistory
 from claon_admin.service.center import CenterService
 
 
@@ -19,24 +22,14 @@ class TestFindPostsSummaryByCenter(object):
             yesterday_post_fixture: Post,
             other_post_fixture: Post,
             another_post_fixture: Post,
+            post_count_history_list_fixture: List[PostCountHistory],
             post_fixture: Post
     ):
         # given
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
         mock_repo["center"].find_by_id.side_effect = [center_fixture]
-        mock_repo["post"].find_posts_summary_by_center.side_effect = [
-            {
-                "today": 1,
-                "week": 2,
-                "month": 2,
-                "total": 4,
-                "per_day": [(yesterday_post_fixture.id, yesterday_post_fixture.created_at)],
-                "per_week": [(post_fixture.id, post_fixture.created_at),
-                             (other_post_fixture.id, other_post_fixture.created_at),
-                             (another_post_fixture.id, another_post_fixture.created_at),
-                             (yesterday_post_fixture.id, yesterday_post_fixture.created_at)]
-            }
-        ]
+        mock_repo["post_count_history"].sum_count_by_center.side_effect = [30]
+        mock_repo["post_count_history"].find_by_center_and_date.side_effect = [post_count_history_list_fixture]
 
         # when
         results = await center_service.find_posts_summary_by_center(None,
@@ -46,13 +39,13 @@ class TestFindPostsSummaryByCenter(object):
         # then
         assert results.center_id == center_fixture.id
         assert results.center_name == center_fixture.name
-        assert results.count_today == 1
-        assert results.count_week == 2
-        assert results.count_month == 2
-        assert results.count_total == 4
+        assert results.count_today == 10
+        assert results.count_week == 20
+        assert results.count_month == 30
+        assert results.count_total == 30
         assert len(results.count_per_day) == 7
-        assert results.count_per_day[5].count == 0
-        assert results.count_per_day[6].count == 1
+        assert results.count_per_day[-1].count == 10
+        assert len(results.count_per_week) == 52
 
     @pytest.mark.asyncio
     @pytest.mark.it("Fail case: center is not found")
