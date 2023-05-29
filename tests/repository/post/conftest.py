@@ -1,12 +1,14 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.enum import Role, WallType
+from claon_admin.common.util.time import now
 from claon_admin.schema.center import Center, CenterWall, CenterHold, CenterImage, OperatingTime, Utility, \
     CenterFeeImage, CenterRepository, CenterHoldRepository, CenterWallRepository
-from claon_admin.schema.post import Post, PostImage, ClimbingHistory, PostRepository, ClimbingHistoryRepository
+from claon_admin.schema.post import Post, PostImage, ClimbingHistory, PostRepository, ClimbingHistoryRepository, \
+    PostCountHistoryRepository, PostCountHistory
 from claon_admin.schema.user import User, UserRepository
 
 user_repository = UserRepository()
@@ -14,6 +16,7 @@ center_repository = CenterRepository()
 center_hold_repository = CenterHoldRepository()
 center_wall_repository = CenterWallRepository()
 post_repository = PostRepository()
+post_count_history_repository = PostCountHistoryRepository()
 climbing_history_repository = ClimbingHistoryRepository()
 
 
@@ -97,6 +100,45 @@ async def post_fixture(session: AsyncSession, user_fixture: User, center_fixture
 
     post = await post_repository.save(session, post)
     yield post
+    await session.rollback()
+
+
+@pytest.fixture
+async def post_count_history_fixture(session: AsyncSession, center_fixture: Center):
+    post_history = PostCountHistory(
+        center_id=center_fixture.id,
+        count=10,
+        reg_date=now().date()
+    )
+
+    post_history = await post_count_history_repository.save(session, post_history)
+    yield post_history
+    await session.rollback()
+
+
+@pytest.fixture
+async def post_count_history_list_fixture(session: AsyncSession, center_fixture: Center):
+    post_count_history_list = [
+        PostCountHistory(
+            center_id=center_fixture.id,
+            count=10,
+            reg_date=now().date() - timedelta(weeks=52)
+        ),
+        PostCountHistory(
+            center_id=center_fixture.id,
+            count=10,
+            reg_date=now().date() - timedelta(weeks=4)
+        ),
+        PostCountHistory(
+            center_id=center_fixture.id,
+            count=10,
+            reg_date=now().date() - timedelta(weeks=1)
+        )
+    ]
+
+    post_count_history_list = [await post_count_history_repository.save(session, post_count_history)
+                               for post_count_history in post_count_history_list]
+    yield post_count_history_list
     await session.rollback()
 
 

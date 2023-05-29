@@ -1,17 +1,16 @@
 import json
-from datetime import date, timedelta, datetime
+from datetime import date
 from typing import List, Optional
 from uuid import uuid4
 
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate
-from sqlalchemy import Column, String, DateTime, TEXT, ForeignKey, Integer, Enum, and_, select, desc, func
+from sqlalchemy import Column, String, DateTime, TEXT, ForeignKey, Integer, Enum, and_, select, desc, func, asc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, backref, selectinload
 
 from claon_admin.common.enum import WallType
 from claon_admin.common.util.db import Base
-from claon_admin.common.util.time import now
 
 
 class PostImage:
@@ -58,6 +57,14 @@ class ClimbingHistory(Base):
     post = relationship("Post", back_populates="histories")
 
 
+class PostCountHistory(Base):
+    __tablename__ = 'tb_post_count_history'
+    id = Column(Integer, primary_key=True, index=True)
+    center_id = Column(String(length=255), nullable=False)
+    reg_date = Column(DateTime, nullable=False)
+    count = Column(Integer, nullable=False)
+
+
 class PostRepository:
     @staticmethod
     async def save(session: AsyncSession, post: Post):
@@ -85,45 +92,6 @@ class PostRepository:
 
         return await paginate(query=query, conn=session, params=params)
 
-    @staticmethod
-    async def find_posts_summary_by_center(session: AsyncSession, center_id: str):
-        counts = dict()
-        end_date = now()
-        criteria = ["today", "week", "month", "total", "per_day", "per_week"]
-
-        for c in criteria:
-            if c == "total":
-                query = select(func.count(Post.id)).where(Post.center_id == center_id)
-                result = await session.execute(query)
-                counts[c] = result.scalar()
-
-            elif c == "today":
-                query = select(func.count(Post.id)) \
-                    .where(and_(Post.center_id == center_id,
-                                Post.created_at >= datetime(end_date.year, end_date.month, end_date.day)))
-                result = await session.execute(query)
-                counts[c] = result.scalar()
-
-            elif c == "week" or c == "month":
-                days = 7 if c == "week" else 30
-                start_date = end_date - timedelta(days=days)
-                query = select(func.count(Post.id)) \
-                    .where(and_(Post.center_id == center_id,
-                                Post.created_at.between(start_date, end_date)))
-                result = await session.execute(query)
-                counts[c] = result.scalar()
-
-            elif c == "per_day" or c == "per_week":
-                days = 7 if c == "per_day" else 365
-                start_date = end_date - timedelta(days=days)
-                query = select(Post.id, Post.created_at) \
-                    .where(Post.created_at.between(start_date, end_date)) \
-                    .order_by(desc(Post.created_at))
-                result = await session.execute(query)
-                counts[c] = result.fetchall()
-
-        return counts
-
 
 class ClimbingHistoryRepository:
     @staticmethod
@@ -131,3 +99,27 @@ class ClimbingHistoryRepository:
         session.add(history)
         await session.merge(history)
         return history
+
+
+class PostCountHistoryRepository:
+    @staticmethod
+    async def save(session: AsyncSession, history: PostCountHistory):
+        session.add(history)
+        await session.merge(history)
+        return history
+
+    @staticmethod
+    async def sum_count_by_center(session: AsyncSession, center_id: str):
+        result = await session.execute(select(func.sum(PostCountHistory.count))
+                                       .where(PostCountHistory.center_id == center_id)
+                                       .order_by(desc(PostCountHistory.reg_date)))
+        return result.scalars().first() or 0
+
+    @staticmethod
+    async def find_by_center_and_date(session: AsyncSession, center_id: str, start: date, end: date):
+        result = await session.execute(select(PostCountHistory)
+                                       .where(and_(PostCountHistory.center_id == center_id,
+                                                   PostCountHistory.reg_date >= start,
+                                                   PostCountHistory.reg_date < end))
+                                       .order_by(asc(PostCountHistory.reg_date)))
+        return result.scalars().all()

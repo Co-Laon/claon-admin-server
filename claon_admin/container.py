@@ -4,7 +4,7 @@ from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.common.util.oauth import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider, KakaoUserInfoProvider
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, CenterHoldRepository, \
     CenterWallRepository, CenterFeeRepository, ReviewRepository, ReviewAnswerRepository
-from claon_admin.schema.post import PostRepository
+from claon_admin.schema.post import PostRepository, PostCountHistoryRepository
 from claon_admin.schema.user import UserRepository, LectorRepository, LectorApprovedFileRepository
 from claon_admin.service.admin import AdminService
 from claon_admin.service.center import CenterService
@@ -22,6 +22,7 @@ class Container(containers.DeclarativeContainer):
     center_hold_repository = providers.Factory(CenterHoldRepository)
     center_wall_repository = providers.Factory(CenterWallRepository)
     post_repository = providers.Factory(PostRepository)
+    post_count_history_repository = providers.Factory(PostCountHistoryRepository)
     review_repository = providers.Factory(ReviewRepository)
     review_answer_repository = providers.Factory(ReviewAnswerRepository)
     pagination_factory = providers.Factory(PaginationFactory)
@@ -63,6 +64,7 @@ class Container(containers.DeclarativeContainer):
         CenterService,
         center_repository=center_repository,
         post_repository=post_repository,
+        post_count_history_repository=post_count_history_repository,
         review_repository=review_repository,
         review_answer_repository=review_answer_repository,
         pagination_factory=pagination_factory

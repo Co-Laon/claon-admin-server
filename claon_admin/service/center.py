@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timedelta
 from typing import Optional
 
 from fastapi import UploadFile
@@ -7,28 +7,29 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.enum import CenterUploadPurpose, Role
 from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException
-from claon_admin.common.util.counter import DateCounter
 from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.common.util.s3 import upload_file
 from claon_admin.common.util.time import now
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
-from claon_admin.model.post import PostBriefResponseDto, PostSummaryResponseDto, PostCount
+from claon_admin.model.post import PostBriefResponseDto, PostSummaryResponseDto
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
 from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto
 from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, ReviewAnswer
-from claon_admin.schema.post import PostRepository
+from claon_admin.schema.post import PostRepository, PostCountHistoryRepository
 
 
 class CenterService:
     def __init__(self,
                  center_repository: CenterRepository,
                  post_repository: PostRepository,
+                 post_count_history_repository: PostCountHistoryRepository,
                  review_repository: ReviewRepository,
                  review_answer_repository: ReviewAnswerRepository,
                  pagination_factory: PaginationFactory):
         self.center_repository = center_repository
         self.post_repository = post_repository
+        self.post_count_history_repository = post_count_history_repository
         self.review_repository = review_repository
         self.review_answer_repository = review_answer_repository
         self.pagination_factory = pagination_factory
@@ -260,16 +261,16 @@ class CenterService:
                 "암장 관리자가 아닙니다."
             )
 
-        counts = await self.post_repository.find_posts_summary_by_center(session, center.id)
-        day_manager = DateCounter(unit="day", data=counts["per_day"])
-        week_manager = DateCounter(unit="week", data=counts["per_week"])
+        total_count = await self.post_count_history_repository.sum_count_by_center(session, center.id)
 
-        counts["per_day"] = [PostCount(unit=day_week, count=count) for (day_week, count) in
-                             dict(day_manager.get_count()).items()]
-        counts["per_week"] = [PostCount(unit=day_week, count=count) for (day_week, count) in
-                              dict(week_manager.get_count()).items()]
+        end_date = now().date()
+        start_date = end_date - timedelta(days=52 * 7)
+        count_history_by_year = await self.post_count_history_repository.find_by_center_and_date(session,
+                                                                                                 center.id,
+                                                                                                 start_date,
+                                                                                                 end_date)
 
-        return PostSummaryResponseDto.from_entity(center.id, center.name, counts)
+        return PostSummaryResponseDto.from_entity(center.id, center.name, total_count, count_history_by_year)
 
     async def find_centers(self,
                            session: AsyncSession,

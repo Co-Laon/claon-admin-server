@@ -10,7 +10,8 @@ from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.common.util.time import now
 from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, Center, CenterImage, \
     OperatingTime, Utility, CenterFeeImage, CenterHold, CenterWall, Review, ReviewTag, ReviewAnswer
-from claon_admin.schema.post import PostRepository, Post, PostImage, ClimbingHistory
+from claon_admin.schema.post import PostRepository, Post, PostImage, ClimbingHistory, PostCountHistoryRepository, \
+    PostCountHistory
 from claon_admin.schema.user import User
 from claon_admin.service.center import CenterService
 
@@ -19,6 +20,7 @@ from claon_admin.service.center import CenterService
 def mock_repo():
     center_repository = AsyncMock(spec=CenterRepository)
     post_repository = AsyncMock(spec=PostRepository)
+    post_count_history_repository = AsyncMock(spec=PostCountHistoryRepository)
     review_repository = AsyncMock(spec=ReviewRepository)
     review_answer_repository = AsyncMock(spec=ReviewAnswerRepository)
     pagination_factory = AsyncMock(spec=PaginationFactory)
@@ -26,6 +28,7 @@ def mock_repo():
     return {
         "center": center_repository,
         "post": post_repository,
+        "post_count_history": post_count_history_repository,
         "review": review_repository,
         "review_answer": review_answer_repository,
         "pagination_factory": pagination_factory
@@ -37,6 +40,7 @@ def center_service(mock_repo: dict):
     return CenterService(
         mock_repo["center"],
         mock_repo["post"],
+        mock_repo["post_count_history"],
         mock_repo["review"],
         mock_repo["review_answer"],
         mock_repo["pagination_factory"]
@@ -210,6 +214,36 @@ def today_post_fixture(user_fixture: User, center_fixture: Center):
         created_at=now(),
         img=[PostImage(url="https://test.post.img.png")]
     )
+
+
+@pytest.fixture
+async def post_count_history_list_fixture(center_fixture: Center):
+    yield [
+        PostCountHistory(
+            id=0,
+            center_id=center_fixture.id,
+            count=10,
+            reg_date=now().date() - timedelta(weeks=52)
+        ),
+        PostCountHistory(
+            id=1,
+            center_id=center_fixture.id,
+            count=10,
+            reg_date=now().date() - timedelta(weeks=4)
+        ),
+        PostCountHistory(
+            id=2,
+            center_id=center_fixture.id,
+            count=10,
+            reg_date=now().date() - timedelta(weeks=1)
+        ),
+        PostCountHistory(
+            id=3,
+            center_id=center_fixture.id,
+            count=10,
+            reg_date=now().date() - timedelta(days=1)
+        )
+    ]
 
 
 @pytest.fixture
