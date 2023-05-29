@@ -46,6 +46,7 @@ class TestFindPostsSummaryByCenter(object):
         assert len(results.count_per_day) == 7
         assert results.count_per_day[-1].count == 10
         assert len(results.count_per_week) == 52
+        assert results.count_per_week[-1].count == 10
 
     @pytest.mark.asyncio
     @pytest.mark.it("Fail case: center is not found")
