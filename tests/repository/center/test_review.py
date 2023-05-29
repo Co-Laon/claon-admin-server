@@ -108,6 +108,20 @@ class TestReviewRepository(object):
             center_fixture.id
         ) == review_fixture
 
+    @pytest.mark.asyncio
+    async def test_find_review_by_center(
+            self,
+            session: AsyncSession,
+            center_fixture: Center,
+            review_fixture: Review,
+            other_review_fixture: Review
+    ):
+        # then
+        assert await review_repository.find_all_by_center(
+            session,
+            center_fixture.id
+        ) == [review_fixture, other_review_fixture]
+
 
 @pytest.mark.describe("Test case for review answer repository")
 class TestReviewAnswerRepository(object):

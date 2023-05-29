@@ -140,8 +140,9 @@ class CenterRouter:
     @router.get('/{center_id}/reviews/summary', response_model=ReviewSummaryResponseDto)
     async def find_reviews_summary_by_center(self,
                                              center_id: str,
-                                             session: AsyncSession = Depends(db.get_db)):
-        pass
+                                             session: AsyncSession = Depends(db.get_db),
+                                             subject: RequestUser = Depends(get_subject)):
+        return await self.center_service.find_reviews_summary_by_center(session, subject, center_id)
 
     @router.post('/{center_id}/reviews/{review_id}', response_model=ReviewAnswerResponseDto)
     async def create_review_answer(self,

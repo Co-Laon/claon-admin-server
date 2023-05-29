@@ -90,6 +90,52 @@ def review_user_fixture():
 
 
 @pytest.fixture
+def review_user_list_fixture():
+    yield [
+        User(
+            id=str(uuid.uuid4()),
+            oauth_id="r1_oauth_id",
+            nickname="r1_nickname",
+            profile_img="r1_profile_img",
+            sns="r1_sns",
+            email="r1_test@test.com",
+            instagram_name="r1_instagram_name",
+            role=Role.USER
+        ),
+        User(
+            id=str(uuid.uuid4()),
+            oauth_id="r2_oauth_id",
+            nickname="r2_nickname",
+            profile_img="r2_profile_img",
+            sns="r2_sns",
+            email="r2_test@test.com",
+            instagram_name="r2_instagram_name",
+            role=Role.USER
+        ),
+        User(
+            id=str(uuid.uuid4()),
+            oauth_id="r3_oauth_id",
+            nickname="r3_nickname",
+            profile_img="r3_profile_img",
+            sns="r3_sns",
+            email="r3_test@test.com",
+            instagram_name="r3_instagram_name",
+            role=Role.USER
+        ),
+        User(
+            id=str(uuid.uuid4()),
+            oauth_id="r4_oauth_id",
+            nickname="r4_nickname",
+            profile_img="r4_profile_img",
+            sns="r4_sns",
+            email="r4_test@test.com",
+            instagram_name="r4_instagram_name",
+            role=Role.USER
+        )
+    ]
+
+
+@pytest.fixture
 def center_fixture(user_fixture: User):
     yield Center(
         id=str(uuid.uuid4()),
@@ -262,11 +308,13 @@ def climbing_history_fixture(post_fixture: Post, center_holds_fixture: List[Cent
 
 
 @pytest.fixture
-def review_fixture(user_fixture: User, center_fixture: Center):
+def review_fixture(user_fixture: User, center_fixture: Center, review_answer_fixture: ReviewAnswer):
     yield Review(
         id=str(uuid.uuid4()),
         user=user_fixture,
         center=center_fixture,
+        answer_id=review_answer_fixture.id,
+        answer=review_answer_fixture,
         content="content",
         created_at=datetime(2023, 2, 5),
         tag=[ReviewTag(word="tag")]
@@ -274,11 +322,13 @@ def review_fixture(user_fixture: User, center_fixture: Center):
 
 
 @pytest.fixture
-def not_answered_review_fixture(user_fixture: User, center_fixture: Center):
+def not_answered_review_fixture(user_fixture: User, center_fixture: Center, new_review_answer_fixture: ReviewAnswer):
     yield Review(
         id=str(uuid.uuid4()),
         user=user_fixture,
         center=center_fixture,
+        answer_id=new_review_answer_fixture.id,
+        answer=new_review_answer_fixture,
         content="content",
         created_at=datetime(2023, 2, 5),
         tag=[ReviewTag(word="tag")]
@@ -298,11 +348,13 @@ def other_review_fixture(pending_user_fixture: User, center_fixture: Center):
 
 
 @pytest.fixture
-def another_review_fixture(review_user_fixture: User, center_fixture: Center):
+def another_review_fixture(review_user_fixture: User, center_fixture: Center, another_review_answer_fixture: ReviewAnswer):
     yield Review(
         id=str(uuid.uuid4()),
         user=review_user_fixture,
         center=center_fixture,
+        answer_id=another_review_answer_fixture.id,
+        answer=another_review_answer_fixture,
         content="content",
         created_at=datetime(2023, 2, 5),
         tag=[ReviewTag(word="other_tag")]
@@ -310,30 +362,98 @@ def another_review_fixture(review_user_fixture: User, center_fixture: Center):
 
 
 @pytest.fixture
-def review_answer_fixture(review_fixture: Review):
+def review_answer_fixture():
     yield ReviewAnswer(
         id=str(uuid.uuid4()),
-        review=review_fixture,
         content="answer",
         created_at=datetime(2023, 2, 7)
     )
 
 
 @pytest.fixture
-def another_review_answer_fixture(another_review_fixture: Review):
+def another_review_answer_fixture():
     yield ReviewAnswer(
         id=str(uuid.uuid4()),
-        review=another_review_fixture,
         content="answer",
         created_at=datetime(2023, 2, 7)
     )
 
 
 @pytest.fixture
-def new_review_answer_fixture(not_answered_review_fixture: Review):
+def new_review_answer_fixture():
     yield ReviewAnswer(
         id=str(uuid.uuid4()),
-        review=not_answered_review_fixture,
         content="new answer",
         created_at=datetime(2023, 2, 7)
     )
+
+
+@pytest.fixture
+def review_answer_list_fixture():
+    yield [
+        ReviewAnswer(
+            id=str(uuid.uuid4()),
+            content="answer1",
+            created_at=now().date() - timedelta(days=1)
+        ),
+        ReviewAnswer(
+            id=str(uuid.uuid4()),
+            content="answer2",
+            created_at=now().date() - timedelta(days=1)
+        ),
+        ReviewAnswer(
+            id=str(uuid.uuid4()),
+            content="answer3",
+            created_at=now().date() - timedelta(days=1)
+        )
+    ]
+
+
+@pytest.fixture
+def review_list_fixture(
+        review_answer_list_fixture: List[ReviewAnswer],
+        review_user_list_fixture: List[User],
+        center_fixture: Center
+):
+    yield [
+        Review(
+            id=str(uuid.uuid4()),
+            user=review_user_list_fixture[0],
+            center=center_fixture,
+            answer_id=review_answer_list_fixture[0].id,
+            answer=review_answer_list_fixture[0],
+            content="content",
+            created_at=datetime(2023, 4, 4),
+            tag=[ReviewTag(word="tag"), ReviewTag(word="tag2")]
+        ),
+        Review(
+            id=str(uuid.uuid4()),
+            user=review_user_list_fixture[1],
+            center=center_fixture,
+            answer_id=review_answer_list_fixture[1].id,
+            answer=review_answer_list_fixture[1],
+            content="content",
+            created_at=datetime(2023, 4, 4),
+            tag=[ReviewTag(word="tag")]
+        ),
+        Review(
+            id=str(uuid.uuid4()),
+            user=review_user_list_fixture[2],
+            center=center_fixture,
+            answer_id=review_answer_list_fixture[2].id,
+            answer=review_answer_list_fixture[2],
+            content="content",
+            created_at=datetime(2023, 4, 4),
+            tag=[ReviewTag(word="tag2"), ReviewTag(word="tag3")]
+        ),
+        Review(
+            id=str(uuid.uuid4()),
+            user=review_user_list_fixture[3],
+            center=center_fixture,
+            answer_id=None,
+            answer=None,
+            content="content",
+            created_at=datetime(2023, 4, 4),
+            tag=[ReviewTag(word="tag"), ReviewTag(word="tag3")]
+        )
+    ]
