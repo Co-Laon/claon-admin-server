@@ -171,7 +171,7 @@ class TestCenterRepository(object):
             self,
             session: AsyncSession,
             center_fixture: Center,
-            another_center_fixture
+            another_center_fixture: Center
     ):
         # when
         result = await center_repository.find_by_name(session, center_fixture.name)
@@ -185,7 +185,7 @@ class TestCenterRepository(object):
             session: AsyncSession,
             user_fixture: User,
             center_fixture: Center,
-            another_center_fixture
+            another_center_fixture: Center
     ):
         # given
         params = Params(page=1, size=10)
@@ -194,3 +194,12 @@ class TestCenterRepository(object):
         assert await center_repository.find_all_by_user_id(
             session, user_fixture.id, params
         ) == Page.create(items=[center_fixture], params=params, total=1)
+
+    @pytest.mark.asyncio
+    async def test_find_all_ids_by_approved_true(
+            self,
+            session: AsyncSession,
+            center_fixture: Center
+    ):
+        # then
+        assert await center_repository.find_all_ids_by_approved_true(session) == [center_fixture.id]

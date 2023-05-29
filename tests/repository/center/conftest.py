@@ -1,4 +1,3 @@
-import uuid
 from datetime import datetime
 
 import pytest
@@ -69,7 +68,6 @@ async def center_fixture(session: AsyncSession, user_fixture: User):
 @pytest.fixture
 async def another_center_fixture(session: AsyncSession):
     center = Center(
-        id=str(uuid.uuid4()),
         name="another test center",
         profile_img="https://another.test.profile.png",
         address="another_test_address",
