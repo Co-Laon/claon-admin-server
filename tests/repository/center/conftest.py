@@ -41,6 +41,23 @@ async def user_fixture(session: AsyncSession):
     await session.rollback()
 
 
+@pytest.fixture(autouse=True)
+async def review_user_fixture(session: AsyncSession):
+    user = User(
+        oauth_id="r_oauth_id",
+        nickname="r_nickname",
+        profile_img="r_profile_img",
+        sns="r_sns",
+        email="r_test@test.com",
+        instagram_name="r_instagram_name",
+        role=Role.USER,
+    )
+
+    user = await user_repository.save(session, user)
+    yield user
+    await session.rollback()
+
+
 @pytest.fixture
 async def center_fixture(session: AsyncSession, user_fixture: User):
     center = Center(
@@ -168,6 +185,21 @@ async def review_fixture(session: AsyncSession, user_fixture: User, center_fixtu
         content="content",
         created_at=datetime(2023, 1, 1),
         tag=[ReviewTag(word="tag"), ReviewTag(word="tag2")]
+    )
+
+    review = await review_repository.save(session, review)
+    yield review
+    await session.rollback()
+
+
+@pytest.fixture
+async def other_review_fixture(session: AsyncSession, review_user_fixture: User, center_fixture: Center):
+    review = Review(
+        user=review_user_fixture,
+        center=center_fixture,
+        content="other content",
+        created_at=datetime(2023, 2, 2),
+        tag=[ReviewTag(word="tag3"), ReviewTag(word="tag4")]
     )
 
     review = await review_repository.save(session, review)

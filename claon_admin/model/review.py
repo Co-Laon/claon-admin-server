@@ -1,9 +1,10 @@
+from collections import Counter
 from typing import List, Optional, Tuple
 
 from pydantic import BaseModel, validator
 
 from claon_admin.common.util.time import get_relative_time
-from claon_admin.schema.center import Review, ReviewAnswer
+from claon_admin.schema.center import Review, ReviewAnswer, Center
 
 
 class ReviewAnswerRequestDto(BaseModel):
@@ -71,4 +72,15 @@ class ReviewSummaryResponseDto(BaseModel):
     count_total: int
     count_not_answered: int
     count_answered: int
-    review_count_by_tag_list: List[ReviewTagDto]
+    count_by_tag: List[ReviewTagDto]
+
+    @classmethod
+    def from_entity(cls, center: Center, counts: Counter, count_by_tag: List[ReviewTagDto]):
+        return ReviewSummaryResponseDto(
+            center_id=center.id,
+            center_name=center.name,
+            count_total=counts[False] + counts[True],
+            count_not_answered=counts[False],
+            count_answered=counts[True],
+            count_by_tag=count_by_tag
+        )

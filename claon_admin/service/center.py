@@ -1,3 +1,4 @@
+from collections import Counter
 from datetime import date, timedelta
 from typing import Optional
 
@@ -13,7 +14,8 @@ from claon_admin.common.util.time import now
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.post import PostBriefResponseDto, PostSummaryResponseDto
-from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto
+from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto, \
+    ReviewTagDto, ReviewSummaryResponseDto
 from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto
 from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, ReviewAnswer
 from claon_admin.schema.post import PostRepository, PostCountHistoryRepository
@@ -296,3 +298,35 @@ class CenterService:
             )
 
         return await self.pagination_factory.create(CenterBriefResponseDto, pages)
+
+    async def find_reviews_summary_by_center(self,
+                                             session: AsyncSession,
+                                             subject: RequestUser,
+                                             center_id: str):
+        center = await self.center_repository.find_by_id(session, center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if center.user.id != subject.id:
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        reviews = await self.review_repository.find_all_by_center(session, center.id)
+
+        is_answer, tags = [], []
+        for review in reviews:
+            is_answer.append(False if review.answer_id is None else True)
+            tags.append(review.tag)
+
+        tag_list = [t.word for t in sum(tags, [])]
+
+        return ReviewSummaryResponseDto.from_entity(
+            center,
+            Counter(is_answer),
+            [ReviewTagDto(tag=tag, count=count) for tag, count in Counter(tag_list).items()]
+        )

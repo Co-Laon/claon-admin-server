@@ -169,12 +169,14 @@ class Review(Base):
     content = Column(String(length=500), nullable=False)
     created_at = Column(DateTime, nullable=False)
     _tag = Column(TEXT, nullable=False)
-    answer = relationship("ReviewAnswer", back_populates="review", uselist=False, cascade="all, delete-orphan")
 
     user_id = Column(String(length=255), ForeignKey("tb_user.id", ondelete="CASCADE"), nullable=False)
     user = relationship("User", backref=backref("Review"))
     center_id = Column(String(length=255), ForeignKey("tb_center.id", ondelete="CASCADE"), nullable=False)
     center = relationship("Center", backref=backref("Review"))
+
+    answer_id = Column(String(length=255), ForeignKey("tb_review_answer.id", ondelete="CASCADE"))
+    answer = relationship("ReviewAnswer", back_populates="review")
 
     @property
     def tag(self):
@@ -195,8 +197,7 @@ class ReviewAnswer(Base):
     content = Column(String(length=500), nullable=False)
     created_at = Column(DateTime, nullable=False)
 
-    review_id = Column(String(length=255), ForeignKey("tb_review.id", ondelete="CASCADE"), nullable=False, unique=True)
-    review = relationship("Review", back_populates="answer")
+    review = relationship("Review", back_populates="answer", uselist=False)
 
 
 class CenterRepository:
@@ -388,6 +389,12 @@ class ReviewRepository:
 
         return result.scalars().one_or_none()
 
+    @staticmethod
+    async def find_all_by_center(session: AsyncSession, center_id: str):
+        result = await session.execute(select(Review).where(Review.center_id == center_id))
+
+        return result.scalars().all()
+
 
 class ReviewAnswerRepository:
     @staticmethod
@@ -408,6 +415,8 @@ class ReviewAnswerRepository:
 
     @staticmethod
     async def find_by_review_id(session: AsyncSession, review_id: str):
-        result = await session.execute(select(ReviewAnswer).where(ReviewAnswer.review_id == review_id))
+        result = await session.execute(select(ReviewAnswer)
+                                       .join(Review)
+                                       .where(Review.id == review_id))
 
         return result.scalars().one_or_none()
