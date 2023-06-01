@@ -5,8 +5,8 @@ from uuid import uuid4
 
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate
-from sqlalchemy import String, Column, ForeignKey, Boolean, select, exists, Integer, DateTime, Enum, delete, and_, \
-    desc, func, null
+from sqlalchemy import String, Column, ForeignKey, Boolean, select, exists, Integer, Enum, delete, and_, desc, func, \
+    null
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload, backref
 from sqlalchemy.dialects.postgresql import TEXT
@@ -44,7 +44,6 @@ class ReviewTag:
 
 
 class Center(Base):
-    __tablename__ = 'tb_center'
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     name = Column(String(length=30), nullable=False)
     profile_img = Column(TEXT, nullable=False)
@@ -118,7 +117,6 @@ class Center(Base):
 
 
 class CenterFee(Base):
-    __tablename__ = 'tb_center_fee'
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     name = Column(String(length=50), nullable=False)
     membership_type = Column(Enum(MembershipType), nullable=False)
@@ -132,7 +130,6 @@ class CenterFee(Base):
 
 
 class CenterHold(Base):
-    __tablename__ = 'tb_center_hold'
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     name = Column(String(length=10))
     difficulty = Column(String(length=10))
@@ -143,7 +140,6 @@ class CenterHold(Base):
 
 
 class CenterWall(Base):
-    __tablename__ = 'tb_center_wall'
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     name = Column(String(length=20))
     type = Column(String(length=20))
@@ -153,7 +149,6 @@ class CenterWall(Base):
 
 
 class CenterApprovedFile(Base):
-    __tablename__ = 'tb_center_approved_file'
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     url = Column(String(length=255))
 
@@ -164,10 +159,8 @@ class CenterApprovedFile(Base):
 
 
 class Review(Base):
-    __tablename__ = "tb_review"
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     content = Column(String(length=500), nullable=False)
-    created_at = Column(DateTime, nullable=False)
     _tag = Column(TEXT, nullable=False)
 
     user_id = Column(String(length=255), ForeignKey("tb_user.id", ondelete="CASCADE"), nullable=False)
@@ -192,10 +185,8 @@ class Review(Base):
 
 
 class ReviewAnswer(Base):
-    __tablename__ = 'tb_review_answer'
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     content = Column(String(length=500), nullable=False)
-    created_at = Column(DateTime, nullable=False)
 
     review = relationship("Review", back_populates="answer", uselist=False)
 
@@ -245,7 +236,7 @@ class CenterRepository:
         return result.scalars().all()
 
     @staticmethod
-    async def find_by_name(session:AsyncSession, name: str):
+    async def find_by_name(session: AsyncSession, name: str):
         result = await session.execute(select(Center)
                                        .where(and_(Center.name.contains(name), Center.user_id == null()))
                                        .limit(5))

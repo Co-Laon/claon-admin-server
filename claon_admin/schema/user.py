@@ -34,7 +34,6 @@ class Career:
 
 
 class User(Base):
-    __tablename__ = 'tb_user'
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     oauth_id = Column(String(length=255), nullable=False, unique=True)
     nickname = Column(String(length=40), nullable=False, unique=True)
@@ -52,7 +51,6 @@ class User(Base):
 
 
 class Lector(Base):
-    __tablename__ = 'tb_lector'
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     is_setter = Column(Boolean, default=False, nullable=False)
     approved = Column(Boolean, default=False, nullable=False)
@@ -102,7 +100,6 @@ class Lector(Base):
 
 
 class LectorApprovedFile(Base):
-    __tablename__ = 'tb_lector_approved_file'
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     url = Column(String(length=255))
 
