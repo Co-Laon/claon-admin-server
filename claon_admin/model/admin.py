@@ -1,5 +1,5 @@
 from datetime import date
-from typing import Optional, List
+from typing import List
 
 from pydantic import BaseModel
 
@@ -38,11 +38,11 @@ class CenterResponseDto(BaseModel):
     profile_image: str
     name: str
     address: str
-    detail_address: Optional[str]
+    detail_address: str | None
     tel: str
-    web_url: Optional[str]
-    instagram_name: Optional[str]
-    youtube_code: Optional[str]
+    web_url: str | None
+    instagram_name: str | None
+    youtube_code: str | None
     approved: bool
     image_list: List[str]
     utility_list: List[str]

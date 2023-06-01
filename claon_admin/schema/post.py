@@ -1,6 +1,6 @@
 import json
 from datetime import date
-from typing import List, Optional
+from typing import List
 from uuid import uuid4
 
 from fastapi_pagination import Params
@@ -76,7 +76,7 @@ class PostRepository:
     async def find_posts_by_center(session: AsyncSession,
                                    params: Params,
                                    center_id: str,
-                                   hold_id: Optional[str],
+                                   hold_id: str | None,
                                    start: date,
                                    end: date):
         query = select(Post).where(and_(Post.center_id == center_id,

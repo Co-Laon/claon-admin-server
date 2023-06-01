@@ -1,5 +1,5 @@
 import re
-from typing import Optional, List
+from typing import List
 
 from pydantic import BaseModel, validator
 
@@ -106,11 +106,11 @@ class CenterRequestDto(BaseModel):
     profile_image: str
     name: str
     address: str
-    detail_address: Optional[str]
+    detail_address: str | None
     tel: str
-    web_url: Optional[str]
-    instagram_name: Optional[str]
-    youtube_code: Optional[str]
+    web_url: str | None
+    instagram_name: str | None
+    youtube_code: str | None
     image_list: List[str]
     utility_list: List[str]
     operating_time_list: List[CenterOperatingTimeDto]
@@ -178,9 +178,9 @@ class CenterRequestDto(BaseModel):
 class CenterUpdateRequestDto(BaseModel):
     profile_image: str
     tel: str
-    web_url: Optional[str]
-    instagram_name: Optional[str]
-    youtube_code: Optional[str]
+    web_url: str | None
+    instagram_name: str | None
+    youtube_code: str | None
     image_list: List[str]
     utility_list: List[str]
     fee_image_list: List[str]
@@ -241,11 +241,11 @@ class CenterResponseDto(BaseModel):
     profile_image: str
     name: str
     address: str
-    detail_address: Optional[str]
+    detail_address: str | None
     tel: str
-    web_url: Optional[str]
-    instagram_name: Optional[str]
-    youtube_code: Optional[str]
+    web_url: str | None
+    instagram_name: str | None
+    youtube_code: str | None
     image_list: List[str]
     utility_list: List[str]
     fee_image_list: List[str]
@@ -294,11 +294,11 @@ class CenterBriefResponseDto(BaseModel):
     profile_image: str
     name: str
     address: str
-    detail_address: Optional[str]
+    detail_address: str | None
     image_list: List[str]
-    lector_count: Optional[int]
-    member_count: Optional[int]
-    matching_request_count: Optional[int]
+    lector_count: int | None
+    member_count: int | None
+    matching_request_count: int | None
     is_approved: bool
 
     # TODO: Need to modify matching/membe/lector count after plan for matching and member
@@ -323,11 +323,11 @@ class CenterAuthRequestDto(BaseModel):
     profile_image: str
     name: str
     address: str
-    detail_address: Optional[str]
+    detail_address: str | None
     tel: str
-    web_url: Optional[str]
-    instagram_name: Optional[str]
-    youtube_code: Optional[str]
+    web_url: str | None
+    instagram_name: str | None
+    youtube_code: str | None
     image_list: List[str]
     utility_list: List[str]
     operating_time_list: List[CenterOperatingTimeDto]

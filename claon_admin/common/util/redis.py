@@ -1,5 +1,3 @@
-from typing import Optional
-
 from claon_admin.config.config import conf
 from claon_admin.config.redis import redis
 
@@ -15,6 +13,6 @@ def delete_refresh_token(refresh_token: str):
             conn.delete(refresh_token)
 
 
-def find_user_id_by_refresh_token(refresh_token: str) -> Optional[str]:
+def find_user_id_by_refresh_token(refresh_token: str) -> str | None:
     with redis.get_connection() as conn:
         return conn.get(refresh_token)

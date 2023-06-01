@@ -1,6 +1,6 @@
 import json
 from datetime import date
-from typing import List, Optional
+from typing import List
 from uuid import uuid4
 
 from fastapi_pagination import Params
@@ -355,8 +355,8 @@ class ReviewRepository:
                                      center_id: str,
                                      start: date,
                                      end: date,
-                                     tag: Optional[str],
-                                     is_answered: Optional[bool]):
+                                     tag: str | None,
+                                     is_answered: bool | None):
         query = select(Review, func.count(Post.id)) \
             .select_from(Review) \
             .join(Post, and_(Review.user_id == Post.user_id, Review.center_id == Post.center_id)) \

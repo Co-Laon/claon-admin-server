@@ -1,5 +1,5 @@
 from collections import Counter
-from typing import List, Optional, Tuple
+from typing import List, Tuple
 
 from pydantic import BaseModel, validator
 
@@ -37,7 +37,7 @@ class ReviewBriefResponseDto(BaseModel):
     review_id: str
     content: str
     created_at: str
-    answer: Optional[ReviewAnswerResponseDto]
+    answer: ReviewAnswerResponseDto | None
     user_id: str
     user_nickname: str
     user_profile_image: str

@@ -1,6 +1,5 @@
 from collections import Counter
 from datetime import date, timedelta
-from typing import Optional
 
 from fastapi import UploadFile
 from fastapi_pagination import Params
@@ -41,7 +40,7 @@ class CenterService:
                                    subject: RequestUser,
                                    params: Params,
                                    center_id: str,
-                                   hold_id: Optional[str],
+                                   hold_id: str | None,
                                    start: date,
                                    end: date):
         center = await self.center_repository.find_by_id(session, center_id)
@@ -83,8 +82,8 @@ class CenterService:
                                      center_id: str,
                                      start: date,
                                      end: date,
-                                     tag: Optional[str],
-                                     is_answered: Optional[bool]):
+                                     tag: str | None,
+                                     is_answered: bool | None):
         center = await self.center_repository.find_by_id(session, center_id)
         if center is None:
             raise NotFoundException(
