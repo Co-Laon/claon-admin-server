@@ -35,3 +35,15 @@ poetry run task prod
 ```bash
 poetry run task test
 ```
+
+## Run Celery
+
+### local
+```bash
+poetry run task celeryLocal
+```
+
+### prod
+```bash
+poetry run task celeryProd 
+```
