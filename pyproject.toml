@@ -8,7 +8,7 @@ packages = [{include = "claon_admin"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-fastapi = "^0.94.0"
+fastapi = "^0.95.1"
 asyncpg = "^0.27.0"
 asyncio = "^3.4.3"
 dependency-injector = "^4.41.0"

@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Optional, List
+from typing import List
 
 from pydantic import BaseModel, validator, EmailStr
 
@@ -17,11 +17,11 @@ class IsDuplicatedNicknameResponseDto(BaseModel):
 
 
 class UserProfileResponseDto(BaseModel):
-    profile_image: Optional[str]
+    profile_image: str | None
     nickname: str
-    email: Optional[str]
-    instagram_nickname: Optional[str]
-    role: Optional[Role]
+    email: str | None
+    instagram_nickname: str | None
+    role: Role | None
 
     @classmethod
     def from_entity(cls, entity: User):
@@ -38,8 +38,8 @@ class UserProfileDto(BaseModel):
     profile_image: str
     nickname: str
     email: EmailStr
-    instagram_nickname: Optional[str]
-    role: Optional[Role]
+    instagram_nickname: str | None
+    role: Role | None
 
     @validator('nickname')
     def validate_nickname(cls, value):
