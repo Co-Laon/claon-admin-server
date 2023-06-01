@@ -41,6 +41,7 @@ websockets = "^11.0.3"
 pandas = "^2.0.1"
 pytest-it = "^0.1.4"
 apscheduler = "^3.10.1"
+celery = "^5.2.7"
 
 [tool.taskipy.tasks]
 local = "API_ENV=local uvicorn claon_admin.main:app --host 0.0.0.0 --port 8000 --reload"

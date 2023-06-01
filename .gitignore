@@ -18,5 +18,3 @@ deploy_*.sh
 test.db
 
 logs
-
-claon_celery/configs.py
