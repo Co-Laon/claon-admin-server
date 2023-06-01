@@ -1,9 +1,23 @@
+from sqlalchemy import Column, DateTime
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base, declared_attr
 
+from claon_admin.common.util.time import now
 from claon_admin.config.config import conf
 
-Base = declarative_base()
+
+class DeclarativeBase(object):
+    @declared_attr
+    def __tablename__(cls):
+        return "tb_" + \
+            "".join(['_' + i.lower() if i.isupper() else i for i in getattr(cls, "__name__")]).lstrip("_")
+
+    @declared_attr
+    def created_at(cls):
+        return Column(DateTime, nullable=False, default=now())
+
+
+Base = declarative_base(cls=DeclarativeBase)
 
 
 class Database:

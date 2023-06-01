@@ -19,10 +19,8 @@ class PostImage:
 
 
 class Post(Base):
-    __tablename__ = 'tb_post'
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     content = Column(String(length=500), nullable=False)
-    created_at = Column(DateTime, nullable=False)
     _img = Column(TEXT, nullable=False)
     histories = relationship("ClimbingHistory", back_populates="post", cascade="all, delete-orphan")
 
@@ -45,7 +43,6 @@ class Post(Base):
 
 
 class ClimbingHistory(Base):
-    __tablename__ = 'tb_climbing_history'
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     hold_id = Column(String(length=255), nullable=False)
     difficulty = Column(String(length=10), nullable=False)
@@ -58,7 +55,6 @@ class ClimbingHistory(Base):
 
 
 class PostCountHistory(Base):
-    __tablename__ = 'tb_post_count_history'
     id = Column(Integer, primary_key=True, index=True)
     center_id = Column(String(length=255), nullable=False)
     reg_date = Column(DateTime, nullable=False)
