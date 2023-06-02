@@ -8,7 +8,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_pagination import add_pagination
 from starlette.middleware.sessions import SessionMiddleware
 
-from claon_admin import config
 from claon_admin.common.error.handler import add_http_exception_handler
 from claon_admin.common.util.db import db
 from claon_admin.config.config import conf
@@ -32,7 +31,6 @@ def create_app() -> FastAPI:
     container = Container()
 
     """ Define Container """
-    container.wire(modules=[config.auth, auth, admin, center, user])
     claon_app.container = container
 
     """ Define Routers """

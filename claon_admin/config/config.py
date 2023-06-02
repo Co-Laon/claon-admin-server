@@ -1,12 +1,12 @@
-from dataclasses import dataclass
 from os import environ, path
 from urllib.parse import quote
+
+from pydantic import BaseSettings
 
 from claon_admin.config.env import config, db_config, redis_config
 
 
-@dataclass
-class Config:
+class Config(BaseSettings):
     TRUSTED_HOSTS = ["*"]
     ALLOW_SITE = ["*"]
     SESSION_SECRET_KEY = config.get("SESSION", "SECRET_KEY", fallback="")
@@ -14,7 +14,6 @@ class Config:
     HTML_DIR: str = BASE_DIR + "/claon_admin/template"
 
 
-@dataclass
 class LocalConfig(Config):
     DB_URL: str = "postgresql+asyncpg://{user_name}:{password}@{ip}:{port}/{db_name}".format(
         user_name="claon_user",
@@ -46,7 +45,6 @@ class LocalConfig(Config):
     BUCKET = config.get("S3", "BUCKET", fallback="")
 
 
-@dataclass
 class ProdConfig(Config):
     DB_URL: str = "postgresql+asyncpg://{user_name}:{password}@{ip}:{port}/{db_name}".format(
         user_name=db_config.get("DB", "DB_USER_NAME", fallback=""),
@@ -78,7 +76,6 @@ class ProdConfig(Config):
     BUCKET = config.get("S3", "BUCKET", fallback="")
 
 
-@dataclass
 class TestConfig(Config):
     DB_URL: str = "sqlite+aiosqlite:///test.db"
     REDIS_ENABLE: bool = False
