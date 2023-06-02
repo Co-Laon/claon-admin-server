@@ -244,7 +244,9 @@ class CenterRepository:
 
     @staticmethod
     async def find_all_by_user_id(session: AsyncSession, user_id: str, params: Params):
-        query = select(Center).where(Center.user_id == user_id).options(selectinload(Center.user))
+        query = select(Center).where(Center.user_id == user_id) \
+            .order_by(desc(Center.created_at)) \
+            .options(selectinload(Center.user))
         return await paginate(query=query, conn=session, params=params)
 
     @staticmethod

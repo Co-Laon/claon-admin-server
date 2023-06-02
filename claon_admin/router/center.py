@@ -37,8 +37,9 @@ class CenterRouter:
     @router.get('/{center_id}', response_model=CenterResponseDto)
     async def find_by_id(self,
                          session: Session,
+                         subject: CurrentUser,
                          center_id: str):
-        pass
+        return await self.center_service.find_by_id(session=session, subject=subject, center_id=center_id)
 
     @router.post('/{purpose}/file', response_model=UploadFileResponseDto)
     async def upload(self,
