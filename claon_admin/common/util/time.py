@@ -1,6 +1,6 @@
 from datetime import datetime, date
 
-from claon_admin.config.consts import TIME_ZONE_KST
+from claon_admin.common.consts import TIME_ZONE_KST
 
 
 def now():

@@ -10,6 +10,7 @@ omit =
     claon_admin/container.py
     claon_admin/main.py
     claon_admin/schema/conn.py
+    claon_admin/service/oauth.py
     claon_admin/common/*
     claon_admin/infra/*
     claon_admin/job/*

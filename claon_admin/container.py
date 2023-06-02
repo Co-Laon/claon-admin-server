@@ -1,14 +1,13 @@
 from dependency_injector import containers, providers
 
 from claon_admin import config, router
-from claon_admin.common.util.pagination import PaginationFactory
-from claon_admin.common.util.oauth import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider, KakaoUserInfoProvider
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, CenterHoldRepository, \
     CenterWallRepository, CenterFeeRepository, ReviewRepository, ReviewAnswerRepository
 from claon_admin.schema.post import PostRepository, PostCountHistoryRepository
 from claon_admin.schema.user import UserRepository, LectorRepository, LectorApprovedFileRepository
 from claon_admin.service.admin import AdminService
 from claon_admin.service.center import CenterService
+from claon_admin.service.oauth import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider, KakaoUserInfoProvider
 from claon_admin.service.user import UserService
 
 
@@ -28,7 +27,6 @@ class Container(containers.DeclarativeContainer):
     post_count_history_repository = providers.Singleton(PostCountHistoryRepository)
     review_repository = providers.Singleton(ReviewRepository)
     review_answer_repository = providers.Singleton(ReviewAnswerRepository)
-    pagination_factory = providers.Singleton(PaginationFactory)
 
     """ Infrastructure """
     google_user_info_provider = providers.Singleton(GoogleUserInfoProvider)
@@ -50,8 +48,7 @@ class Container(containers.DeclarativeContainer):
         center_fee_repository=center_fee_repository,
         center_hold_repository=center_hold_repository,
         center_wall_repository=center_wall_repository,
-        oauth_user_info_provider_supplier=oauth_user_info_provider_supplier,
-        pagination_factory=pagination_factory
+        oauth_user_info_provider_supplier=oauth_user_info_provider_supplier
     )
 
     admin_service = providers.Singleton(
@@ -69,6 +66,5 @@ class Container(containers.DeclarativeContainer):
         post_repository=post_repository,
         post_count_history_repository=post_count_history_repository,
         review_repository=review_repository,
-        review_answer_repository=review_answer_repository,
-        pagination_factory=pagination_factory
+        review_answer_repository=review_answer_repository
     )

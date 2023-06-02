@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from fastapi_pagination import Params, Page
 
@@ -14,8 +16,10 @@ from claon_admin.service.center import CenterService
 class TestFindCenters(object):
     @pytest.mark.asyncio
     @pytest.mark.it("Success case")
+    @patch("claon_admin.common.util.pagination.paginate")
     async def test_find_centers(
             self,
+            mock_paginate,
             center_service: CenterService,
             mock_repo: dict,
             center_fixture: Center,
@@ -25,7 +29,7 @@ class TestFindCenters(object):
         request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.CENTER_ADMIN)
         params = Params(page=1, size=10)
         items = [center_fixture, another_center_fixture]
-        center_page = Page(items=items, params=params, total=2)
+        center_page = Page(items=items, params=params, total=2, page=1, pages=1)
         mock_repo["center"].find_all_by_user_id.return_value = center_page
         mock_pagination = Pagination(
             next_page_num=2,
@@ -33,7 +37,7 @@ class TestFindCenters(object):
             total_num=1,
             results=[CenterBriefResponseDto.from_entity(item) for item in items]
         )
-        mock_repo["pagination_factory"].create.side_effect = [mock_pagination]
+        mock_paginate.return_value = [mock_pagination]
 
         # when
         pages = await center_service.find_centers(

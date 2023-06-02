@@ -6,7 +6,6 @@ from unittest.mock import AsyncMock
 import pytest
 
 from claon_admin.common.enum import Role, WallType
-from claon_admin.common.util.pagination import PaginationFactory
 from claon_admin.common.util.time import now
 from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, Center, CenterImage, \
     OperatingTime, Utility, CenterFeeImage, CenterHold, CenterWall, Review, ReviewTag, ReviewAnswer
@@ -23,15 +22,13 @@ def mock_repo():
     post_count_history_repository = AsyncMock(spec=PostCountHistoryRepository)
     review_repository = AsyncMock(spec=ReviewRepository)
     review_answer_repository = AsyncMock(spec=ReviewAnswerRepository)
-    pagination_factory = AsyncMock(spec=PaginationFactory)
 
     return {
         "center": center_repository,
         "post": post_repository,
         "post_count_history": post_count_history_repository,
         "review": review_repository,
-        "review_answer": review_answer_repository,
-        "pagination_factory": pagination_factory
+        "review_answer": review_answer_repository
     }
 
 
@@ -42,8 +39,7 @@ def center_service(mock_repo: dict):
         mock_repo["post"],
         mock_repo["post_count_history"],
         mock_repo["review"],
-        mock_repo["review_answer"],
-        mock_repo["pagination_factory"]
+        mock_repo["review_answer"]
     )
 
 

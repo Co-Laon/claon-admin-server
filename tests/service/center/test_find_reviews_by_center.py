@@ -1,4 +1,5 @@
 from datetime import datetime
+from unittest.mock import patch
 
 import pytest
 from fastapi_pagination import Params, Page
@@ -18,8 +19,10 @@ from claon_admin.service.center import CenterService
 class TestFindReviewsByCenter(object):
     @pytest.mark.asyncio
     @pytest.mark.it("Success case")
+    @patch("claon_admin.common.util.pagination.paginate")
     async def test_find_reviews_by_center_not_filter(
             self,
+            mock_paginate,
             center_service: CenterService,
             mock_repo: dict,
             user_fixture: User,
@@ -36,16 +39,16 @@ class TestFindReviewsByCenter(object):
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
         params = Params(page=1, size=10)
         items = [(review_fixture, 1), (other_review_fixture, 1), (another_review_fixture, 1)]
-        review_page = Page(items=items, params=params, total=3)
+        review_page = Page(items=items, params=params, total=3, page=1, pages=1)
         mock_repo["center"].find_by_id.side_effect = [center_fixture]
-        mock_repo["review"].find_reviews_by_center.side_effect = review_page
+        mock_repo["review"].find_reviews_by_center.return_value = review_page
         mock_pagination = Pagination(
             next_page_num=2,
             previous_page_num=0,
             total_num=1,
             results=[ReviewBriefResponseDto.from_entity(item) for item in items]
         )
-        mock_repo["pagination_factory"].create.side_effect = [mock_pagination]
+        mock_paginate.return_value = [mock_pagination]
 
         # when
         pages: Pagination[ReviewBriefResponseDto] = await center_service.find_reviews_by_center(
@@ -75,8 +78,10 @@ class TestFindReviewsByCenter(object):
 
     @pytest.mark.asyncio
     @pytest.mark.it("Success case: not answered")
+    @patch("claon_admin.common.util.pagination.paginate")
     async def test_find_reviews_by_center_not_answered(
             self,
+            mock_paginate,
             center_service: CenterService,
             mock_repo: dict,
             pending_user_fixture: User,
@@ -87,16 +92,16 @@ class TestFindReviewsByCenter(object):
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
         params = Params(page=1, size=10)
         items = [(other_review_fixture, 1)]
-        review_page = Page(items=items, params=params, total=0)
+        review_page = Page(items=items, params=params, total=0, page=1, pages=1)
         mock_repo["center"].find_by_id.side_effect = [center_fixture]
-        mock_repo["review"].find_reviews_by_center.side_effect = review_page
+        mock_repo["review"].find_reviews_by_center.return_value = review_page
         mock_pagination = Pagination(
             next_page_num=2,
             previous_page_num=0,
             total_num=1,
             results=[ReviewBriefResponseDto.from_entity(item) for item in items]
         )
-        mock_repo["pagination_factory"].create.side_effect = [mock_pagination]
+        mock_paginate.return_value = [mock_pagination]
 
         # when
         pages: Pagination[ReviewBriefResponseDto] = await center_service.find_reviews_by_center(
@@ -122,8 +127,10 @@ class TestFindReviewsByCenter(object):
 
     @pytest.mark.asyncio
     @pytest.mark.it("Success case: with tag")
+    @patch("claon_admin.common.util.pagination.paginate")
     async def test_find_reviews_by_center_with_tag(
             self,
+            mock_paginate,
             center_service: CenterService,
             mock_repo: dict,
             user_fixture: User,
@@ -138,16 +145,16 @@ class TestFindReviewsByCenter(object):
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
         params = Params(page=1, size=10)
         items = [(review_fixture, 1), (another_review_fixture, 1)]
-        review_page = Page(items=items, params=params, total=0)
+        review_page = Page(items=items, params=params, total=0, page=1, pages=1)
         mock_repo["center"].find_by_id.side_effect = [center_fixture]
-        mock_repo["review"].find_reviews_by_center.side_effect = review_page
+        mock_repo["review"].find_reviews_by_center.return_value = review_page
         mock_pagination = Pagination(
             next_page_num=2,
             previous_page_num=0,
             total_num=1,
             results=[ReviewBriefResponseDto.from_entity(item) for item in items]
         )
-        mock_repo["pagination_factory"].create.side_effect = [mock_pagination]
+        mock_paginate.return_value = [mock_pagination]
 
         # when
         pages: Pagination[ReviewBriefResponseDto] = await center_service.find_reviews_by_center(

@@ -5,8 +5,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from claon_admin.common.enum import Role, WallType
-from claon_admin.common.util.oauth import OAuthUserInfoProviderSupplier
-from claon_admin.common.util.pagination import PaginationFactory
+from claon_admin.service.oauth import OAuthUserInfoProviderSupplier
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, CenterFeeRepository, \
     CenterHoldRepository, CenterWallRepository, Center, CenterImage, OperatingTime, Utility, CenterFeeImage, \
     CenterApprovedFile, CenterFee, CenterHold, CenterWall
@@ -25,7 +24,6 @@ def mock_repo():
     center_fee_repository = AsyncMock(spec=CenterFeeRepository)
     center_hold_repository = AsyncMock(spec=CenterHoldRepository)
     center_wall_repository = AsyncMock(spec=CenterWallRepository)
-    pagination_factory = AsyncMock(spec=PaginationFactory)
 
     return {
         "user": user_repository,
@@ -35,8 +33,7 @@ def mock_repo():
         "center_approved_file": center_approved_file_repository,
         "center_fee": center_fee_repository,
         "center_hold": center_hold_repository,
-        "center_wall": center_wall_repository,
-        "pagination_factory": pagination_factory
+        "center_wall": center_wall_repository
     }
 
 
@@ -56,8 +53,7 @@ def user_service(mock_repo: dict, mock_supplier: OAuthUserInfoProviderSupplier):
         mock_repo["center_fee"],
         mock_repo["center_hold"],
         mock_repo["center_wall"],
-        mock_supplier,
-        mock_repo["pagination_factory"]
+        mock_supplier
     )
 
 

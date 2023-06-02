@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List
+from unittest.mock import patch
 
 import pytest
 from fastapi_pagination import Params, Page
@@ -19,8 +20,10 @@ from claon_admin.service.center import CenterService
 class TestFindPostsByCenter(object):
     @pytest.mark.asyncio
     @pytest.mark.it("Success case: without hold")
+    @patch("claon_admin.common.util.pagination.paginate")
     async def test_find_posts_by_center_without_hold(
             self,
+            mock_paginate,
             mock_repo: dict,
             center_fixture: Center,
             post_fixture: Post,
@@ -29,16 +32,16 @@ class TestFindPostsByCenter(object):
         # given
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
         params = Params(page=1, size=10)
-        post_page = Page(items=[post_fixture], params=params, total=1)
+        post_page = Page(items=[post_fixture], params=params, total=1, page=1, pages=1)
         mock_repo["center"].find_by_id.side_effect = [center_fixture]
-        mock_repo["post"].find_posts_by_center.side_effect = post_page
+        mock_repo["post"].find_posts_by_center.return_value = post_page
         mock_pagination = Pagination(
             next_page_num=2,
             previous_page_num=0,
             total_num=1,
             results=[PostBriefResponseDto.from_entity(post_fixture)]
         )
-        mock_repo["pagination_factory"].create.side_effect = [mock_pagination]
+        mock_paginate.return_value = [mock_pagination]
 
         # when
         pages: Pagination[PostBriefResponseDto] = await center_service.find_posts_by_center(
@@ -62,8 +65,10 @@ class TestFindPostsByCenter(object):
 
     @pytest.mark.asyncio
     @pytest.mark.it("Success case: with hold")
+    @patch("claon_admin.common.util.pagination.paginate")
     async def test_find_posts_by_center_with_hold(
             self,
+            mock_paginate,
             mock_repo: dict,
             center_fixture: Center,
             climbing_history_fixture: List[ClimbingHistory],
@@ -73,16 +78,16 @@ class TestFindPostsByCenter(object):
         # given
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
         params = Params(page=1, size=10)
-        post_page = Page(items=[post_fixture], params=params, total=1)
+        post_page = Page(items=[post_fixture], params=params, total=1, page=1, pages=1)
         mock_repo["center"].find_by_id.side_effect = [center_fixture]
-        mock_repo["post"].find_posts_by_center.side_effect = post_page
+        mock_repo["post"].find_posts_by_center.return_value = post_page
         mock_pagination = Pagination(
             next_page_num=2,
             previous_page_num=0,
             total_num=1,
             results=[PostBriefResponseDto.from_entity(post_fixture)]
         )
-        mock_repo["pagination_factory"].create.side_effect = [mock_pagination]
+        mock_paginate.return_value = [mock_pagination]
 
         # when
         pages: Pagination[PostBriefResponseDto] = await center_service.find_posts_by_center(

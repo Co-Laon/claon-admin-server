@@ -6,7 +6,7 @@ from claon_admin.common.error.exception import UnauthorizedException
 from claon_admin.common.error.exception import ErrorCode
 from claon_admin.common.util.redis import save_refresh_token, delete_refresh_token
 from claon_admin.config.config import conf
-from claon_admin.config.consts import TIME_ZONE_KST
+from claon_admin.common.consts import TIME_ZONE_KST
 
 
 def create_access_token(user_id: str) -> str:
