@@ -3,7 +3,7 @@ from unittest.mock import patch, AsyncMock
 import pytest
 
 from claon_admin.common.enum import Role, OAuthProvider
-from claon_admin.common.util.oauth import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider, KakaoUserInfoProvider
+from claon_admin.service.oauth import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider, KakaoUserInfoProvider
 from claon_admin.model.auth import OAuthUserInfoDto
 from claon_admin.model.user import SignInRequestDto
 from claon_admin.schema.user import User

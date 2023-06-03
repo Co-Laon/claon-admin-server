@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.enum import CenterUploadPurpose, Role
 from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException
-from claon_admin.common.util.pagination import PaginationFactory
+from claon_admin.common.util.pagination import paginate
 from claon_admin.common.util.s3 import upload_file
 from claon_admin.common.util.time import now
 from claon_admin.model.auth import RequestUser
@@ -26,14 +26,12 @@ class CenterService:
                  post_repository: PostRepository,
                  post_count_history_repository: PostCountHistoryRepository,
                  review_repository: ReviewRepository,
-                 review_answer_repository: ReviewAnswerRepository,
-                 pagination_factory: PaginationFactory):
+                 review_answer_repository: ReviewAnswerRepository):
         self.center_repository = center_repository
         self.post_repository = post_repository
         self.post_count_history_repository = post_count_history_repository
         self.review_repository = review_repository
         self.review_answer_repository = review_answer_repository
-        self.pagination_factory = pagination_factory
 
     async def find_posts_by_center(self,
                                    session: AsyncSession,
@@ -73,7 +71,7 @@ class CenterService:
             end=end
         )
 
-        return await self.pagination_factory.create(PostBriefResponseDto, pages)
+        return await paginate(PostBriefResponseDto, pages)
 
     async def find_reviews_by_center(self,
                                      session: AsyncSession,
@@ -113,7 +111,7 @@ class CenterService:
             is_answered=is_answered
         )
 
-        return await self.pagination_factory.create(ReviewBriefResponseDto, pages)
+        return await paginate(ReviewBriefResponseDto, pages)
 
     async def create_review_answer(self,
                                    session: AsyncSession,
@@ -296,7 +294,7 @@ class CenterService:
                 "등록된 암장이 존재하지 않습니다."
             )
 
-        return await self.pagination_factory.create(CenterBriefResponseDto, pages)
+        return await paginate(CenterBriefResponseDto, pages)
 
     async def find_reviews_summary_by_center(self,
                                              session: AsyncSession,

@@ -3,7 +3,7 @@ from typing import List
 
 from pydantic import BaseModel, validator, EmailStr
 
-from claon_admin.config.consts import KOR_BEGIN_CODE, KOR_END_CODE
+from claon_admin.common.consts import KOR_BEGIN_CODE, KOR_END_CODE
 from claon_admin.common.enum import Role
 from claon_admin.schema.user import Lector, User
 
