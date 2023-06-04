@@ -2,27 +2,37 @@ from typing import Annotated
 
 from dependency_injector.wiring import Provide, inject
 from fastapi import Header, Depends, Response
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import UnauthorizedException, ErrorCode, InternalServerException
+from claon_admin.common.util.db import db
 from claon_admin.common.util.header import add_jwt_tokens
 from claon_admin.common.util.jwt import resolve_access_token, resolve_refresh_token, is_expired, create_access_token, \
     reissue_refresh_token
 from claon_admin.common.util.redis import find_user_id_by_refresh_token
-from claon_admin.common.util.transaction import transactional
 from claon_admin.container import Container
 from claon_admin.model.auth import RequestUser
 from claon_admin.schema.user import UserRepository
 
 
-@transactional(read_only=True)
 @inject
+async def __find_user_by_id(
+        user_id: str,
+        user_repository: UserRepository = Depends(Provide[Container.user_repository])
+):
+    async with db.async_session_maker() as session:
+        user = await user_repository.find_by_id(session, user_id)
+        if user is None:
+            raise UnauthorizedException(
+                ErrorCode.USER_DOES_NOT_EXIST,
+                "Not existing user account."
+            )
+        return user
+
+
 async def get_subject(
     response: Response,
-    session: AsyncSession,
     access_token: str = Header(None),
-    refresh_token: str = Header(None),
-    user_repository: UserRepository = Depends(Provide[Container.user_repository])
+    refresh_token: str = Header(None)
 ) -> RequestUser:
     try:
         if access_token is None:
@@ -60,12 +70,7 @@ async def get_subject(
                 reissue_refresh_token(refresh_token, user_id),
             )
 
-            user = await user_repository.find_by_id(session, user_id)
-            if user is None:
-                raise UnauthorizedException(
-                    ErrorCode.USER_DOES_NOT_EXIST,
-                    "Not existing user account."
-                )
+            user = await __find_user_by_id(user_id)
 
             return RequestUser(
                 id=user.id,
@@ -82,12 +87,7 @@ async def get_subject(
                     "Refresh token is expired."
                 )
 
-            user = await user_repository.find_by_id(session, access_payload.get("sub"))
-            if user is None:
-                raise UnauthorizedException(
-                    ErrorCode.USER_DOES_NOT_EXIST,
-                    "Not existing user account."
-                )
+            user = await __find_user_by_id(access_payload.get("sub"))
 
             return RequestUser(
                 id=user.id,

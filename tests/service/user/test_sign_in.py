@@ -42,7 +42,7 @@ class TestSignIn(object):
         mock_create_refresh_token.return_value = "test_refresh_token"
 
         # when
-        result = await user_service.sign_in(None, provider_name, sign_in_request_dto)
+        result = await user_service.sign_in(provider_name, sign_in_request_dto)
 
         # then
         assert result.access_token is not None
@@ -79,7 +79,7 @@ class TestSignIn(object):
         mock_create_refresh_token.return_value = "test_refresh_token"
 
         # when
-        result = await user_service.sign_in(None, provider_name, sign_in_request_dto)
+        result = await user_service.sign_in(provider_name, sign_in_request_dto)
 
         # then
         assert result.access_token is not None
@@ -116,7 +116,7 @@ class TestSignIn(object):
         mock_create_refresh_token.return_value = "test_refresh_token"
 
         # when
-        result = await user_service.sign_in(None, provider_name, sign_in_request_dto)
+        result = await user_service.sign_in(provider_name, sign_in_request_dto)
 
         # then
         assert result.access_token is not None
@@ -153,7 +153,7 @@ class TestSignIn(object):
         mock_create_refresh_token.return_value = "test_refresh_token"
 
         # when
-        result = await user_service.sign_in(None, provider_name, sign_in_request_dto)
+        result = await user_service.sign_in(provider_name, sign_in_request_dto)
 
         # then
         assert result.access_token is not None

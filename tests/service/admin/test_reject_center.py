@@ -24,7 +24,7 @@ class TestRejectCenter(object):
         mock_repo["center"].find_by_id.side_effect = [center_fixture]
 
         # when
-        result = await admin_service.reject_center(None, request_user, center_id)
+        result = await admin_service.reject_center(request_user, center_id)
 
         # then
         assert result is None
@@ -43,7 +43,7 @@ class TestRejectCenter(object):
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await admin_service.reject_center(None, request_user, center_id)
+            await admin_service.reject_center(request_user, center_id)
 
         # then
         assert exception.value.code == ErrorCode.NONE_ADMIN_ACCOUNT
@@ -63,7 +63,7 @@ class TestRejectCenter(object):
 
         with pytest.raises(BadRequestException) as exception:
             # when
-            await admin_service.reject_center(None, request_user, center_id)
+            await admin_service.reject_center(request_user, center_id)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST

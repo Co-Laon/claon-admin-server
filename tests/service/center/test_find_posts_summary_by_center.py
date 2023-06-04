@@ -32,9 +32,7 @@ class TestFindPostsSummaryByCenter(object):
         mock_repo["post_count_history"].find_by_center_and_date.side_effect = [post_count_history_list_fixture]
 
         # when
-        results = await center_service.find_posts_summary_by_center(None,
-                                                                    request_user,
-                                                                    center_fixture.id)
+        results = await center_service.find_posts_summary_by_center(request_user, center_fixture.id)
 
         # then
         assert results.center_id == center_fixture.id
@@ -63,7 +61,7 @@ class TestFindPostsSummaryByCenter(object):
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await center_service.find_posts_summary_by_center(None, request_user, wrong_id)
+            await center_service.find_posts_summary_by_center(request_user, wrong_id)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
@@ -82,7 +80,7 @@ class TestFindPostsSummaryByCenter(object):
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await center_service.find_posts_summary_by_center(None, request_user, center_fixture.id)
+            await center_service.find_posts_summary_by_center(request_user, center_fixture.id)
 
         # then
         assert exception.value.code == ErrorCode.NOT_ACCESSIBLE

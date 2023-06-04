@@ -67,7 +67,7 @@ class TestSignUpLector(object):
         request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.PENDING)
 
         # when
-        result = await user_service.sign_up_lector(None, request_user, lector_request_dto)
+        result = await user_service.sign_up_lector(request_user, lector_request_dto)
 
         # then
         assert result.is_setter == lector_request_dto.is_setter
@@ -109,7 +109,7 @@ class TestSignUpLector(object):
 
         with pytest.raises(BadRequestException) as exception:
             # when
-            await user_service.sign_up_lector(None, request_user, lector_request_dto)
+            await user_service.sign_up_lector(request_user, lector_request_dto)
 
         # then
         assert exception.value.code == ErrorCode.DUPLICATED_NICKNAME
@@ -127,7 +127,7 @@ class TestSignUpLector(object):
 
         with pytest.raises(BadRequestException) as exception:
             # when
-            await user_service.sign_up_lector(None, request_user, lector_request_dto)
+            await user_service.sign_up_lector(request_user, lector_request_dto)
 
         # then
         assert exception.value.code == ErrorCode.USER_ALREADY_SIGNED_UP

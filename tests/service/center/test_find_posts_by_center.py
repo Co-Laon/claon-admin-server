@@ -45,7 +45,6 @@ class TestFindPostsByCenter(object):
 
         # when
         pages: Pagination[PostBriefResponseDto] = await center_service.find_posts_by_center(
-            session=None,
             subject=request_user,
             params=params,
             center_id=center_fixture.id,
@@ -91,7 +90,6 @@ class TestFindPostsByCenter(object):
 
         # when
         pages: Pagination[PostBriefResponseDto] = await center_service.find_posts_by_center(
-            None,
             request_user,
             params,
             center_fixture.id,
@@ -126,7 +124,6 @@ class TestFindPostsByCenter(object):
         with pytest.raises(NotFoundException) as exception:
             # when
             await center_service.find_posts_by_center(
-                None,
                 request_user,
                 params,
                 center_id,
@@ -154,7 +151,6 @@ class TestFindPostsByCenter(object):
         with pytest.raises(NotFoundException) as exception:
             # when
             await center_service.find_posts_by_center(
-                None,
                 request_user,
                 params,
                 center_fixture.id,
@@ -183,7 +179,6 @@ class TestFindPostsByCenter(object):
         with pytest.raises(UnauthorizedException) as exception:
             # when
             await center_service.find_posts_by_center(
-                None,
                 request_user,
                 params,
                 center_fixture.id,

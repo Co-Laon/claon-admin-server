@@ -16,8 +16,9 @@ async def __transactional(self, func, args, kwargs):
             result = await func(self, session, *args, **kwargs)
             await session.commit()
             return result
-        except Exception:
+        except Exception as e:
             await session.rollback()
+            raise e
         finally:
             await session.close()
 

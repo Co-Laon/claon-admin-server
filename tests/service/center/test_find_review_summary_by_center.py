@@ -29,9 +29,7 @@ class TestFindReviewsSummaryByCenter(object):
         mock_repo["center"].find_by_id.side_effect = [center_fixture]
         mock_repo["review"].find_all_by_center.side_effect = [review_list_fixture]
         # when
-        results = await center_service.find_reviews_summary_by_center(None,
-                                                                     request_user,
-                                                                     center_fixture.id)
+        results = await center_service.find_reviews_summary_by_center(request_user, center_fixture.id)
 
         # then
         assert results.center_id == center_fixture.id
@@ -58,7 +56,7 @@ class TestFindReviewsSummaryByCenter(object):
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await center_service.find_reviews_summary_by_center(None, request_user, wrong_id)
+            await center_service.find_reviews_summary_by_center(request_user, wrong_id)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
@@ -77,7 +75,7 @@ class TestFindReviewsSummaryByCenter(object):
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await center_service.find_reviews_summary_by_center(None, request_user, center_fixture.id)
+            await center_service.find_reviews_summary_by_center(request_user, center_fixture.id)
 
         # then
         assert exception.value.code == ErrorCode.NOT_ACCESSIBLE
