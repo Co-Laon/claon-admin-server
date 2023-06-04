@@ -355,4 +355,16 @@ class CenterService:
                 "암장 관리자가 아닙니다."
             )
 
-        return CenterResponseDto.from_entity(center, center.holds, center.walls)
+        return CenterResponseDto.from_entity(center, center.holds, center.walls, center.fees)
+
+    async def delete(self,
+                     session: AsyncSession,
+                     center_id: str):
+        center = await self.center_repository.find_by_id(session, center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+        await self.center_repository.delete(session, center)
+        return CenterResponseDto.from_entity(center, center.holds, center.walls, center.fees)

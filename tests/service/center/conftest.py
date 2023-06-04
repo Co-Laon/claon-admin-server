@@ -8,7 +8,7 @@ import pytest
 from claon_admin.common.enum import Role, WallType
 from claon_admin.common.util.time import now
 from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, Center, CenterImage, \
-    OperatingTime, Utility, CenterFeeImage, CenterHold, CenterWall, Review, ReviewTag, ReviewAnswer
+    OperatingTime, Utility, CenterFeeImage, CenterFee, CenterHold, CenterWall, Review, ReviewTag, ReviewAnswer
 from claon_admin.schema.post import PostRepository, Post, PostImage, ClimbingHistory, PostCountHistoryRepository, \
     PostCountHistory
 from claon_admin.schema.user import User
@@ -171,6 +171,19 @@ def another_center_fixture(user_fixture: User):
         fee_img=[CenterFeeImage(url="https://test.fee.png")],
         approved=False
     )
+
+
+@pytest.fixture
+def center_fees_fixture(center_fixture: Center):
+    yield [
+        CenterFee(
+            id=str(uuid.uuid4()),
+            center=center_fixture,
+            name="fee",
+            price=1000,
+            count=10
+        )
+    ]
 
 
 @pytest.fixture
