@@ -10,6 +10,7 @@ from claon_admin.common.error.exception import BadRequestException, ErrorCode, U
 from claon_admin.common.util.pagination import paginate
 from claon_admin.common.util.s3 import upload_file
 from claon_admin.common.util.time import now
+from claon_admin.common.util.transaction import transactional
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.post import PostBriefResponseDto, PostSummaryResponseDto
@@ -33,6 +34,7 @@ class CenterService:
         self.review_repository = review_repository
         self.review_answer_repository = review_answer_repository
 
+    @transactional(read_only=True)
     async def find_posts_by_center(self,
                                    session: AsyncSession,
                                    subject: RequestUser,
@@ -73,6 +75,7 @@ class CenterService:
 
         return await paginate(PostBriefResponseDto, pages)
 
+    @transactional(read_only=True)
     async def find_reviews_by_center(self,
                                      session: AsyncSession,
                                      subject: RequestUser,
@@ -113,6 +116,7 @@ class CenterService:
 
         return await paginate(ReviewBriefResponseDto, pages)
 
+    @transactional()
     async def create_review_answer(self,
                                    session: AsyncSession,
                                    subject: RequestUser,
@@ -148,7 +152,6 @@ class CenterService:
 
         new_answer = ReviewAnswer(
             content=dto.answer_content,
-            created_at=now(),
             review=review
         )
 
@@ -156,6 +159,7 @@ class CenterService:
 
         return ReviewAnswerResponseDto.from_entity(result)
 
+    @transactional()
     async def update_review_answer(self,
                                    session: AsyncSession,
                                    subject: RequestUser,
@@ -193,6 +197,7 @@ class CenterService:
 
         return ReviewAnswerResponseDto.from_entity(result)
 
+    @transactional()
     async def delete_review_answer(self,
                                    session: AsyncSession,
                                    subject: RequestUser,
@@ -237,12 +242,14 @@ class CenterService:
         url = await upload_file(file=file, domain="center", purpose=purpose.value)
         return UploadFileResponseDto(file_url=url)
 
+    @transactional(read_only=True)
     async def find_centers_by_name(self,
                                    session: AsyncSession,
                                    name: str):
         centers = await self.center_repository.find_by_name(session, name)
         return [CenterNameResponseDto.from_entity(center) for center in centers]
 
+    @transactional(read_only=True)
     async def find_posts_summary_by_center(self,
                                            session: AsyncSession,
                                            subject: RequestUser,
@@ -276,6 +283,7 @@ class CenterService:
             count_history_by_year
         )
 
+    @transactional(read_only=True)
     async def find_centers(self,
                            session: AsyncSession,
                            params: Params,
@@ -296,6 +304,7 @@ class CenterService:
 
         return await paginate(CenterBriefResponseDto, pages)
 
+    @transactional(read_only=True)
     async def find_reviews_summary_by_center(self,
                                              session: AsyncSession,
                                              subject: RequestUser,
@@ -328,6 +337,7 @@ class CenterService:
             [ReviewTagDto(tag=tag, count=count) for tag, count in Counter(tag_list).items()]
         )
 
+    @transactional(read_only=True)
     async def find_by_id(self,
                          session: AsyncSession,
                          subject: RequestUser,

@@ -4,8 +4,8 @@ from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, UploadFile, File
 from fastapi_utils.cbv import cbv
 
-from claon_admin.common.annotated import Session, CurrentUser
 from claon_admin.common.enum import LectorUploadPurpose
+from claon_admin.common.util.auth import CurrentUser
 from claon_admin.container import Container
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
@@ -23,8 +23,7 @@ class UserRouter:
         self.user_service = user_service
 
     @router.get('/centers', response_model=List[CenterNameResponseDto])
-    async def find_center(self,
-                          session: Session):
+    async def find_center(self):
         pass
 
     # s3 upload

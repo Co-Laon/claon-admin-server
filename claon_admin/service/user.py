@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException, ErrorCode
 from claon_admin.common.util.jwt import create_access_token, create_refresh_token
+from claon_admin.common.util.transaction import transactional
 from claon_admin.service.oauth import OAuthUserInfoProviderSupplier, UserInfoProvider
 from claon_admin.common.util.s3 import upload_file
 from claon_admin.model.auth import OAuthUserInfoDto
@@ -43,10 +44,12 @@ class UserService:
         self.center_wall_repository = center_wall_repository
         self.supplier = oauth_user_info_provider_supplier
 
+    @transactional(read_only=True)
     async def check_nickname_duplication(self, session: AsyncSession, nickname: str):
         is_duplicated = await self.user_repository.exist_by_nickname(session, nickname)
         return IsDuplicatedNicknameResponseDto(is_duplicated=is_duplicated)
 
+    @transactional()
     async def sign_up_center(self, session: AsyncSession, subject: RequestUser, dto: CenterAuthRequestDto):
         if subject.role != Role.PENDING:
             raise BadRequestException(
@@ -101,6 +104,7 @@ class UserService:
         await self.user_repository.update_role(session, user, Role.NOT_APPROVED)
         return CenterResponseDto.from_entity(center, holds, walls)
 
+    @transactional()
     async def sign_up_lector(self, session: AsyncSession, subject: RequestUser, dto: LectorRequestDto):
         if subject.role != Role.PENDING:
             raise BadRequestException(
@@ -139,6 +143,7 @@ class UserService:
         await self.user_repository.update_role(session, user, Role.NOT_APPROVED)
         return LectorResponseDto.from_entity(lector)
 
+    @transactional()
     async def sign_in(self,
                       session: AsyncSession,
                       provider: OAuthProvider,
@@ -185,6 +190,7 @@ class UserService:
         return UploadFileResponseDto(file_url=url)
 
     # TODO: Need to be removed later
+    @transactional()
     async def test_sign_in(self, session: AsyncSession, dto: SignInRequestDto):
         user = await self.user_repository.find_by_oauth_id(session, dto.id_token)
 

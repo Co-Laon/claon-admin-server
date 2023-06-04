@@ -40,19 +40,5 @@ class Database:
             await conn.run_sync(Base.metadata.drop_all)
             await conn.run_sync(Base.metadata.create_all)
 
-    async def get_db(self) -> AsyncSession:
-        async with self.async_session_maker() as session:
-            try:
-                yield session
-                await session.commit()
-            except Exception:
-                await session.rollback()
-            finally:
-                await session.close()
-
-    @property
-    def session(self):
-        return self.get_db
-
 
 db = Database(db_url=conf().DB_URL)

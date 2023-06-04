@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException
 from claon_admin.common.util.s3 import delete_file
+from claon_admin.common.util.transaction import transactional
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.admin import CenterResponseDto, LectorResponseDto
 from claon_admin.common.enum import Role
@@ -22,6 +23,7 @@ class AdminService:
         self.center_repository = center_repository
         self.center_approved_file_repository = center_approved_file_repository
 
+    @transactional()
     async def approve_lector(self, session: AsyncSession, subject: RequestUser, lector_id: str):
         if subject.role != Role.ADMIN:
             raise UnauthorizedException(
@@ -46,6 +48,7 @@ class AdminService:
 
         return LectorResponseDto.from_entity(lector, approved_files)
 
+    @transactional()
     async def reject_lector(self, session: AsyncSession, subject: RequestUser, lector_id: str):
         if subject.role != Role.ADMIN:
             raise UnauthorizedException(
@@ -66,6 +69,7 @@ class AdminService:
 
         return await self.lector_repository.delete(session, lector)
 
+    @transactional()
     async def approve_center(self, session: AsyncSession, subject: RequestUser, center_id: str):
         if subject.role != Role.ADMIN:
             raise UnauthorizedException(
@@ -95,6 +99,7 @@ class AdminService:
 
         return CenterResponseDto.from_entity(center, approved_files)
 
+    @transactional()
     async def reject_center(self, session: AsyncSession, subject: RequestUser, center_id: str):
         if subject.role != Role.ADMIN:
             raise UnauthorizedException(
@@ -114,6 +119,7 @@ class AdminService:
         [await delete_file(e.url) for e in approved_files]
         await self.center_repository.delete(session, center)
 
+    @transactional(read_only=True)
     async def get_unapproved_lectors(self, session: AsyncSession, subject: RequestUser):
         if subject.role != Role.ADMIN:
             raise UnauthorizedException(ErrorCode.NONE_ADMIN_ACCOUNT, "어드민 권한이 없습니다.")
@@ -127,6 +133,7 @@ class AdminService:
 
         return result
 
+    @transactional(read_only=True)
     async def get_unapproved_centers(self, session: AsyncSession, subject: RequestUser):
         if subject.role != Role.ADMIN:
             raise UnauthorizedException(ErrorCode.NONE_ADMIN_ACCOUNT, "어드민 권한이 없습니다.")
