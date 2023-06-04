@@ -6,7 +6,6 @@ import pytest
 async def db():
     from claon_admin.common.util.db import db
 
-    asyncio.run(db.drop_database())
     asyncio.run(db.create_database())
 
     yield db

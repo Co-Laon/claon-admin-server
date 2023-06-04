@@ -29,16 +29,13 @@ class Database:
 
     async def create_database(self) -> None:
         async with self._engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-
-    async def drop_database(self) -> None:
-        async with self._engine.begin() as conn:
-            await conn.run_sync(Base.metadata.drop_all, checkfirst=True)
-
-    async def create_drop_database(self) -> None:
-        async with self._engine.begin() as conn:
-            await conn.run_sync(Base.metadata.drop_all)
-            await conn.run_sync(Base.metadata.create_all)
+            if conf().DB_DDL_AUTO == "create":
+                await conn.run_sync(Base.metadata.drop_all)
+                await conn.run_sync(Base.metadata.create_all)
+            elif conf().DB_DDL_AUTO == "none":
+                await conn.run_sync(Base.metadata.create_all)
+            else:
+                await conn.run_sync(Base.metadata.create_all)
 
 
 db = Database(db_url=conf().DB_URL)

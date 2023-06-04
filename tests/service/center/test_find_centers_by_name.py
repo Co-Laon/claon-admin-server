@@ -20,7 +20,7 @@ class TestFindCentersByName(object):
         mock_repo["center"].find_by_name.side_effect = [[center_fixture]]
 
         # when
-        result = await center_service.find_centers_by_name(None, center_fixture.name)
+        result = await center_service.find_centers_by_name(center_fixture.name)
 
         # then
         assert len(result) == 1

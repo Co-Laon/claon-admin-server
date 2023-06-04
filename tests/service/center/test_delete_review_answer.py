@@ -28,7 +28,6 @@ class TestDeleteReviewAnswer(object):
 
         # when
         result = await center_service.delete_review_answer(
-            None,
             request_user,
             center_fixture.id,
             review_fixture.id
@@ -53,7 +52,7 @@ class TestDeleteReviewAnswer(object):
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await center_service.delete_review_answer(None, request_user, wrong_id, review_fixture.id)
+            await center_service.delete_review_answer(request_user, wrong_id, review_fixture.id)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
@@ -73,7 +72,7 @@ class TestDeleteReviewAnswer(object):
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await center_service.delete_review_answer(None, request_user, center_fixture.id, review_fixture.id)
+            await center_service.delete_review_answer(request_user, center_fixture.id, review_fixture.id)
 
         # then
         assert exception.value.code == ErrorCode.NOT_ACCESSIBLE
@@ -94,7 +93,7 @@ class TestDeleteReviewAnswer(object):
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await center_service.delete_review_answer(None, request_user, center_fixture.id, wrong_review_id)
+            await center_service.delete_review_answer(request_user, center_fixture.id, wrong_review_id)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
@@ -116,7 +115,7 @@ class TestDeleteReviewAnswer(object):
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await center_service.delete_review_answer(None, request_user, center_fixture.id, review_fixture.id)
+            await center_service.delete_review_answer(request_user, center_fixture.id, review_fixture.id)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST

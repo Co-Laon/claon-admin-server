@@ -41,7 +41,6 @@ class TestFindCenters(object):
 
         # when
         pages = await center_service.find_centers(
-            None,
             params=params,
             subject=request_user
         )
@@ -64,7 +63,7 @@ class TestFindCenters(object):
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await center_service.find_centers(None, params, request_user)
+            await center_service.find_centers(params, request_user)
 
         # then
         assert exception.value.code == ErrorCode.NOT_ACCESSIBLE
@@ -84,7 +83,7 @@ class TestFindCenters(object):
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await center_service.find_centers(None, params, request_user)
+            await center_service.find_centers(params, request_user)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST

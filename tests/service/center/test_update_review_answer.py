@@ -35,7 +35,6 @@ class TestUpdateReviewAnswer(object):
 
         # when
         result = await center_service.update_review_answer(
-            None,
             request_user,
             dto,
             center_fixture.id,
@@ -62,7 +61,7 @@ class TestUpdateReviewAnswer(object):
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await center_service.update_review_answer(None, request_user, dto, wrong_id, review_fixture.id)
+            await center_service.update_review_answer(request_user, dto, wrong_id, review_fixture.id)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
@@ -83,7 +82,7 @@ class TestUpdateReviewAnswer(object):
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await center_service.update_review_answer(None, request_user, dto, center_fixture.id, review_fixture.id)
+            await center_service.update_review_answer(request_user, dto, center_fixture.id, review_fixture.id)
 
         # then
         assert exception.value.code == ErrorCode.NOT_ACCESSIBLE
@@ -105,7 +104,7 @@ class TestUpdateReviewAnswer(object):
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await center_service.update_review_answer(None, request_user, dto, center_fixture.id, wrong_review_id)
+            await center_service.update_review_answer(request_user, dto, center_fixture.id, wrong_review_id)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
@@ -128,7 +127,7 @@ class TestUpdateReviewAnswer(object):
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await center_service.update_review_answer(None, request_user, dto, center_fixture.id, review_fixture.id)
+            await center_service.update_review_answer(request_user, dto, center_fixture.id, review_fixture.id)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST

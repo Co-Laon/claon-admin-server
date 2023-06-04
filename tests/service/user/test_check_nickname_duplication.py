@@ -16,7 +16,7 @@ class TestCheckNicknameDuplication(object):
         mock_repo["user"].exist_by_nickname.side_effect = [False]
 
         # when
-        result = await user_service.check_nickname_duplication(None, "not_existing_nickname")
+        result = await user_service.check_nickname_duplication("not_existing_nickname")
 
         # then
         assert result.is_duplicated is False
@@ -32,7 +32,7 @@ class TestCheckNicknameDuplication(object):
         mock_repo["user"].exist_by_nickname.side_effect = [True]
 
         # when
-        result = await user_service.check_nickname_duplication(None, "existing_nickname")
+        result = await user_service.check_nickname_duplication("existing_nickname")
 
         # then
         assert result.is_duplicated is True

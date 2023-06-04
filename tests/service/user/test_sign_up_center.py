@@ -66,7 +66,7 @@ class TestSignUpCenter(object):
         mock_repo["center_approved_file"].save_all.side_effect = [center_approved_files_fixture]
 
         # when
-        result = await user_service.sign_up_center(None, request_user, center_request_dto)
+        result = await user_service.sign_up_center(request_user, center_request_dto)
 
         # then
         assert result.profile_image == center_request_dto.profile_image
@@ -97,7 +97,7 @@ class TestSignUpCenter(object):
 
         with pytest.raises(BadRequestException) as exception:
             # when
-            await user_service.sign_up_center(None, request_user, center_request_dto)
+            await user_service.sign_up_center(request_user, center_request_dto)
 
         # then
         assert exception.value.code == ErrorCode.DUPLICATED_NICKNAME
@@ -115,7 +115,7 @@ class TestSignUpCenter(object):
 
         with pytest.raises(BadRequestException) as exception:
             # when
-            await user_service.sign_up_center(None, request_user, center_request_dto)
+            await user_service.sign_up_center(request_user, center_request_dto)
 
         # then
         assert exception.value.code == ErrorCode.USER_ALREADY_SIGNED_UP

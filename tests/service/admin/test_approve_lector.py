@@ -35,7 +35,7 @@ class TestApproveLector(object):
         mock_repo["lector_approved_file"].find_all_by_lector_id.side_effect = [lector_approved_files_fixture]
 
         # when
-        result = await admin_service.approve_lector(None, request_user, lector_id)
+        result = await admin_service.approve_lector(request_user, lector_id)
 
         # then
         assert result.approved
@@ -55,7 +55,7 @@ class TestApproveLector(object):
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await admin_service.approve_lector(None, request_user, lector_id)
+            await admin_service.approve_lector(request_user, lector_id)
 
         # then
         assert exception.value.code == ErrorCode.NONE_ADMIN_ACCOUNT
@@ -76,7 +76,7 @@ class TestApproveLector(object):
 
         with pytest.raises(BadRequestException) as exception:
             # when
-            await admin_service.approve_lector(None, request_user, lector_id)
+            await admin_service.approve_lector(request_user, lector_id)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST

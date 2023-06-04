@@ -36,7 +36,7 @@ class TestApproveCenter(object):
         mock_repo["center_approved_file"].find_all_by_center_id.side_effect = [center_approved_files_fixture]
 
         # when
-        result = await admin_service.approve_center(None, request_user, center_id)
+        result = await admin_service.approve_center(request_user, center_id)
 
         # then
         assert result.approved
@@ -56,7 +56,7 @@ class TestApproveCenter(object):
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await admin_service.approve_center(None, request_user, center_id)
+            await admin_service.approve_center(request_user, center_id)
 
         # then
         assert exception.value.code == ErrorCode.NONE_ADMIN_ACCOUNT
@@ -76,7 +76,7 @@ class TestApproveCenter(object):
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await admin_service.approve_center(None, request_user, center_id)
+            await admin_service.approve_center(request_user, center_id)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
@@ -98,7 +98,7 @@ class TestApproveCenter(object):
 
         with pytest.raises(BadRequestException) as exception:
             # when
-            await admin_service.approve_center(None, request_user, center_id)
+            await admin_service.approve_center(request_user, center_id)
 
         # then
         assert exception.value.code == ErrorCode.DUPLICATED_NICKNAME

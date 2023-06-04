@@ -28,7 +28,7 @@ class TestGetUnapprovedLectors(object):
         mock_repo["lector_approved_file"].find_all_by_lector_id.side_effect = [lector_approved_files_fixture]
 
         # when
-        result: List[LectorResponseDto] = await admin_service.get_unapproved_lectors(None, request_user)
+        result: List[LectorResponseDto] = await admin_service.get_unapproved_lectors(request_user)
 
         # then
         assert len(result) == 1
@@ -53,7 +53,7 @@ class TestGetUnapprovedLectors(object):
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await admin_service.get_unapproved_lectors(None, request_user)
+            await admin_service.get_unapproved_lectors(request_user)
 
         # then
         assert exception.value.code == ErrorCode.NONE_ADMIN_ACCOUNT

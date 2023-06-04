@@ -25,7 +25,7 @@ class TestRejectLector:
         mock_repo["lector"].delete.side_effect = [lector_fixture]
 
         # when
-        result = await admin_service.reject_lector(None, request_user, lector_id)
+        result = await admin_service.reject_lector(request_user, lector_id)
 
         # then
         assert result is lector_fixture
@@ -44,7 +44,7 @@ class TestRejectLector:
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await admin_service.reject_lector(None, request_user, lector_id)
+            await admin_service.reject_lector(request_user, lector_id)
 
         # then
         assert exception.value.code == ErrorCode.NONE_ADMIN_ACCOUNT
@@ -64,7 +64,7 @@ class TestRejectLector:
 
         with pytest.raises(BadRequestException) as exception:
             # when
-            await admin_service.reject_lector(None, request_user, lector_id)
+            await admin_service.reject_lector(request_user, lector_id)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST

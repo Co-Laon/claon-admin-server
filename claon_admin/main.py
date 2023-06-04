@@ -1,5 +1,4 @@
 import asyncio
-from os import environ
 
 import nest_asyncio
 import uvicorn
@@ -61,11 +60,9 @@ app = create_app()
 @app.on_event("startup")
 async def startup():
     """ Initialize Database """
-    if environ.get("API_ENV") != "test":
-        asyncio.run(db.create_database())
-    else:
-        asyncio.run(db.create_drop_database())
+    asyncio.run(db.create_database())
 
+    """ Initialize Job """
     job_post.start()
 
 

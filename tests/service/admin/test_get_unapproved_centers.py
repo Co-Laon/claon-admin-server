@@ -28,7 +28,7 @@ class TestGetUnapprovedCenters(object):
         mock_repo["center_approved_file"].find_all_by_center_id.side_effect = [center_approved_files_fixture]
 
         # when
-        result: List[CenterResponseDto] = await admin_service.get_unapproved_centers(None, request_user)
+        result: List[CenterResponseDto] = await admin_service.get_unapproved_centers(request_user)
 
         # then
         assert len(result) == 1
@@ -53,7 +53,7 @@ class TestGetUnapprovedCenters(object):
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await admin_service.get_unapproved_centers(None, request_user)
+            await admin_service.get_unapproved_centers(request_user)
 
         # then
         assert exception.value.code == ErrorCode.NONE_ADMIN_ACCOUNT

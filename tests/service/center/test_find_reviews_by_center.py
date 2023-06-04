@@ -52,7 +52,6 @@ class TestFindReviewsByCenter(object):
 
         # when
         pages: Pagination[ReviewBriefResponseDto] = await center_service.find_reviews_by_center(
-            None,
             request_user,
             params,
             center_fixture.id,
@@ -105,7 +104,6 @@ class TestFindReviewsByCenter(object):
 
         # when
         pages: Pagination[ReviewBriefResponseDto] = await center_service.find_reviews_by_center(
-            None,
             request_user,
             params,
             center_fixture.id,
@@ -158,7 +156,6 @@ class TestFindReviewsByCenter(object):
 
         # when
         pages: Pagination[ReviewBriefResponseDto] = await center_service.find_reviews_by_center(
-            None,
             request_user,
             params,
             center_fixture.id,
@@ -196,7 +193,6 @@ class TestFindReviewsByCenter(object):
         with pytest.raises(NotFoundException) as exception:
             # when
             await center_service.find_reviews_by_center(
-                None,
                 request_user,
                 params,
                 center_fixture.id,
@@ -225,7 +221,6 @@ class TestFindReviewsByCenter(object):
         with pytest.raises(UnauthorizedException) as exception:
             # when
             await center_service.find_reviews_by_center(
-                None,
                 request_user,
                 params,
                 center_fixture.id,
@@ -254,7 +249,6 @@ class TestFindReviewsByCenter(object):
         with pytest.raises(BadRequestException) as exception:
             # when
             await center_service.find_reviews_by_center(
-                None,
                 request_user,
                 params,
                 center_fixture.id,

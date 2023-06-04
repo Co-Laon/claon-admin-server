@@ -12,6 +12,7 @@ class Config(BaseSettings):
     SESSION_SECRET_KEY = config.get("SESSION", "SECRET_KEY", fallback="")
     BASE_DIR: str = path.dirname(path.dirname(path.dirname(path.abspath(__file__))))
     HTML_DIR: str = BASE_DIR + "/claon_admin/template"
+    DB_DDL_AUTO: str = "none"
 
 
 class LocalConfig(Config):
@@ -22,6 +23,7 @@ class LocalConfig(Config):
         port="5432",
         db_name="claon_db"
     )
+    DB_DDL_AUTO: str = "none"
     REDIS_ENABLE: bool = True
     REDIS_HOST: str = "localhost"
     REDIS_PORT: str = "6379"
@@ -53,6 +55,7 @@ class ProdConfig(Config):
         port=db_config.get("DB", "PORT", fallback=""),
         db_name=db_config.get("DB", "DB_NAME", fallback="")
     )
+    DB_DDL_AUTO: str = "none"
     REDIS_ENABLE: bool = True
     REDIS_HOST: str = redis_config.get("REDIS", "IP", fallback="")
     REDIS_PORT: str = redis_config.get("REDIS", "PORT", fallback="")
@@ -78,6 +81,7 @@ class ProdConfig(Config):
 
 class TestConfig(Config):
     DB_URL: str = "sqlite+aiosqlite:///test.db"
+    DB_DDL_AUTO: str = "create"
     REDIS_ENABLE: bool = False
     AWS_ENABLE: bool = False
 
