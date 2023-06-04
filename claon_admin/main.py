@@ -19,18 +19,12 @@ from claon_admin.router import center, auth, admin, user, index
 
 nest_asyncio.apply()
 
-""" Initialize Database """
-if environ.get("API_ENV") != "test":
-    asyncio.run(db.create_database())
-else:
-    asyncio.run(db.create_drop_database())
-
 
 def create_app() -> FastAPI:
     claon_app = FastAPI()
-    container = Container()
 
     """ Define Container """
+    container = Container()
     claon_app.container = container
 
     """ Define Routers """
@@ -43,6 +37,7 @@ def create_app() -> FastAPI:
     claon_app.include_router(admin.router, prefix=api_prefix + "/admin")
     claon_app.include_router(user.router, prefix=api_prefix + "/users")
 
+    """ Define Middleware """
     claon_app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -50,12 +45,11 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"]
     )
-
     claon_app.add_middleware(SessionMiddleware, secret_key=conf().SESSION_SECRET_KEY)
     claon_app.add_middleware(LoggerMiddleware)
     claon_app.add_middleware(LimitUploadSize)
-    add_pagination(claon_app)
 
+    add_pagination(claon_app)
     add_http_exception_handler(claon_app)
 
     return claon_app
@@ -66,6 +60,12 @@ app = create_app()
 
 @app.on_event("startup")
 async def startup():
+    """ Initialize Database """
+    if environ.get("API_ENV") != "test":
+        asyncio.run(db.create_database())
+    else:
+        asyncio.run(db.create_drop_database())
+
     job_post.start()
 
 

@@ -1,24 +1,27 @@
+from typing import Annotated
+
 from dependency_injector.wiring import Provide, inject
 from fastapi import Header, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import UnauthorizedException, ErrorCode, InternalServerException
-from claon_admin.common.util.db import db
 from claon_admin.common.util.header import add_jwt_tokens
 from claon_admin.common.util.jwt import resolve_access_token, resolve_refresh_token, is_expired, create_access_token, \
     reissue_refresh_token
 from claon_admin.common.util.redis import find_user_id_by_refresh_token
+from claon_admin.common.util.transaction import transactional
 from claon_admin.container import Container
 from claon_admin.model.auth import RequestUser
 from claon_admin.schema.user import UserRepository
 
 
+@transactional(read_only=True)
 @inject
 async def get_subject(
     response: Response,
+    session: AsyncSession,
     access_token: str = Header(None),
     refresh_token: str = Header(None),
-    session: AsyncSession = Depends(db.get_db),
     user_repository: UserRepository = Depends(Provide[Container.user_repository])
 ) -> RequestUser:
     try:
@@ -100,3 +103,6 @@ async def get_subject(
             ErrorCode.INTERNAL_SERVER_ERROR,
             "Unexpected error occurred when getting and parsing tokens."
         ) from e
+
+
+CurrentUser = Annotated[RequestUser, Depends(get_subject)]

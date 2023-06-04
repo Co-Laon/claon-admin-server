@@ -1,6 +1,7 @@
 from dependency_injector import containers, providers
 
-from claon_admin import config, router
+from claon_admin import router, job
+from claon_admin.common import util
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, CenterHoldRepository, \
     CenterWallRepository, CenterFeeRepository, ReviewRepository, ReviewAnswerRepository
 from claon_admin.schema.post import PostRepository, PostCountHistoryRepository
@@ -12,7 +13,7 @@ from claon_admin.service.user import UserService
 
 
 class Container(containers.DeclarativeContainer):
-    wiring_config = containers.WiringConfiguration(packages=[config, router])
+    wiring_config = containers.WiringConfiguration(packages=[util, router, job])
 
     """ Repository """
     user_repository = providers.Singleton(UserRepository)
@@ -28,7 +29,7 @@ class Container(containers.DeclarativeContainer):
     review_repository = providers.Singleton(ReviewRepository)
     review_answer_repository = providers.Singleton(ReviewAnswerRepository)
 
-    """ Infrastructure """
+    """ Service """
     google_user_info_provider = providers.Singleton(GoogleUserInfoProvider)
     kakao_user_info_provider = providers.Singleton(KakaoUserInfoProvider)
     oauth_user_info_provider_supplier = providers.Singleton(
@@ -37,7 +38,6 @@ class Container(containers.DeclarativeContainer):
         kakao_user_info_provider=kakao_user_info_provider
     )
 
-    """ Service """
     user_service = providers.Singleton(
         UserService,
         user_repository=user_repository,
