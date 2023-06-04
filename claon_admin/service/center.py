@@ -6,7 +6,7 @@ from fastapi_pagination import Params
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.enum import CenterUploadPurpose, Role
-from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException
+from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException, ConflictException
 from claon_admin.common.util.pagination import paginate
 from claon_admin.common.util.s3 import upload_file
 from claon_admin.common.util.time import now
@@ -359,6 +359,7 @@ class CenterService:
 
     async def delete(self,
                      session: AsyncSession,
+                     subject: RequestUser,
                      center_id: str):
         center = await self.center_repository.find_by_id(session, center_id)
         if center is None:
@@ -366,5 +367,18 @@ class CenterService:
                 ErrorCode.DATA_DOES_NOT_EXIST,
                 "해당 암장이 존재하지 않습니다."
             )
-        await self.center_repository.delete(session, center)
-        return CenterResponseDto.from_entity(center, center.holds, center.walls, center.fees)
+
+        if center.user_id is None:
+            raise ConflictException(
+                ErrorCode.CONFLICT_STATE,
+                "이미 삭제된 암장입니다."
+            )
+
+        if center.user.id != subject.id:
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        result = await self.center_repository.remove_center(session, center)
+        return CenterResponseDto.from_entity(result, result.holds, result.walls, result.fees)

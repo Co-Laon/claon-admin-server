@@ -238,7 +238,7 @@ class CenterRepository:
     @staticmethod
     async def find_by_name(session: AsyncSession, name: str):
         result = await session.execute(select(Center)
-                                       .where(and_(Center.name.contains(name), Center.user_id == null()))
+                                       .where(and_(Center.name.contains(name), Center.user_id != null()))
                                        .limit(5))
         return result.scalars().all()
 
@@ -253,6 +253,12 @@ class CenterRepository:
     async def find_all_ids_by_approved_true(session: AsyncSession):
         result = await session.execute(select(Center.id).where(Center.approved.is_(True)))
         return result.scalars().all()
+
+    @staticmethod
+    async def remove_center(session: AsyncSession, center: Center):
+        center.user_id = None
+        await session.merge(center)
+        return center
 
 
 class CenterApprovedFileRepository:

@@ -257,7 +257,7 @@ class CenterResponseDto(BaseModel):
 
     @classmethod
     def from_entity(cls, entity: Center, holds: List[CenterHold], walls: List[CenterWall],
-                    fees: List[CenterFee]|None=None):
+                    fees: List[CenterFee] | None = None):
         return CenterResponseDto(
             center_id=entity.id,
             profile_image=entity.profile_img,
