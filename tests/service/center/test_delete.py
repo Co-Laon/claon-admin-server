@@ -3,7 +3,7 @@ from typing import List
 import pytest
 
 from claon_admin.common.enum import Role
-from claon_admin.common.error.exception import NotFoundException, ErrorCode, UnauthorizedException, ConflictException
+from claon_admin.common.error.exception import BadRequestException, NotFoundException, ErrorCode, UnauthorizedException
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.center import CenterResponseDto
 from claon_admin.schema.center import Center, CenterFee, CenterHold, CenterWall
@@ -26,15 +26,12 @@ class TestDelete(object):
         # given
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
         mock_repo["center"].find_by_id.side_effect = [center_fixture]
-
-        deleted_center = center_fixture
-        deleted_center.user_id = None
-        mock_repo["center"].remove_center.side_effect = [deleted_center]
-        response = CenterResponseDto.from_entity(entity=deleted_center,
-                                            holds=center_holds_fixture, 
-                                            walls=center_walls_fixture, 
+        mock_repo["center"].remove_center.side_effect = [center_fixture]
+        response = CenterResponseDto.from_entity(entity=center_fixture,
+                                            holds=center_holds_fixture,
+                                            walls=center_walls_fixture,
                                             fees=center_fees_fixture)
-
+        
         # when
         result = await center_service.delete(session=None, subject=request_user, center_id=center_fixture.id)
 
@@ -79,12 +76,12 @@ class TestDelete(object):
         deleted_center.user_id = None
         mock_repo["center"].find_by_id.side_effect = [deleted_center]
 
-        with pytest.raises(ConflictException) as exception:
+        with pytest.raises(BadRequestException) as exception:
             # when
             await center_service.delete(session=None, subject=request_user, center_id=center_fixture.id)
 
         # then
-        assert exception.value.code == ErrorCode.CONFLICT_STATE
+        assert exception.value.code == ErrorCode.ROW_ALREADY_DETELED
 
     @pytest.mark.asyncio
     @pytest.mark.it("Fail case: request user is not center admin")

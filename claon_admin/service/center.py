@@ -6,7 +6,7 @@ from fastapi_pagination import Params
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.enum import CenterUploadPurpose, Role
-from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException, ConflictException
+from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException
 from claon_admin.common.util.pagination import paginate
 from claon_admin.common.util.s3 import upload_file
 from claon_admin.common.util.time import now
@@ -369,8 +369,8 @@ class CenterService:
             )
 
         if center.user_id is None:
-            raise ConflictException(
-                ErrorCode.CONFLICT_STATE,
+            raise BadRequestException(
+                ErrorCode.ROW_ALREADY_DETELED,
                 "이미 삭제된 암장입니다."
             )
 

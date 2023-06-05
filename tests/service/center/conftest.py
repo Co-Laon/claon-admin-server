@@ -136,6 +136,7 @@ def center_fixture(user_fixture: User):
     yield Center(
         id=str(uuid.uuid4()),
         user=user_fixture,
+        user_id=user_fixture.id,
         name="test center",
         profile_img="https://test.profile.png",
         address="test_address",
