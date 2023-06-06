@@ -203,7 +203,8 @@ class CenterRepository:
         result = await session.execute(select(Center).where(Center.id == center_id)
                                        .options(selectinload(Center.user))
                                        .options(selectinload(Center.holds))
-                                       .options(selectinload(Center.walls)))
+                                       .options(selectinload(Center.walls))
+                                       .options(selectinload(Center.fees)))
         return result.scalars().one_or_none()
 
     @staticmethod
@@ -238,7 +239,7 @@ class CenterRepository:
     @staticmethod
     async def find_by_name(session: AsyncSession, name: str):
         result = await session.execute(select(Center)
-                                       .where(and_(Center.name.contains(name), Center.user_id != null()))
+                                       .where(and_(Center.name.contains(name), Center.user_id == null()))
                                        .limit(5))
         return result.scalars().all()
 

@@ -357,6 +357,7 @@ class CenterService:
 
         return CenterResponseDto.from_entity(center, center.holds, center.walls, center.fees)
 
+    @transactional()
     async def delete(self,
                      session: AsyncSession,
                      subject: RequestUser,
@@ -374,7 +375,7 @@ class CenterService:
                 "이미 삭제된 암장입니다."
             )
 
-        if center.user.id != subject.id:
+        if subject.role != Role.ADMIN and center.user.id != subject.id:
             raise UnauthorizedException(
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."
