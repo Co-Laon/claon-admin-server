@@ -3,7 +3,7 @@ from datetime import date
 from typing import List
 from uuid import uuid4
 
-from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, select, exists, and_, delete
+from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, select, exists, and_, delete, JSON
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, backref, selectinload
 from sqlalchemy.dialects.postgresql import TEXT
@@ -55,9 +55,9 @@ class Lector(Base):
     is_setter = Column(Boolean, default=False, nullable=False)
     approved = Column(Boolean, default=False, nullable=False)
 
-    _contest = Column(TEXT)
-    _certificate = Column(TEXT)
-    _career = Column(TEXT)
+    _contest = Column(JSON)
+    _certificate = Column(JSON)
+    _career = Column(JSON)
 
     user_id = Column(String(length=255), ForeignKey("tb_user.id", ondelete="CASCADE"), unique=True, nullable=False)
     user = relationship("User", backref=backref("Lector"))

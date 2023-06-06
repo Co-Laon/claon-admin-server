@@ -5,7 +5,7 @@ from uuid import uuid4
 
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate
-from sqlalchemy import Column, String, DateTime, TEXT, ForeignKey, Integer, Enum, and_, select, desc, func, asc
+from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, Enum, and_, select, desc, func, asc, JSON
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, backref, selectinload
 
@@ -21,7 +21,7 @@ class PostImage:
 class Post(Base):
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     content = Column(String(length=500), nullable=False)
-    _img = Column(TEXT, nullable=False)
+    _img = Column(JSON, nullable=False)
     histories = relationship("ClimbingHistory", back_populates="post", cascade="all, delete-orphan")
 
     user_id = Column(String(length=255), ForeignKey("tb_user.id", ondelete="CASCADE"), nullable=False)

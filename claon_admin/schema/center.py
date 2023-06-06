@@ -6,7 +6,7 @@ from uuid import uuid4
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import String, Column, ForeignKey, Boolean, select, exists, Integer, Enum, delete, and_, desc, func, \
-    null
+    null, JSON
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload, backref
 from sqlalchemy.dialects.postgresql import TEXT
@@ -55,10 +55,10 @@ class Center(Base):
     youtube_url = Column(String(length=500))
     approved = Column(Boolean, default=False, nullable=False)
 
-    _center_img = Column(TEXT)
-    _operating_time = Column(TEXT)
-    _utility = Column(TEXT)
-    _fee_img = Column(TEXT)
+    _center_img = Column(JSON)
+    _operating_time = Column(JSON)
+    _utility = Column(JSON)
+    _fee_img = Column(JSON)
 
     fees = relationship("CenterFee", back_populates="center", cascade="all, delete-orphan")
     holds = relationship("CenterHold", back_populates="center", cascade="all, delete-orphan")
@@ -161,7 +161,7 @@ class CenterApprovedFile(Base):
 class Review(Base):
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     content = Column(String(length=500), nullable=False)
-    _tag = Column(TEXT, nullable=False)
+    _tag = Column(JSON, nullable=False)
 
     user_id = Column(String(length=255), ForeignKey("tb_user.id", ondelete="CASCADE"), nullable=False)
     user = relationship("User", backref=backref("Review"))
