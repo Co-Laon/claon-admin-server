@@ -203,7 +203,8 @@ class CenterRepository:
         result = await session.execute(select(Center).where(Center.id == center_id)
                                        .options(selectinload(Center.user))
                                        .options(selectinload(Center.holds))
-                                       .options(selectinload(Center.walls)))
+                                       .options(selectinload(Center.walls))
+                                       .options(selectinload(Center.fees)))
         return result.scalars().one_or_none()
 
     @staticmethod
@@ -253,6 +254,12 @@ class CenterRepository:
     async def find_all_ids_by_approved_true(session: AsyncSession):
         result = await session.execute(select(Center.id).where(Center.approved.is_(True)))
         return result.scalars().all()
+
+    @staticmethod
+    async def remove_center(session: AsyncSession, center: Center):
+        center.user_id = None
+        await session.merge(center)
+        return center
 
 
 class CenterApprovedFileRepository:

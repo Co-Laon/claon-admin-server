@@ -203,3 +203,13 @@ class TestCenterRepository(object):
     ):
         # then
         assert await center_repository.find_all_ids_by_approved_true(session) == [center_fixture.id]
+
+    @pytest.mark.asyncio
+    async def test_remove_center(
+            self,
+            session: AsyncSession,
+            center_fixture: Center
+    ):
+        # then
+        result = await center_repository.remove_center(session, center_fixture)
+        assert result.user_id is None

@@ -65,8 +65,9 @@ class CenterRouter:
 
     @router.delete('/{center_id}', response_model=CenterResponseDto)
     async def delete(self,
+                     subject: CurrentUser,
                      center_id: str):
-        pass
+        return await self.center_service.delete(center_id=center_id, subject=subject)
 
     @router.get('/{center_id}/posts/{post_id}', response_model=PostResponseDto)
     async def find_post(self,
