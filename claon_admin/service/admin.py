@@ -77,7 +77,7 @@ class AdminService:
                 "어드민 권한이 없습니다."
             )
 
-        center = await self.center_repository.find_by_id(session, center_id)
+        center = await self.center_repository.find_by_id_with_details(session, center_id)
         if center is None:
             raise NotFoundException(
                 ErrorCode.DATA_DOES_NOT_EXIST,
@@ -107,7 +107,7 @@ class AdminService:
                 "어드민 권한이 없습니다."
             )
 
-        center = await self.center_repository.find_by_id(session, center_id)
+        center = await self.center_repository.find_by_id_with_details(session, center_id)
 
         if center is None:
             raise BadRequestException(

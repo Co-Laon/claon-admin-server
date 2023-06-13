@@ -43,14 +43,14 @@ class CenterService:
                                    hold_id: str | None,
                                    start: date,
                                    end: date):
-        center = await self.center_repository.find_by_id(session, center_id)
+        center = await self.center_repository.find_by_id_with_details(session, center_id)
         if center is None:
             raise NotFoundException(
                 ErrorCode.DATA_DOES_NOT_EXIST,
                 "해당 암장이 존재하지 않습니다."
             )
 
-        if center.user.id != subject.id:
+        if center.user_id != subject.id:
             raise UnauthorizedException(
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."
@@ -92,7 +92,7 @@ class CenterService:
                 "해당 암장이 존재하지 않습니다."
             )
 
-        if center.user.id != subject.id:
+        if center.user_id != subject.id:
             raise UnauthorizedException(
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."
@@ -130,7 +130,7 @@ class CenterService:
                 "해당 암장이 존재하지 않습니다."
             )
 
-        if center.user.id != subject.id:
+        if center.user_id != subject.id:
             raise UnauthorizedException(
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."
@@ -173,7 +173,7 @@ class CenterService:
                 "해당 암장이 존재하지 않습니다."
             )
 
-        if center.user.id != subject.id:
+        if center.user_id != subject.id:
             raise UnauthorizedException(
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."
@@ -210,7 +210,7 @@ class CenterService:
                 "해당 암장이 존재하지 않습니다."
             )
 
-        if center.user.id != subject.id:
+        if center.user_id != subject.id:
             raise UnauthorizedException(
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."
@@ -261,7 +261,7 @@ class CenterService:
                 "해당 암장이 존재하지 않습니다."
             )
 
-        if center.user.id != subject.id:
+        if center.user_id != subject.id:
             raise UnauthorizedException(
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."
@@ -316,7 +316,7 @@ class CenterService:
                 "해당 암장이 존재하지 않습니다."
             )
 
-        if center.user.id != subject.id:
+        if center.user_id != subject.id:
             raise UnauthorizedException(
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."
@@ -342,14 +342,14 @@ class CenterService:
                          session: AsyncSession,
                          subject: RequestUser,
                          center_id: str):
-        center = await self.center_repository.find_by_id(session, center_id)
+        center = await self.center_repository.find_by_id_with_details(session, center_id)
         if center is None:
             raise NotFoundException(
                 ErrorCode.DATA_DOES_NOT_EXIST,
                 "해당 암장이 존재하지 않습니다."
             )
 
-        if center.user.id != subject.id:
+        if center.user_id != subject.id:
             raise UnauthorizedException(
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."
@@ -375,7 +375,7 @@ class CenterService:
                 "이미 삭제된 암장입니다."
             )
 
-        if subject.role != Role.ADMIN and center.user.id != subject.id:
+        if subject.role != Role.ADMIN and center.user_id != subject.id:
             raise UnauthorizedException(
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."

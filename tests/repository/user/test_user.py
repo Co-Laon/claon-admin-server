@@ -49,36 +49,6 @@ class TestUserRepository(object):
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_exist_user_by_valid_id(
-            self,
-            session: AsyncSession,
-            user_fixture: User
-    ):
-        # given
-        user_id = user_fixture.id
-
-        # when
-        result = await user_repository.exist_by_id(session, user_id)
-
-        # then
-        assert result is True
-
-    @pytest.mark.asyncio
-    async def test_exist_user_by_invalid_id(
-            self,
-            session: AsyncSession,
-            user_fixture: User
-    ):
-        # given
-        wrong_id = "wrong_id"
-
-        # when
-        result = await user_repository.exist_by_id(session, wrong_id)
-
-        # then
-        assert result is False
-
-    @pytest.mark.asyncio
     async def test_find_user_by_not_existing_nickname(
             self,
             session: AsyncSession,

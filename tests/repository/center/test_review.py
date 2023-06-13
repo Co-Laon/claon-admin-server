@@ -160,10 +160,7 @@ class TestReviewAnswerRepository(object):
             review_answer_fixture: ReviewAnswer
     ):
         # when
-        await review_answer_repository.delete(
-            session=session,
-            answer=review_answer_fixture
-        )
+        await review_answer_repository.delete(session, review_answer_fixture)
 
         # then
         assert await review_answer_repository.find_by_review_id(session, review_fixture.id) is None

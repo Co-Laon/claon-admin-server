@@ -21,7 +21,7 @@ class TestRejectCenter(object):
         request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
         center_id = center_fixture.id
 
-        mock_repo["center"].find_by_id.side_effect = [center_fixture]
+        mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
 
         # when
         result = await admin_service.reject_center(request_user, center_id)
@@ -59,7 +59,7 @@ class TestRejectCenter(object):
         request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
         center_id = "not_existing_id"
 
-        mock_repo["center"].find_by_id.side_effect = [None]
+        mock_repo["center"].find_by_id_with_details.side_effect = [None]
 
         with pytest.raises(BadRequestException) as exception:
             # when

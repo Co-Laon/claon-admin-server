@@ -66,7 +66,7 @@ class TestCenterRepository(object):
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_exists_center_by_id(
+    async def test_find_center_by_id_with(
             self,
             session: AsyncSession,
             center_fixture: Center
@@ -75,53 +75,25 @@ class TestCenterRepository(object):
         center_id = center_fixture.id
 
         # when
-        result = await center_repository.exists_by_id(session, center_id)
+        result = await center_repository.find_by_id_with_details(session, center_id)
 
         # then
-        assert result is True
+        assert result == center_fixture
+        assert result.user == center_fixture.user
 
     @pytest.mark.asyncio
-    async def test_exists_center_by_non_existing_id(
+    async def test_find_center_by_non_existing_id_with(
             self,
-            session: AsyncSession
+            session: AsyncSession,
     ):
         # given
         center_id = "non_existing_id"
 
         # when
-        result = await center_repository.exists_by_id(session, center_id)
+        result = await center_repository.find_by_id_with_details(session, center_id)
 
         # then
-        assert result is False
-
-    @pytest.mark.asyncio
-    async def test_exists_center_by_name_and_approved(
-            self,
-            session: AsyncSession,
-            center_fixture: Center
-    ):
-        # given
-        center_name = center_fixture.name
-
-        # when
-        result = await center_repository.exists_by_name_and_approved(session, center_name)
-
-        # then
-        assert result is True
-
-    @pytest.mark.asyncio
-    async def test_exists_center_by_non_existing_name_and_approved(
-            self,
-            session: AsyncSession
-    ):
-        # given
-        center_name = "non_existing_name"
-
-        # when
-        result = await center_repository.exists_by_id(session, center_name)
-
-        # then
-        assert result is False
+        assert result is None
 
     @pytest.mark.asyncio
     async def test_approve_center(
@@ -145,7 +117,7 @@ class TestCenterRepository(object):
         await center_repository.delete(session, center_fixture)
 
         # then
-        assert await center_repository.find_by_id(session, center_fixture.id) is None
+        assert await center_repository.find_by_id_with_details(session, center_fixture.id) is None
         assert await center_hold_repository.find_all_by_center_id(session, center_fixture.id) == []
         assert await center_wall_repository.find_all_by_center_id(session, center_fixture.id) == []
         assert await center_fee_repository.find_all_by_center_id(session, center_fixture.id) == []

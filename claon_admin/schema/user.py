@@ -10,6 +10,7 @@ from sqlalchemy.dialects.postgresql import TEXT
 
 from claon_admin.common.enum import Role
 from claon_admin.common.util.db import Base
+from claon_admin.common.util.repository import Repository
 
 
 class Contest:
@@ -107,79 +108,36 @@ class LectorApprovedFile(Base):
     lector = relationship("Lector", backref=backref("LectorApprovedFile", cascade="all,delete"))
 
 
-class UserRepository:
-    @staticmethod
-    async def find_by_id(session: AsyncSession, user_id: str):
-        result = await session.execute(select(User).where(User.id == user_id))
-        return result.scalars().one_or_none()
-
-    @staticmethod
-    async def find_by_nickname(session: AsyncSession, nickname: str):
+class UserRepository(Repository[User]):
+    async def find_by_nickname(self, session: AsyncSession, nickname: str):
         result = await session.execute(select(User).where(User.nickname == nickname))
         return result.scalars().one_or_none()
 
-    @staticmethod
-    async def exist_by_id(session: AsyncSession, user_id: str):
-        result = await session.execute(select(exists().where(User.id == user_id)))
-        return result.scalar()
-
-    @staticmethod
-    async def exist_by_nickname(session: AsyncSession, nickname: str):
+    async def exist_by_nickname(self, session: AsyncSession, nickname: str):
         result = await session.execute(select(exists().where(User.nickname == nickname)))
         return result.scalar()
 
-    @staticmethod
-    async def save(session: AsyncSession, user: User):
-        session.add(user)
-        await session.merge(user)
-        return user
-
-    @staticmethod
-    async def find_by_oauth_id_and_sns(session: AsyncSession, oauth_id: str, sns: str):
+    async def find_by_oauth_id_and_sns(self, session: AsyncSession, oauth_id: str, sns: str):
         result = await session.execute(select(User).where(and_(User.oauth_id == oauth_id, User.sns == sns)))
         return result.scalars().one_or_none()
 
-    @staticmethod
-    async def find_by_oauth_id(session: AsyncSession, oauth_id: str):
+    async def find_by_oauth_id(self, session: AsyncSession, oauth_id: str):
         result = await session.execute(select(User).where(User.oauth_id == oauth_id))
         return result.scalars().one_or_none()
 
-    @staticmethod
-    async def update_role(session: AsyncSession, user: User, role: Role):
+    async def update_role(self, session: AsyncSession, user: User, role: Role):
         user.role = role
         await session.merge(user)
         return user
 
 
-class LectorRepository:
-    @staticmethod
-    async def save(session: AsyncSession, lector: Lector):
-        session.add(lector)
-        await session.merge(lector)
-        return lector
-
-    @staticmethod
-    async def delete(session: AsyncSession, lector: Lector):
-        await session.delete(lector)
-
-    @staticmethod
-    async def find_by_id(session: AsyncSession, lector_id: str):
-        result = await session.execute(select(Lector).where(Lector.id == lector_id))
-        return result.scalars().one_or_none()
-
-    @staticmethod
-    async def exists_by_id(session: AsyncSession, lector_id: str):
-        result = await session.execute(select(exists().where(Lector.id == lector_id)))
-        return result.scalar()
-
-    @staticmethod
-    async def approve(session: AsyncSession, lector: Lector):
+class LectorRepository(Repository[Lector]):
+    async def approve(self, session: AsyncSession, lector: Lector):
         lector.approved = True
         await session.merge(lector)
         return lector
 
-    @staticmethod
-    async def find_all_by_approved_false(session: AsyncSession):
+    async def find_all_by_approved_false(self, session: AsyncSession):
         result = await session.execute(
             select(Lector)
             .where(Lector.approved.is_(False))
@@ -189,24 +147,10 @@ class LectorRepository:
         return result.scalars().all()
 
 
-class LectorApprovedFileRepository:
-    @staticmethod
-    async def save(session: AsyncSession, approved_file: LectorApprovedFile):
-        session.add(approved_file)
-        await session.merge(approved_file)
-        return approved_file
-
-    @staticmethod
-    async def save_all(session: AsyncSession, approved_files: List[LectorApprovedFile]):
-        session.add_all(approved_files)
-        [await session.merge(e) for e in approved_files]
-        return approved_files
-
-    @staticmethod
-    async def find_all_by_lector_id(session: AsyncSession, lector_id: str):
+class LectorApprovedFileRepository(Repository[LectorApprovedFile]):
+    async def find_all_by_lector_id(self, session: AsyncSession, lector_id: str):
         result = await session.execute(select(LectorApprovedFile).where(LectorApprovedFile.lector_id == lector_id))
         return result.scalars().all()
 
-    @staticmethod
-    async def delete_all_by_lector_id(session: AsyncSession, lector_id: str):
+    async def delete_all_by_lector_id(self, session: AsyncSession, lector_id: str):
         await session.execute(delete(LectorApprovedFile).where(LectorApprovedFile.lector_id == lector_id))
