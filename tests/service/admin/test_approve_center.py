@@ -27,7 +27,7 @@ class TestApproveCenter(object):
         request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
         center_id = center_fixture.id
 
-        mock_repo["center"].find_by_id.side_effect = [center_fixture]
+        mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
         center_fixture.approved = True
         mock_repo["center"].approve.side_effect = [center_fixture]
         mock_repo["center"].exists_by_name_and_approved.side_effect = [False]
@@ -72,7 +72,7 @@ class TestApproveCenter(object):
         request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
         center_id = "not_existing_id"
 
-        mock_repo["center"].find_by_id.side_effect = [None]
+        mock_repo["center"].find_by_id_with_details.side_effect = [None]
 
         with pytest.raises(NotFoundException) as exception:
             # when
@@ -93,7 +93,7 @@ class TestApproveCenter(object):
         request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
         center_id = center_fixture.id
 
-        mock_repo["center"].find_by_id.side_effect = [center_fixture]
+        mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
         mock_repo["center"].exists_by_name_and_approved.side_effect = [True]
 
         with pytest.raises(BadRequestException) as exception:

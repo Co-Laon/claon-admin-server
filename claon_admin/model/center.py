@@ -256,7 +256,9 @@ class CenterResponseDto(BaseModel):
     approved: bool
 
     @classmethod
-    def from_entity(cls, entity: Center, holds: List[CenterHold], walls: List[CenterWall],
+    def from_entity(cls, entity: Center,
+                    holds: List[CenterHold] | None = None,
+                    walls: List[CenterWall] | None = None,
                     fees: List[CenterFee] | None = None):
         return CenterResponseDto(
             center_id=entity.id,
@@ -281,13 +283,13 @@ class CenterResponseDto(BaseModel):
             ],
             hold_list=[
                 CenterHoldDto(difficulty=e.difficulty, name=e.name, is_color=e.is_color)
-                for e in holds
+                for e in holds or []
             ],
             wall_list=[
                 CenterWallDto(
                     wall_type=WallType.BOULDERING if e.type == "bouldering" else WallType.ENDURANCE,
                     name=e.name
-                ) for e in walls
+                ) for e in walls or []
             ],
             approved=entity.approved
         )

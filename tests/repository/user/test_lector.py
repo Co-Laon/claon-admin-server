@@ -73,35 +73,6 @@ class TestLectorRepository(object):
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_exists_lector_by_id(
-            self,
-            session: AsyncSession,
-            lector_fixture: Lector
-    ):
-        # given
-        lector_id = lector_fixture.id
-
-        # when
-        result = await lector_repository.exists_by_id(session, lector_id)
-
-        # then
-        assert result is True
-
-    @pytest.mark.asyncio
-    async def test_exists_lector_by_non_existing_id(
-            self,
-            session: AsyncSession
-    ):
-        # given
-        lector_id = "non_existing_id"
-
-        # when
-        result = await lector_repository.exists_by_id(session, lector_id)
-
-        # then
-        assert result is False
-
-    @pytest.mark.asyncio
     async def test_approve_lector(
             self,
             session: AsyncSession,

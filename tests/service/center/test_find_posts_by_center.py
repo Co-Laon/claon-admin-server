@@ -33,7 +33,7 @@ class TestFindPostsByCenter(object):
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
         params = Params(page=1, size=10)
         post_page = Page(items=[post_fixture], params=params, total=1, page=1, pages=1)
-        mock_repo["center"].find_by_id.side_effect = [center_fixture]
+        mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
         mock_repo["post"].find_posts_by_center.return_value = post_page
         mock_pagination = Pagination(
             next_page_num=2,
@@ -78,7 +78,7 @@ class TestFindPostsByCenter(object):
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
         params = Params(page=1, size=10)
         post_page = Page(items=[post_fixture], params=params, total=1, page=1, pages=1)
-        mock_repo["center"].find_by_id.side_effect = [center_fixture]
+        mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
         mock_repo["post"].find_posts_by_center.return_value = post_page
         mock_pagination = Pagination(
             next_page_num=2,
@@ -118,7 +118,7 @@ class TestFindPostsByCenter(object):
         # given
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
         center_id = "not_existing_id"
-        mock_repo["center"].find_by_id.side_effect = [None]
+        mock_repo["center"].find_by_id_with_details.side_effect = [None]
         params = Params(page=1, size=10)
 
         with pytest.raises(NotFoundException) as exception:
@@ -145,7 +145,7 @@ class TestFindPostsByCenter(object):
     ):
         # given
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
-        mock_repo["center"].find_by_id.side_effect = [center_fixture]
+        mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
         params = Params(page=1, size=10)
 
         with pytest.raises(NotFoundException) as exception:
@@ -173,7 +173,7 @@ class TestFindPostsByCenter(object):
     ):
         # given
         request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.CENTER_ADMIN)
-        mock_repo["center"].find_by_id.side_effect = [center_fixture]
+        mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
         params = Params(page=1, size=10)
 
         with pytest.raises(UnauthorizedException) as exception:

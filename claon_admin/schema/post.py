@@ -11,6 +11,7 @@ from sqlalchemy.orm import relationship, backref, selectinload
 
 from claon_admin.common.enum import WallType
 from claon_admin.common.util.db import Base
+from claon_admin.common.util.repository import Repository
 
 
 class PostImage:
@@ -61,15 +62,9 @@ class PostCountHistory(Base):
     count = Column(Integer, nullable=False)
 
 
-class PostRepository:
-    @staticmethod
-    async def save(session: AsyncSession, post: Post):
-        session.add(post)
-        await session.merge(post)
-        return post
-
-    @staticmethod
-    async def find_posts_by_center(session: AsyncSession,
+class PostRepository(Repository[Post]):
+    async def find_posts_by_center(self,
+                                   session: AsyncSession,
                                    params: Params,
                                    center_id: str,
                                    hold_id: str | None,
@@ -88,8 +83,7 @@ class PostRepository:
 
         return await paginate(query=query, conn=session, params=params)
 
-    @staticmethod
-    async def count_by_center_and_date(session: AsyncSession, center_ids: List[str], start: date, end: date):
+    async def count_by_center_and_date(self, session: AsyncSession, center_ids: List[str], start: date, end: date):
         query_result = await session.execute(select(Post.center_id, func.count(Post.id))
                                              .where(and_(Post.center_id.in_(center_ids),
                                                          Post.created_at >= start,
@@ -98,36 +92,18 @@ class PostRepository:
         return {center_id: count for center_id, count in query_result.fetchall()}
 
 
-class ClimbingHistoryRepository:
-    @staticmethod
-    async def save(session: AsyncSession, history: ClimbingHistory):
-        session.add(history)
-        await session.merge(history)
-        return history
+class ClimbingHistoryRepository(Repository[ClimbingHistory]):
+    pass
 
 
-class PostCountHistoryRepository:
-    @staticmethod
-    async def save(session: AsyncSession, history: PostCountHistory):
-        session.add(history)
-        await session.merge(history)
-        return history
-
-    @staticmethod
-    async def save_all(session: AsyncSession, histories: List[PostCountHistory]):
-        session.add_all(histories)
-        [await session.merge(history) for history in histories]
-        return histories
-
-    @staticmethod
-    async def sum_count_by_center(session: AsyncSession, center_id: str):
+class PostCountHistoryRepository(Repository[PostCountHistory]):
+    async def sum_count_by_center(self, session: AsyncSession, center_id: str):
         result = await session.execute(select(func.sum(PostCountHistory.count))
                                        .where(PostCountHistory.center_id == center_id)
                                        .order_by(desc(PostCountHistory.reg_date)))
         return result.scalars().first() or 0
 
-    @staticmethod
-    async def find_by_center_and_date(session: AsyncSession, center_id: str, start: date, end: date):
+    async def find_by_center_and_date(self, session: AsyncSession, center_id: str, start: date, end: date):
         result = await session.execute(select(PostCountHistory)
                                        .where(and_(PostCountHistory.center_id == center_id,
                                                    PostCountHistory.reg_date >= start,

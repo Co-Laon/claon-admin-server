@@ -13,6 +13,7 @@ from sqlalchemy.dialects.postgresql import TEXT
 
 from claon_admin.common.enum import PeriodType, MembershipType
 from claon_admin.common.util.db import Base
+from claon_admin.common.util.repository import Repository
 from claon_admin.schema.post import Post
 
 
@@ -191,15 +192,8 @@ class ReviewAnswer(Base):
     review = relationship("Review", back_populates="answer", uselist=False)
 
 
-class CenterRepository:
-    @staticmethod
-    async def save(session: AsyncSession, center: Center):
-        session.add(center)
-        await session.merge(center)
-        return center
-
-    @staticmethod
-    async def find_by_id(session: AsyncSession, center_id: str):
+class CenterRepository(Repository[Center]):
+    async def find_by_id_with_details(self, session: AsyncSession, center_id: str):
         result = await session.execute(select(Center).where(Center.id == center_id)
                                        .options(selectinload(Center.user))
                                        .options(selectinload(Center.holds))
@@ -207,28 +201,16 @@ class CenterRepository:
                                        .options(selectinload(Center.fees)))
         return result.scalars().one_or_none()
 
-    @staticmethod
-    async def exists_by_id(session: AsyncSession, center_id: str):
-        result = await session.execute(select(exists().where(Center.id == center_id)))
-        return result.scalar()
-
-    @staticmethod
-    async def exists_by_name_and_approved(session: AsyncSession, name: str):
+    async def exists_by_name_and_approved(self, session: AsyncSession, name: str):
         result = await session.execute(select(exists().where(Center.name == name).where(Center.approved.is_(True))))
         return result.scalar()
 
-    @staticmethod
-    async def approve(session: AsyncSession, center: Center):
+    async def approve(self, session: AsyncSession, center: Center):
         center.approved = True
         await session.merge(center)
         return center
 
-    @staticmethod
-    async def delete(session: AsyncSession, center: Center):
-        return await session.delete(center)
-
-    @staticmethod
-    async def find_all_by_approved_false(session: AsyncSession):
+    async def find_all_by_approved_false(self, session: AsyncSession):
         result = await session.execute(select(Center).where(Center.approved.is_(False))
                                        .options(selectinload(Center.user))
                                        .options(selectinload(Center.holds))
@@ -236,121 +218,58 @@ class CenterRepository:
                                        .options(selectinload(Center.fees)))
         return result.scalars().all()
 
-    @staticmethod
-    async def find_by_name(session: AsyncSession, name: str):
+    async def find_by_name(self, session: AsyncSession, name: str):
         result = await session.execute(select(Center)
                                        .where(and_(Center.name.contains(name), Center.user_id == null()))
                                        .limit(5))
         return result.scalars().all()
 
-    @staticmethod
-    async def find_all_by_user_id(session: AsyncSession, user_id: str, params: Params):
+    async def find_all_by_user_id(self, session: AsyncSession, user_id: str, params: Params):
         query = select(Center).where(Center.user_id == user_id) \
             .order_by(desc(Center.created_at)) \
             .options(selectinload(Center.user))
         return await paginate(query=query, conn=session, params=params)
 
-    @staticmethod
-    async def find_all_ids_by_approved_true(session: AsyncSession):
+    async def find_all_ids_by_approved_true(self, session: AsyncSession):
         result = await session.execute(select(Center.id).where(Center.approved.is_(True)))
         return result.scalars().all()
 
-    @staticmethod
-    async def remove_center(session: AsyncSession, center: Center):
+    async def remove_center(self, session: AsyncSession, center: Center):
         center.user_id = None
         await session.merge(center)
         return center
 
 
-class CenterApprovedFileRepository:
-    @staticmethod
-    async def save(session: AsyncSession, center_approved_file: CenterApprovedFile):
-        session.add(center_approved_file)
-        await session.merge(center_approved_file)
-        return center_approved_file
-
-    @staticmethod
-    async def save_all(session: AsyncSession, center_approved_files: List[CenterApprovedFile]):
-        session.add_all(center_approved_files)
-        [await session.merge(e) for e in center_approved_files]
-        return center_approved_files
-
-    @staticmethod
-    async def find_all_by_center_id(session: AsyncSession, center_id: str):
+class CenterApprovedFileRepository(Repository[CenterApprovedFile]):
+    async def find_all_by_center_id(self, session: AsyncSession, center_id: str):
         result = await session.execute(select(CenterApprovedFile).where(CenterApprovedFile.center_id == center_id))
         return result.scalars().all()
 
-    @staticmethod
-    async def delete_all_by_center_id(session: AsyncSession, center_id: str):
+    async def delete_all_by_center_id(self, session: AsyncSession, center_id: str):
         await session.execute(delete(CenterApprovedFile).where(CenterApprovedFile.center_id == center_id))
 
 
-class CenterHoldRepository:
-    @staticmethod
-    async def save(session: AsyncSession, center_hold: CenterHold):
-        session.add(center_hold)
-        await session.merge(center_hold)
-        return center_hold
-
-    @staticmethod
-    async def save_all(session: AsyncSession, center_holds: List[CenterHold]):
-        session.add_all(center_holds)
-        [await session.merge(e) for e in center_holds]
-        return center_holds
-
-    @staticmethod
-    async def find_all_by_center_id(session: AsyncSession, center_id: str):
+class CenterHoldRepository(Repository[CenterHold]):
+    async def find_all_by_center_id(self, session: AsyncSession, center_id: str):
         result = await session.execute(select(CenterHold).where(CenterHold.center_id == center_id))
         return result.scalars().all()
 
 
-class CenterWallRepository:
-    @staticmethod
-    async def save(session: AsyncSession, center_wall: CenterWall):
-        session.add(center_wall)
-        await session.merge(center_wall)
-        return center_wall
-
-    @staticmethod
-    async def save_all(session: AsyncSession, center_walls: List[CenterWall]):
-        session.add_all(center_walls)
-        [await session.merge(e) for e in center_walls]
-        return center_walls
-
-    @staticmethod
-    async def find_all_by_center_id(session: AsyncSession, center_id: str):
+class CenterWallRepository(Repository[CenterWall]):
+    async def find_all_by_center_id(self, session: AsyncSession, center_id: str):
         result = await session.execute(select(CenterWall).where(CenterWall.center_id == center_id))
         return result.scalars().all()
 
 
-class CenterFeeRepository:
-    @staticmethod
-    async def save(session: AsyncSession, center_fee: CenterFee):
-        session.add(center_fee)
-        await session.merge(center_fee)
-        return center_fee
-
-    @staticmethod
-    async def save_all(session: AsyncSession, center_fees: List[CenterFee]):
-        session.add_all(center_fees)
-        [await session.merge(e) for e in center_fees]
-        return center_fees
-
-    @staticmethod
-    async def find_all_by_center_id(session: AsyncSession, center_id: str):
+class CenterFeeRepository(Repository[CenterFee]):
+    async def find_all_by_center_id(self, session: AsyncSession, center_id: str):
         result = await session.execute(select(CenterFee).where(CenterFee.center_id == center_id))
         return result.scalars().all()
 
 
-class ReviewRepository:
-    @staticmethod
-    async def save(session: AsyncSession, review: Review):
-        session.add(review)
-        await session.merge(review)
-        return review
-
-    @staticmethod
-    async def find_reviews_by_center(session: AsyncSession,
+class ReviewRepository(Repository[Review]):
+    async def find_reviews_by_center(self,
+                                     session: AsyncSession,
                                      params: Params,
                                      center_id: str,
                                      start: date,
@@ -380,8 +299,8 @@ class ReviewRepository:
 
         return await paginate(query=query, conn=session, params=params)
 
-    @staticmethod
-    async def find_by_id_and_center_id(session: AsyncSession,
+    async def find_by_id_and_center_id(self,
+                                       session: AsyncSession,
                                        review_id: str,
                                        center_id: str):
         result = await session.execute(select(Review)
@@ -389,32 +308,19 @@ class ReviewRepository:
 
         return result.scalars().one_or_none()
 
-    @staticmethod
-    async def find_all_by_center(session: AsyncSession, center_id: str):
+    async def find_all_by_center(self, session: AsyncSession, center_id: str):
         result = await session.execute(select(Review).where(Review.center_id == center_id))
 
         return result.scalars().all()
 
 
-class ReviewAnswerRepository:
-    @staticmethod
-    async def save(session: AsyncSession, answer: ReviewAnswer):
-        session.add(answer)
-        await session.merge(answer)
-        return answer
-
-    @staticmethod
-    async def update(session: AsyncSession, answer: ReviewAnswer, content: str):
+class ReviewAnswerRepository(Repository[ReviewAnswer]):
+    async def update(self, session: AsyncSession, answer: ReviewAnswer, content: str):
         answer.content = content
         await session.merge(answer)
         return answer
 
-    @staticmethod
-    async def delete(session: AsyncSession, answer: ReviewAnswer):
-        await session.delete(answer)
-
-    @staticmethod
-    async def find_by_review_id(session: AsyncSession, review_id: str):
+    async def find_by_review_id(self, session: AsyncSession, review_id: str):
         result = await session.execute(select(ReviewAnswer)
                                        .join(Review)
                                        .where(Review.id == review_id))
