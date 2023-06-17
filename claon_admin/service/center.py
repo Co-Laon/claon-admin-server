@@ -5,7 +5,7 @@ from fastapi import UploadFile
 from fastapi_pagination import Params
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.common.enum import CenterUploadPurpose, Role
+from claon_admin.common.enum import CenterUploadPurpose, Role, PeriodType, MembershipType
 from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException
 from claon_admin.common.util.pagination import paginate
 from claon_admin.common.util.s3 import upload_file
@@ -19,7 +19,7 @@ from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequest
 from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto, CenterResponseDto, \
     CenterUpdateRequestDto
 from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, ReviewAnswer, \
-    CenterHoldRepository, CenterWallRepository, CenterFeeRepository
+    CenterHoldRepository, CenterWallRepository, CenterFeeRepository, CenterFee, CenterHold, CenterWall
 from claon_admin.schema.post import PostRepository, PostCountHistoryRepository
 
 
@@ -416,11 +416,34 @@ class CenterService:
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."
             )
-        print("LOG:", dto.__dict__)
-        result = await self.center_repository.update(session, center, dto.__dict__)
 
-        fees = await self.center_fee_repository.save_all(session, result.fees)
-        holds = await self.center_hold_repository.save_all(session, result.holds)
-        walls = await self.center_wall_repository.save_all(session, result.walls)
+        serialized_dto = dto.__dict__
+        serialized_dto.update(operating_time_list=[e.__dict__ for e in serialized_dto.get('operating_time_list') or []])
+        center = await self.center_repository.update(session, center, serialized_dto)
 
-        return CenterResponseDto.from_entity(entity=result, holds=holds, walls=walls, fees=fees)
+        fees = await self.center_fee_repository.find_all_by_center_id(session, center_id)
+        [await self.center_fee_repository.delete(session, fee) for fee in fees]
+
+        holds = await self.center_hold_repository.find_all_by_center_id(session, center_id)
+        [await self.center_hold_repository.delete(session, hold) for hold in holds]
+
+        walls = await self.center_wall_repository.find_all_by_center_id(session, center_id)
+        [await self.center_wall_repository.delete(session, wall) for wall in walls]
+
+        fees = await self.center_fee_repository.save_all(
+            session,
+            [CenterFee(center=center, name=e.name, price=e.price, count=e.count,\
+                       membership_type=MembershipType.MEMBER, period=1, period_type=PeriodType.MONTH)
+             for e in dto.fee_list or []])
+
+        holds = await self.center_hold_repository.save_all(
+            session,
+            [CenterHold(center=center, name=e.name, difficulty=e.difficulty, is_color=e.is_color)
+             for e in dto.hold_list or []])
+
+        walls = await self.center_wall_repository.save_all(
+            session,
+            [CenterWall(center=center, name=e.name, type=e.wall_type.value)
+             for e in dto.wall_list or []])
+
+        return CenterResponseDto.from_entity(entity=center, holds=holds, walls=walls, fees=fees)

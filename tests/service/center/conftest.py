@@ -42,14 +42,14 @@ def mock_repo():
 @pytest.fixture
 def center_service(mock_repo: dict):
     return CenterService(
-        mock_repo["center"],
-        mock_repo["post"],
-        mock_repo["post_count_history"],
-        mock_repo["review"],
-        mock_repo["review_answer"],
-        mock_repo["center_fee"],
-        mock_repo["center_hold"],
-        mock_repo["center_wall"]
+        center_repository=mock_repo["center"],
+        post_repository=mock_repo["post"],
+        post_count_history_repository=mock_repo["post_count_history"],
+        review_repository=mock_repo["review"],
+        review_answer_repository=mock_repo["review_answer"],
+        center_hold_repository=mock_repo["center_hold"],
+        center_wall_repository=mock_repo["center_wall"],
+        center_fee_repository=mock_repo["center_fee"]
     )
 
 
@@ -198,22 +198,6 @@ def center_fees_fixture(center_fixture: Center):
 
 
 @pytest.fixture
-def another_center_fees_fixture(center_fixture: Center):
-    yield [
-        CenterFee(
-            id=str(uuid.uuid4()),
-            center=center_fixture,
-            name="another fee",
-            price=2000,
-            count=10,
-            membership_type=MembershipType.MEMBER,
-            period=12,
-            period_type=PeriodType.WEEK
-        )
-    ]
-
-
-@pytest.fixture
 def center_holds_fixture(center_fixture: Center):
     yield [
         CenterHold(
@@ -227,19 +211,6 @@ def center_holds_fixture(center_fixture: Center):
 
 
 @pytest.fixture
-def another_center_holds_fixture(center_fixture: Center):
-    yield [
-        CenterHold(
-            id=str(uuid.uuid4()),
-            center=center_fixture,
-            name="test hold",
-            difficulty="easy",
-            is_color=False
-        )
-    ]
-
-
-@pytest.fixture
 async def center_walls_fixture(center_fixture: Center):
     yield [
         CenterWall(
@@ -247,18 +218,6 @@ async def center_walls_fixture(center_fixture: Center):
             center=center_fixture,
             name="wall",
             type=WallType.ENDURANCE.value
-        )
-    ]
-
-
-@pytest.fixture
-async def another_center_walls_fixture(center_fixture: Center):
-    yield [
-        CenterWall(
-            id=str(uuid.uuid4()),
-            center=center_fixture,
-            name="another wall",
-            type=WallType.BOULDERING.value
         )
     ]
 

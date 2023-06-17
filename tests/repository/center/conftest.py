@@ -218,16 +218,3 @@ async def review_answer_fixture(session: AsyncSession, review_fixture: Review):
     review_answer = await review_answer_repository.save(session, review_answer)
     yield review_answer
     await session.rollback()
-
-# print()
-# @pytest.fixture
-# async def center_update_request_fixture(session: AsyncSession, 
-#                                         center_fixture: Center,
-#                                         center_fee_fixture: CenterFee, 
-#                                         center_holds_fixture: CenterHold,
-#                                         center_walls_fixture: CenterWall):
-#     request = CenterUpdateRequestDto.from_entity(center_fixture, center_fee_fixture, center_holds_fixture, center_walls_fixture)
-
-#     review_answer = await review_answer_repository.save(session, review_answer)
-#     yield review_answer
-#     await session.rollback()
