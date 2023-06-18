@@ -14,7 +14,7 @@ from claon_admin.container import Container
 from claon_admin.job import post as job_post
 from claon_admin.middleware.file import LimitUploadSize
 from claon_admin.middleware.log import LoggerMiddleware
-from claon_admin.router import center, auth, admin, user, index
+from claon_admin.router import center, auth, admin, user, index, membership
 
 nest_asyncio.apply()
 
@@ -35,6 +35,7 @@ def create_app() -> FastAPI:
     claon_app.include_router(center.router, prefix=api_prefix + "/centers")
     claon_app.include_router(admin.router, prefix=api_prefix + "/admin")
     claon_app.include_router(user.router, prefix=api_prefix + "/users")
+    claon_app.include_router(membership.router, prefix=api_prefix + "/memberships")
 
     """ Define Middleware """
     claon_app.add_middleware(

@@ -56,6 +56,36 @@ class MembershipType(Enum):
     COURSE = "course"
 
 
+class MemberInfoSearchStatus(Enum):
+    EXPIRED = "expired"
+    USING = "using"
+
+
+class MemberInfoSearchOrder(Enum):
+    LATEST = "latest"
+    EXTEND = "extend"
+
+
+class MembershipIssuanceInfoSearchOrder(Enum):
+    ISSUED = "issued"
+    STARTED = "started"
+    EXPIRED = "expired"
+
+
+class MembershipIssuanceInfoSearchStatus(Enum):
+    EXPIRED = "expired"
+    TO_BE_EXPIRED = "to_be_expired"
+    USING = "using"
+
+
+class MembershipUploadPurpose(Enum):
+    IMAGE = "image"
+
+    def get_extensions(purpose: str):
+        if purpose == "image":
+            return ["jpg", "jpeg", "png"]
+
+
 class PeriodType(Enum):
     WEEK = "week"
     MONTH = "month"
