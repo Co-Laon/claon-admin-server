@@ -8,6 +8,7 @@ from claon_admin.schema.post import PostRepository, PostCountHistoryRepository
 from claon_admin.schema.user import UserRepository, LectorRepository, LectorApprovedFileRepository
 from claon_admin.service.admin import AdminService
 from claon_admin.service.center import CenterService
+from claon_admin.service.membership import MembershipService
 from claon_admin.service.oauth import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider, KakaoUserInfoProvider
 from claon_admin.service.user import UserService
 
@@ -67,4 +68,8 @@ class Container(containers.DeclarativeContainer):
         post_count_history_repository=post_count_history_repository,
         review_repository=review_repository,
         review_answer_repository=review_answer_repository
+    )
+
+    membership_service = providers.Singleton(
+        MembershipService
     )

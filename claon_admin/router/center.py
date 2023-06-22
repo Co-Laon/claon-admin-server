@@ -11,8 +11,9 @@ from claon_admin.common.util.pagination import Pagination
 from claon_admin.container import Container
 from claon_admin.model.center import CenterNameResponseDto, CenterResponseDto, CenterUpdateRequestDto, \
     CenterBriefResponseDto, CenterRequestDto
-from claon_admin.common.enum import CenterUploadPurpose
+from claon_admin.common.enum import CenterUploadPurpose, MembershipUploadPurpose
 from claon_admin.model.file import UploadFileResponseDto
+from claon_admin.model.membership import MembershipResponseDto, MembershipRequestDto
 from claon_admin.model.post import PostResponseDto, PostSummaryResponseDto, PostCommentResponseDto, PostBriefResponseDto
 from claon_admin.model.review import ReviewSummaryResponseDto, ReviewAnswerResponseDto, ReviewAnswerRequestDto, \
     ReviewBriefResponseDto
@@ -151,3 +152,25 @@ class CenterRouter:
                                    center_id: str,
                                    review_id: str):
         return await self.center_service.delete_review_answer(subject, center_id, review_id)
+
+    @router.post('/{center_id}', response_model=List[MembershipResponseDto])
+    async def create_membership(self,
+                                subject: CurrentUser,
+                                center_id: str,
+                                request_dto: List[MembershipRequestDto]):
+        pass
+
+    @router.put('/{center_id}', response_model=List[MembershipResponseDto])
+    async def update_membership(self,
+                                subject: CurrentUser,
+                                center_id: str,
+                                request_dto: List[MembershipRequestDto]):
+        pass
+
+    @router.post('/{center_id}/memberships/{purpose}/file', response_model=UploadFileResponseDto)
+    async def upload_membership_image(self,
+                                      subject: CurrentUser,
+                                      center_id: str,
+                                      purpose: MembershipUploadPurpose,
+                                      file: UploadFile = File(...)):
+        pass
