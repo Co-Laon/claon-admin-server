@@ -419,28 +419,22 @@ class CenterService:
 
         serialized_dto = dto.__dict__
         serialized_dto.update(operating_time_list=[e.__dict__ for e in serialized_dto.get('operating_time_list') or []])
-        center = await self.center_repository.update(session, center, serialized_dto)
+        center = await self.center_repository.update(session, center, **serialized_dto)
 
-        fees = await self.center_fee_repository.find_all_by_center_id(session, center_id)
-        [await self.center_fee_repository.delete(session, fee) for fee in fees]
-
-        holds = await self.center_hold_repository.find_all_by_center_id(session, center_id)
-        [await self.center_hold_repository.delete(session, hold) for hold in holds]
-
-        walls = await self.center_wall_repository.find_all_by_center_id(session, center_id)
-        [await self.center_wall_repository.delete(session, wall) for wall in walls]
-
+        [await self.center_fee_repository.delete(session, fee) for fee in center.fees]
         fees = await self.center_fee_repository.save_all(
             session,
             [CenterFee(center=center, name=e.name, price=e.price, count=e.count,\
                        membership_type=MembershipType.MEMBER, period=1, period_type=PeriodType.MONTH)
              for e in dto.fee_list or []])
 
+        [await self.center_hold_repository.delete(session, hold) for hold in center.holds]
         holds = await self.center_hold_repository.save_all(
             session,
             [CenterHold(center=center, name=e.name, difficulty=e.difficulty, is_color=e.is_color)
              for e in dto.hold_list or []])
 
+        [await self.center_wall_repository.delete(session, wall) for wall in center.walls]
         walls = await self.center_wall_repository.save_all(
             session,
             [CenterWall(center=center, name=e.name, type=e.wall_type.value)

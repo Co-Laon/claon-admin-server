@@ -41,13 +41,13 @@ class TestUpdate(object):
             center_update_request_dto: CenterUpdateRequestDto
     ):
         # given
-        request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.ADMIN)
-      
-        mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
-        mock_repo["center_fee"].find_all_by_center_id.side_effect = [center_fees_fixture]
-        mock_repo["center_hold"].find_all_by_center_id.side_effect = [center_holds_fixture]
-        mock_repo["center_wall"].find_all_by_center_id.side_effect = [center_walls_fixture]
+        center_fixture.holds = center_holds_fixture
+        center_fixture.walls = center_walls_fixture
+        center_fixture.fees = center_fees_fixture
 
+        request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.ADMIN)
+
+        mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
         mock_repo["center"].update.side_effect = [center_fixture]
         mock_repo["center_fee"].save_all.side_effect = [center_fees_fixture]
         mock_repo["center_hold"].save_all.side_effect = [center_holds_fixture]

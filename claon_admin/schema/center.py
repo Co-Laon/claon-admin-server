@@ -241,7 +241,7 @@ class CenterRepository(Repository[Center]):
         await session.merge(center)
         return center
 
-    async def update(self, session: AsyncSession, center: Center, request: dict):
+    async def update(self, session: AsyncSession, center: Center, **request):
         center.profile_img = request.get('profile_image')
         center.tel = request.get('tel')
         center.web_url = request.get('web_url')

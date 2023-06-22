@@ -206,7 +206,7 @@ class TestCenterRepository(object):
         }
 
         # when
-        result = await center_repository.update(session, center_fixture, request)
+        result = await center_repository.update(session, center_fixture, **request)
         
         # then
         assert result.profile_img == request['profile_image']
