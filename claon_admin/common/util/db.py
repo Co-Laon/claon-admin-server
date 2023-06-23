@@ -1,4 +1,5 @@
-from sqlalchemy import Column, DateTime
+from sqlalchemy import Column, DateTime, cast
+from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine
 from sqlalchemy.orm import sessionmaker, declarative_base, declared_attr
 
@@ -18,6 +19,11 @@ class DeclarativeBase(object):
 
 
 Base = declarative_base(cls=DeclarativeBase)
+
+
+class CastingArray(ARRAY):
+    def bind_expression(self, bind_value):
+        return cast(bind_value, self)
 
 
 class Database:

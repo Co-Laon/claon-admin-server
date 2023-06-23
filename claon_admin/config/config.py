@@ -80,7 +80,7 @@ class ProdConfig(Config):
 
 
 class TestConfig(Config):
-    DB_URL: str = "sqlite+aiosqlite:///test.db"
+    DB_URL: str = "postgresql+asyncpg://postgres_user:postgres_password@localhost:5432/postgres_db"
     DB_DDL_AUTO: str = "create"
     REDIS_ENABLE: bool = False
     AWS_ENABLE: bool = False

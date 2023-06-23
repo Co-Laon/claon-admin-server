@@ -1,18 +1,16 @@
-import json
 from datetime import date
 from typing import List
 from uuid import uuid4
 
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate
-from sqlalchemy import String, Column, ForeignKey, Boolean, select, exists, Integer, Enum, delete, and_, desc, func, \
-    null
+from sqlalchemy import String, Column, ForeignKey, Boolean, Integer, Enum, TEXT, JSON, \
+    select, exists, delete, and_, desc, func, null, cast
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload, backref
-from sqlalchemy.dialects.postgresql import TEXT
 
 from claon_admin.common.enum import PeriodType, MembershipType
-from claon_admin.common.util.db import Base
+from claon_admin.common.util.db import Base, CastingArray
 from claon_admin.common.util.repository import Repository
 from claon_admin.schema.post import Post
 
@@ -56,10 +54,10 @@ class Center(Base):
     youtube_url = Column(String(length=500))
     approved = Column(Boolean, default=False, nullable=False)
 
-    _center_img = Column(TEXT)
-    _operating_time = Column(TEXT)
-    _utility = Column(TEXT)
-    _fee_img = Column(TEXT)
+    _center_img = Column(CastingArray(JSON))
+    _operating_time = Column(CastingArray(JSON))
+    _utility = Column(CastingArray(JSON))
+    _fee_img = Column(CastingArray(JSON))
 
     fees = relationship("CenterFee", back_populates="center", cascade="all, delete-orphan")
     holds = relationship("CenterHold", back_populates="center", cascade="all, delete-orphan")
@@ -73,48 +71,44 @@ class Center(Base):
         if self._center_img is None:
             return []
 
-        values = json.loads(self._center_img)
-        return [CenterImage(value['url']) for value in values]
+        return [CenterImage(e['url']) for e in self._center_img]
 
     @center_img.setter
     def center_img(self, values: List[CenterImage]):
-        self._center_img = json.dumps([value.__dict__ for value in values], default=str)
+        self._center_img = [value.__dict__ for value in values]
 
     @property
     def operating_time(self):
         if self._operating_time is None:
             return []
 
-        values = json.loads(self._operating_time)
-        return [OperatingTime(value['day_of_week'], value['start_time'], value['end_time']) for value in values]
+        return [OperatingTime(e['day_of_week'], e['start_time'], e['end_time']) for e in self._operating_time]
 
     @operating_time.setter
     def operating_time(self, values: List[OperatingTime]):
-        self._operating_time = json.dumps([value.__dict__ for value in values], default=str)
+        self._operating_time = [value.__dict__ for value in values]
 
     @property
     def utility(self):
         if self._utility is None:
             return []
 
-        values = json.loads(self._utility)
-        return [Utility(value['name']) for value in values]
+        return [Utility(e['name']) for e in self._utility]
 
     @utility.setter
     def utility(self, values: List[Utility]):
-        self._utility = json.dumps([value.__dict__ for value in values], default=str)
+        self._utility = [value.__dict__ for value in values]
 
     @property
     def fee_img(self):
         if self._fee_img is None:
             return []
 
-        data = json.loads(self._fee_img)
-        return [CenterFeeImage(e['url']) for e in data]
+        return [CenterFeeImage(e['url']) for e in self._fee_img]
 
     @fee_img.setter
     def fee_img(self, values: List[CenterFeeImage]):
-        self._fee_img = json.dumps([value.__dict__ for value in values], default=str)
+        self._fee_img = [value.__dict__ for value in values]
 
 
 class CenterFee(Base):
@@ -162,7 +156,7 @@ class CenterApprovedFile(Base):
 class Review(Base):
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     content = Column(String(length=500), nullable=False)
-    _tag = Column(TEXT, nullable=False)
+    _tag = Column(CastingArray(JSON), nullable=False)
 
     user_id = Column(String(length=255), ForeignKey("tb_user.id", ondelete="CASCADE"), nullable=False)
     user = relationship("User", backref=backref("Review"))
@@ -177,12 +171,11 @@ class Review(Base):
         if self._tag is None:
             return []
 
-        values = json.loads(self._tag)
-        return [ReviewTag(value['word']) for value in values]
+        return [ReviewTag(t['word']) for t in self._tag]
 
     @tag.setter
     def tag(self, values: List[ReviewTag]):
-        self._tag = json.dumps([value.__dict__ for value in values], default=str)
+        self._tag = [value.__dict__ for value in values]
 
 
 class ReviewAnswer(Base):
@@ -212,6 +205,7 @@ class CenterRepository(Repository[Center]):
 
     async def find_all_by_approved_false(self, session: AsyncSession):
         result = await session.execute(select(Center).where(Center.approved.is_(False))
+                                       .order_by(desc(Center.created_at))
                                        .options(selectinload(Center.user))
                                        .options(selectinload(Center.holds))
                                        .options(selectinload(Center.walls))
@@ -289,7 +283,8 @@ class ReviewRepository(Repository[Review]):
             .options(selectinload(Review.answer))
 
         if tag is not None:
-            query = query.where(Review._tag.like(f'%{{"word": "{tag}"%'))
+            tag_dict = [{"word": tag}]
+            query = query.where(cast(Review._tag, CastingArray(JSON)).comparator.contains(tag_dict))
 
         if is_answered is not None:
             if is_answered is False:

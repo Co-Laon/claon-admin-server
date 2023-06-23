@@ -1,16 +1,14 @@
-import json
 from datetime import date
 from typing import List
 from uuid import uuid4
 
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate
-from sqlalchemy import Column, String, DateTime, TEXT, ForeignKey, Integer, Enum, and_, select, desc, func, asc
+from sqlalchemy import Column, String, DateTime, ForeignKey, Integer, JSON, and_, select, desc, func, asc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, backref, selectinload
 
-from claon_admin.common.enum import WallType
-from claon_admin.common.util.db import Base
+from claon_admin.common.util.db import Base, CastingArray
 from claon_admin.common.util.repository import Repository
 
 
@@ -22,7 +20,7 @@ class PostImage:
 class Post(Base):
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     content = Column(String(length=500), nullable=False)
-    _img = Column(TEXT, nullable=False)
+    _img = Column(CastingArray(JSON), nullable=False)
     histories = relationship("ClimbingHistory", back_populates="post", cascade="all, delete-orphan")
 
     user_id = Column(String(length=255), ForeignKey("tb_user.id", ondelete="CASCADE"), nullable=False)
@@ -35,12 +33,11 @@ class Post(Base):
         if self._img is None:
             return []
 
-        values = json.loads(self._img)
-        return [PostImage(value['url']) for value in values]
+        return [PostImage(e['url']) for e in self._img]
 
     @img.setter
     def img(self, values: List[PostImage]):
-        self._img = json.dumps([value.__dict__ for value in values], default=str)
+        self._img = [value.__dict__ for value in values]
 
 
 class ClimbingHistory(Base):
@@ -49,7 +46,7 @@ class ClimbingHistory(Base):
     difficulty = Column(String(length=10), nullable=False)
     challenge_count = Column(Integer, nullable=False)
     wall_name = Column(String(length=20), nullable=False)
-    wall_type = Column(Enum(WallType), nullable=False)
+    wall_type = Column(String(length=20), nullable=False)
 
     post_id = Column(String(length=255), ForeignKey("tb_post.id", ondelete="CASCADE"), nullable=False)
     post = relationship("Post", back_populates="histories")
@@ -99,8 +96,7 @@ class ClimbingHistoryRepository(Repository[ClimbingHistory]):
 class PostCountHistoryRepository(Repository[PostCountHistory]):
     async def sum_count_by_center(self, session: AsyncSession, center_id: str):
         result = await session.execute(select(func.sum(PostCountHistory.count))
-                                       .where(PostCountHistory.center_id == center_id)
-                                       .order_by(desc(PostCountHistory.reg_date)))
+                                       .where(PostCountHistory.center_id == center_id))
         return result.scalars().first() or 0
 
     async def find_by_center_and_date(self, session: AsyncSession, center_id: str, start: date, end: date):

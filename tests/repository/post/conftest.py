@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -133,7 +133,6 @@ async def another_post_fixture(session: AsyncSession, user_fixture: User, anothe
         user=user_fixture,
         center=another_center_fixture,
         content="content",
-        created_at=now(),
         img=[PostImage(url="url")]
     )
 
@@ -148,7 +147,6 @@ async def other_post_fixture(session: AsyncSession, user_fixture: User, center_f
         user=user_fixture,
         center=center_fixture,
         content="content",
-        created_at=now(),
         img=[PostImage(url="url")]
     )
 

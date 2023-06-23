@@ -1,5 +1,3 @@
-from datetime import date
-
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,15 +35,15 @@ async def lector_fixture(session: AsyncSession, user_fixture: User):
         contest=[Contest(year=2021, title="title", name="name")],
         certificate=[
             Certificate(
-                acquisition_date=date.fromisoformat("2012-10-15"),
+                acquisition_date="2012-10-15",
                 rate=4,
                 name="certificate"
             )
         ],
         career=[
             Career(
-                start_date=date.fromisoformat("2016-01-01"),
-                end_date=date.fromisoformat("2020-01-01"),
+                start_date="2016-01-01",
+                end_date="2020-01-01",
                 name="career"
             )
         ],

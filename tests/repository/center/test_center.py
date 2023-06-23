@@ -127,16 +127,13 @@ class TestCenterRepository(object):
     async def test_find_all_center_by_approved_false(
             self,
             session: AsyncSession,
-            center_fixture: Center
+            another_center_fixture: Center
     ):
-        # given
-        center_fixture.approved = False
-
         # when
         result = await center_repository.find_all_by_approved_false(session)
 
         # then
-        assert result == [center_fixture]
+        assert result == [another_center_fixture]
 
     @pytest.mark.asyncio
     async def test_find_centers_by_name(

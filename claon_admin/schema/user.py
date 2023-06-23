@@ -1,15 +1,12 @@
-import json
-from datetime import date
 from typing import List
 from uuid import uuid4
 
-from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, select, exists, and_, delete
+from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, JSON, TEXT, select, exists, and_, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, backref, selectinload
-from sqlalchemy.dialects.postgresql import TEXT
 
 from claon_admin.common.enum import Role
-from claon_admin.common.util.db import Base
+from claon_admin.common.util.db import Base, CastingArray
 from claon_admin.common.util.repository import Repository
 
 
@@ -21,14 +18,14 @@ class Contest:
 
 
 class Certificate:
-    def __init__(self, acquisition_date: date, rate: int, name: str):
+    def __init__(self, acquisition_date: str, rate: int, name: str):
         self.acquisition_date = acquisition_date
         self.rate = rate
         self.name = name
 
 
 class Career:
-    def __init__(self, start_date: date, end_date: date, name: str):
+    def __init__(self, start_date: str, end_date: str, name: str):
         self.start_date = start_date
         self.end_date = end_date
         self.name = name
@@ -56,9 +53,9 @@ class Lector(Base):
     is_setter = Column(Boolean, default=False, nullable=False)
     approved = Column(Boolean, default=False, nullable=False)
 
-    _contest = Column(TEXT)
-    _certificate = Column(TEXT)
-    _career = Column(TEXT)
+    _contest = Column(CastingArray(JSON))
+    _certificate = Column(CastingArray(JSON))
+    _career = Column(CastingArray(JSON))
 
     user_id = Column(String(length=255), ForeignKey("tb_user.id", ondelete="CASCADE"), unique=True, nullable=False)
     user = relationship("User", backref=backref("Lector"))
@@ -68,36 +65,33 @@ class Lector(Base):
         if self._contest is None:
             return []
 
-        values = json.loads(self._contest)
-        return [Contest(value['year'], value['title'], value['name']) for value in values]
+        return [Contest(e['year'], e['title'], e['name']) for e in self._contest]
 
     @contest.setter
     def contest(self, values: List[Contest]):
-        self._contest = json.dumps([value.__dict__ for value in values], default=str)
+        self._contest = [value.__dict__ for value in values]
 
     @property
     def certificate(self):
         if self._certificate is None:
             return []
 
-        values = json.loads(self._certificate)
-        return [Certificate(value['acquisition_date'], value['rate'], value['name']) for value in values]
+        return [Certificate(e['acquisition_date'], e['rate'], e['name']) for e in self._certificate]
 
     @certificate.setter
     def certificate(self, values: List[Certificate]):
-        self._certificate = json.dumps([value.__dict__ for value in values], default=str)
+        self._certificate = [value.__dict__ for value in values]
 
     @property
     def career(self):
         if self._career is None:
             return []
 
-        values = json.loads(self._career)
-        return [Career(value['start_date'], value['end_date'], value['name']) for value in values]
+        return [Career(e['start_date'], e['end_date'], e['name']) for e in self._career]
 
     @career.setter
     def career(self, values: List[Career]):
-        self._career = json.dumps([value.__dict__ for value in values], default=str)
+        self._career = [value.__dict__ for value in values]
 
 
 class LectorApprovedFile(Base):
