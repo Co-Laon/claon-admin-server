@@ -5,10 +5,11 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from claon_admin.common.enum import Role, WallType
+from claon_admin.common.enum import Role, WallType, MembershipType, PeriodType
 from claon_admin.common.util.time import now
 from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, Center, CenterImage, \
-    OperatingTime, Utility, CenterFeeImage, CenterFee, CenterHold, CenterWall, Review, ReviewTag, ReviewAnswer
+    OperatingTime, Utility, CenterFeeImage, CenterFee, CenterHold, CenterWall, Review, ReviewTag, ReviewAnswer, \
+    CenterHoldRepository, CenterWallRepository, CenterFeeRepository
 from claon_admin.schema.post import PostRepository, Post, PostImage, ClimbingHistory, PostCountHistoryRepository, \
     PostCountHistory
 from claon_admin.schema.user import User
@@ -22,24 +23,33 @@ def mock_repo():
     post_count_history_repository = AsyncMock(spec=PostCountHistoryRepository)
     review_repository = AsyncMock(spec=ReviewRepository)
     review_answer_repository = AsyncMock(spec=ReviewAnswerRepository)
+    center_fee_repository = AsyncMock(spec=CenterFeeRepository)
+    center_hold_repository = AsyncMock(spec=CenterHoldRepository)
+    center_wall_repository = AsyncMock(spec=CenterWallRepository)
 
     return {
         "center": center_repository,
         "post": post_repository,
         "post_count_history": post_count_history_repository,
         "review": review_repository,
-        "review_answer": review_answer_repository
+        "review_answer": review_answer_repository,
+        "center_fee": center_fee_repository,
+        "center_hold": center_hold_repository,
+        "center_wall": center_wall_repository
     }
 
 
 @pytest.fixture
 def center_service(mock_repo: dict):
     return CenterService(
-        mock_repo["center"],
-        mock_repo["post"],
-        mock_repo["post_count_history"],
-        mock_repo["review"],
-        mock_repo["review_answer"]
+        center_repository=mock_repo["center"],
+        post_repository=mock_repo["post"],
+        post_count_history_repository=mock_repo["post_count_history"],
+        review_repository=mock_repo["review"],
+        review_answer_repository=mock_repo["review_answer"],
+        center_hold_repository=mock_repo["center_hold"],
+        center_wall_repository=mock_repo["center_wall"],
+        center_fee_repository=mock_repo["center_fee"]
     )
 
 

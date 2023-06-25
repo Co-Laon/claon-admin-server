@@ -2,7 +2,7 @@ import pytest
 from fastapi_pagination import Params, Page
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.schema.center import Center
+from claon_admin.schema.center import Center, CenterHold, CenterWall, CenterFee
 from claon_admin.schema.user import User
 from tests.repository.center.conftest import center_repository, center_hold_repository, center_wall_repository, \
     center_fee_repository, center_approved_file_repository
@@ -185,3 +185,38 @@ class TestCenterRepository(object):
         # then
         result = await center_repository.remove_center(session, center_fixture)
         assert result.user_id is None
+
+    @pytest.mark.asyncio
+    async def test_update(
+            self,
+            session: AsyncSession,
+            center_fixture: Center
+    ):
+        # given
+        request = {
+            "profile_image": "https://another.profile.png",
+            "tel": "010-1234-1234",
+            "web_url": "http://anothertest.com",
+            "instagram_name": "string",
+            "youtube_code": "@another",
+            "image_list": ["https://another.image.png"],
+            "utility_list": ["another_test_utility"],
+            "fee_image_list": ["sthttps://another.fee.pngring"],
+            "operating_time_list": [{"day_of_week": "월", "start_time": "12:00", "end_time": "01:00"}],
+        }
+
+        # when
+        result = await center_repository.update(session, center_fixture, **request)
+        
+        # then
+        assert result.profile_img == request['profile_image']
+        assert result.tel == request['tel']
+        assert result.web_url == request['web_url']
+        assert result.instagram_name == request['instagram_name']
+        assert result.youtube_url == f"https://www.youtube.com/{str(request['youtube_code'])}"
+        assert result.center_img[0].url == request['image_list'][0]
+        assert result.operating_time[0].day_of_week == request['operating_time_list'][0]['day_of_week']
+        assert result.operating_time[0].start_time == request['operating_time_list'][0]['start_time']
+        assert result.operating_time[0].end_time == request['operating_time_list'][0]['end_time']
+        assert result.utility[0].name == request['utility_list'][0]
+        assert result.fee_img[0].url == request['fee_image_list'][0]

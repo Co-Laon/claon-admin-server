@@ -1,11 +1,12 @@
 from collections import Counter
 from datetime import date, timedelta
+from itertools import islice
 
 from fastapi import UploadFile
 from fastapi_pagination import Params
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.common.enum import CenterUploadPurpose, Role
+from claon_admin.common.enum import CenterUploadPurpose, Role, PeriodType, MembershipType
 from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException
 from claon_admin.common.util.pagination import paginate
 from claon_admin.common.util.s3 import upload_file
@@ -16,8 +17,10 @@ from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.post import PostBriefResponseDto, PostSummaryResponseDto
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto, \
     ReviewTagDto, ReviewSummaryResponseDto
-from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto, CenterResponseDto
-from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, ReviewAnswer
+from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto, CenterResponseDto, \
+    CenterUpdateRequestDto
+from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, ReviewAnswer, \
+    CenterHoldRepository, CenterWallRepository, CenterFeeRepository, CenterFee, CenterHold, CenterWall
 from claon_admin.schema.post import PostRepository, PostCountHistoryRepository
 
 
@@ -27,12 +30,18 @@ class CenterService:
                  post_repository: PostRepository,
                  post_count_history_repository: PostCountHistoryRepository,
                  review_repository: ReviewRepository,
-                 review_answer_repository: ReviewAnswerRepository):
+                 review_answer_repository: ReviewAnswerRepository,
+                 center_hold_repository: CenterHoldRepository,
+                 center_wall_repository: CenterWallRepository,
+                 center_fee_repository: CenterFeeRepository):
         self.center_repository = center_repository
         self.post_repository = post_repository
         self.post_count_history_repository = post_count_history_repository
         self.review_repository = review_repository
         self.review_answer_repository = review_answer_repository
+        self.center_hold_repository = center_hold_repository
+        self.center_wall_repository = center_wall_repository
+        self.center_fee_repository = center_fee_repository
 
     @transactional(read_only=True)
     async def find_posts_by_center(self,
@@ -383,3 +392,53 @@ class CenterService:
 
         result = await self.center_repository.remove_center(session, center)
         return CenterResponseDto.from_entity(result, result.holds, result.walls, result.fees)
+
+    @transactional()
+    async def update(self,
+                     session: AsyncSession,
+                     subject: RequestUser,
+                     center_id: str,
+                     dto: CenterUpdateRequestDto):
+        center = await self.center_repository.find_by_id_with_details(session, center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if center.user_id is None:
+            raise BadRequestException(
+                ErrorCode.ROW_ALREADY_DETELED,
+                "이미 삭제된 암장입니다."
+            )
+
+        if subject.role != Role.ADMIN and center.user.id != subject.id:
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        serialized_dto = dict(islice(dto.__dict__.items(), 9))
+        serialized_dto.update(operating_time_list=[e.__dict__ for e in dto.operating_time_list or []])
+        center = await self.center_repository.update(session, center, **serialized_dto)
+
+        [await self.center_fee_repository.delete(session, fee) for fee in center.fees]
+        fees = await self.center_fee_repository.save_all(
+            session,
+            [CenterFee(center=center, name=e.name, price=e.price, count=e.count,\
+                       membership_type=MembershipType.MEMBER, period=1, period_type=PeriodType.MONTH)
+             for e in dto.fee_list or []])
+
+        [await self.center_hold_repository.delete(session, hold) for hold in center.holds]
+        holds = await self.center_hold_repository.save_all(
+            session,
+            [CenterHold(center=center, name=e.name, difficulty=e.difficulty, is_color=e.is_color)
+             for e in dto.hold_list or []])
+
+        [await self.center_wall_repository.delete(session, wall) for wall in center.walls]
+        walls = await self.center_wall_repository.save_all(
+            session,
+            [CenterWall(center=center, name=e.name, type=e.wall_type.value)
+             for e in dto.wall_list or []])
+
+        return CenterResponseDto.from_entity(entity=center, holds=holds, walls=walls, fees=fees)
