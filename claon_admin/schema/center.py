@@ -1,6 +1,6 @@
 import json
 from datetime import date
-from typing import List
+from typing import List, TypedDict
 from uuid import uuid4
 from dataclasses import dataclass
 
@@ -241,19 +241,28 @@ class CenterRepository(Repository[Center]):
         await session.merge(center)
         return center
 
-    async def update(self, session: AsyncSession, center: Center, **request):
-        center.profile_img = request.get('profile_image')
-        center.tel = request.get('tel')
-        center.web_url = request.get('web_url')
-        center.instagram_name = request.get('instagram_name')
-        center.youtube_url = f"https://www.youtube.com/{str(request.get('youtube_code'))}" \
-            if request.get('youtube_code') is not None else None
-        center.center_img = [CenterImage(url=e) for e in request.get('image_list')]
-        center.utility = [Utility(name=e) for e in request.get('utility_list')]
-        center.fee_img = [CenterFeeImage(url=e) for e in request.get('fee_image_list') or []]
+    async def update(self, session: AsyncSession, center: Center,
+                     profile_image: str,
+                     tel: str,
+                     web_url: str | None,
+                     instagram_name: str | None,
+                     youtube_code: str | None,
+                     image_list: List[str],
+                     utility_list: List[str],
+                     fee_image_list: List[str],
+                     operating_time_list: List[TypedDict('CenterOperatingTime',
+                     {'day_of_week': str, 'start_time': str, 'end_time': str})]):
+        center.profile_img = profile_image
+        center.tel = tel
+        center.web_url = web_url
+        center.instagram_name = instagram_name
+        center.youtube_url = f"https://www.youtube.com/{youtube_code}" if youtube_code is not None else None
+        center.center_img = [CenterImage(url=e) for e in image_list or []]
+        center.utility = [Utility(name=e) for e in utility_list or []]
+        center.fee_img = [CenterFeeImage(url=e) for e in fee_image_list or []]
         center.operating_time = [
             OperatingTime(day_of_week=e['day_of_week'], start_time=e['start_time'], end_time=e['end_time'])
-            for e in request.get('operating_time_list') or []
+            for e in operating_time_list or []
         ]
         await session.merge(center)
         return center

@@ -1,5 +1,6 @@
 from collections import Counter
 from datetime import date, timedelta
+from itertools import islice
 
 from fastapi import UploadFile
 from fastapi_pagination import Params
@@ -417,8 +418,8 @@ class CenterService:
                 "암장 관리자가 아닙니다."
             )
 
-        serialized_dto = dto.__dict__
-        serialized_dto.update(operating_time_list=[e.__dict__ for e in serialized_dto.get('operating_time_list') or []])
+        serialized_dto = dict(islice(dto.__dict__.items(), 9))
+        serialized_dto.update(operating_time_list=[e.__dict__ for e in dto.operating_time_list or []])
         center = await self.center_repository.update(session, center, **serialized_dto)
 
         [await self.center_fee_repository.delete(session, fee) for fee in center.fees]
