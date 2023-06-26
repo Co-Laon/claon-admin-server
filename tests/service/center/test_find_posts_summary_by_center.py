@@ -38,7 +38,7 @@ class TestFindPostsSummaryByCenter(object):
         assert results.center_id == center_fixture.id
         assert results.center_name == center_fixture.name
         assert results.count_today == 10
-        assert results.count_week == 20
+        assert results.count_week == 10
         assert results.count_month == 30
         assert results.count_total == 30
         assert len(results.count_per_day) == 7

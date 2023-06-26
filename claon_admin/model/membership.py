@@ -19,7 +19,7 @@ class MemberBriefResponseDto(BaseModel):
     memo: str | None
 
 
-class MembershipDto:
+class MembershipDto(BaseModel):
     name: str
     type: str
     price: int
@@ -28,7 +28,7 @@ class MembershipDto:
     period_type: str
 
 
-class IssuedMembershipFindDto:
+class IssuedMembershipFindDto(BaseModel):
     name: str
     type: str
     expiration_date: str
@@ -66,7 +66,7 @@ class MembershipRequestDto(BaseModel):
 
     @validator('count')
     def validate_count(cls, value):
-        if not isinstance(value, int):
+        if value is not None and not isinstance(value, int):
             raise ValueError('횟수는 자연수만 입력해 주세요.')
         return value
 
@@ -104,8 +104,8 @@ class MembershipIssueRequestDto(BaseModel):
     start_time: str
     expired_time: str
 
-    @validator('user_nicknames')
-    def validate_user_nicknames(cls, value):
+    @validator('member_nicknames')
+    def validate_member_nicknames(cls, value):
         if len(value) > 18:
             raise ValueError('최대 18명까지 회원권을 발급할 수 있습니다.')
         return value

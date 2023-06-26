@@ -19,7 +19,7 @@ router = APIRouter()
 class MembershipRouter:
     @inject
     def __init__(self,
-                 membership_service: MembershipService = Depends(Provide[Container.mebership_service])):
+                 membership_service: MembershipService = Depends(Provide[Container.membership_service])):
         self.membership_service = membership_service
 
     @router.put('/{membership_id}', response_model=IssuedMembershipResponseDto)
