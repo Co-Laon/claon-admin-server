@@ -425,7 +425,7 @@ class CenterService:
         [await self.center_fee_repository.delete(session, fee) for fee in center.fees]
         fees = await self.center_fee_repository.save_all(
             session,
-            [CenterFee(center=center, name=e.name, price=e.price, count=e.count,\
+            [CenterFee(center=center, name=e.name, price=e.price, count=e.count,
                        membership_type=MembershipType.MEMBER, period=1, period_type=PeriodType.MONTH)
              for e in dto.fee_list or []])
 

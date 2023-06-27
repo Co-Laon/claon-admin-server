@@ -301,7 +301,7 @@ async def post_count_history_list_fixture(center_fixture: Center):
             id=2,
             center_id=center_fixture.id,
             count=10,
-            reg_date=now().date() - timedelta(weeks=1)
+            reg_date=now().date() - timedelta(weeks=1, days=1)
         ),
         PostCountHistory(
             id=3,

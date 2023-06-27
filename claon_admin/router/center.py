@@ -154,14 +154,14 @@ class CenterRouter:
                                    review_id: str):
         return await self.center_service.delete_review_answer(subject, center_id, review_id)
 
-    @router.post('/{center_id}', response_model=List[MembershipResponseDto])
+    @router.post('/{center_id}/memberships', response_model=List[MembershipResponseDto])
     async def create_membership(self,
                                 subject: CurrentUser,
                                 center_id: str,
                                 request_dto: List[MembershipRequestDto]):
         pass
 
-    @router.put('/{center_id}', response_model=List[MembershipResponseDto])
+    @router.put('/{center_id}/memberships', response_model=List[MembershipResponseDto])
     async def update_membership(self,
                                 subject: CurrentUser,
                                 center_id: str,
