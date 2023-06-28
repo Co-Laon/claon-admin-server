@@ -60,7 +60,6 @@ class CenterFeeDto(BaseModel):
 class CenterHoldDto(BaseModel):
     difficulty: str
     name: str
-    is_color: bool
 
     @validator('difficulty')
     def validate_difficulty(cls, value):
@@ -73,6 +72,11 @@ class CenterHoldDto(BaseModel):
         if len(value) < 2 or len(value) > 10:
             raise ValueError('홀드 이름은 1자 이상 10자 이하로 입력해 주세요.')
         return value
+
+
+class CenterHoldInfoDto(BaseModel):
+    is_color: bool
+    hold_list: List[CenterHoldDto]
 
 
 class CenterWallDto(BaseModel):
@@ -114,7 +118,7 @@ class CenterRequestDto(BaseModel):
     image_list: List[str]
     utility_list: List[str]
     operating_time_list: List[CenterOperatingTimeDto]
-    hold_list: List[CenterHoldDto]
+    hold_info: CenterHoldInfoDto | None
     wall_list: List[CenterWallDto]
     proof_list: List[str]
 
@@ -186,7 +190,7 @@ class CenterUpdateRequestDto(BaseModel):
     fee_image_list: List[str]
     operating_time_list: List[CenterOperatingTimeDto]
     fee_list: List[CenterFeeDto]
-    hold_list: List[CenterHoldDto]
+    hold_info: CenterHoldInfoDto | None
     wall_list: List[CenterWallDto]
 
     @validator('tel', pre=True, always=True)
@@ -251,7 +255,7 @@ class CenterResponseDto(BaseModel):
     fee_image_list: List[str]
     operating_time_list: List[CenterOperatingTimeDto]
     fee_list: List[CenterFeeDto]
-    hold_list: List[CenterHoldDto]
+    hold_info: CenterHoldInfoDto | None
     wall_list: List[CenterWallDto]
     approved: bool
 
@@ -281,10 +285,11 @@ class CenterResponseDto(BaseModel):
                 CenterFeeDto(name=e.name, price=e.price, count=e.count)
                 for e in fees or []
             ],
-            hold_list=[
-                CenterHoldDto(difficulty=e.difficulty, name=e.name, is_color=e.is_color)
-                for e in holds or []
-            ],
+            hold_info=CenterHoldInfoDto(
+                is_color=holds[0].is_color,
+                hold_list=[CenterHoldDto(difficulty=e.difficulty, name=e.name)
+                           for e in holds or []]
+            ) if holds else None,
             wall_list=[
                 CenterWallDto(
                     wall_type=WallType.BOULDERING if e.type == "bouldering" else WallType.ENDURANCE,
@@ -337,7 +342,7 @@ class CenterAuthRequestDto(BaseModel):
     image_list: List[str]
     utility_list: List[str]
     operating_time_list: List[CenterOperatingTimeDto]
-    hold_list: List[CenterHoldDto]
+    hold_info: CenterHoldInfoDto | None
     wall_list: List[CenterWallDto]
     proof_list: List[str]
 

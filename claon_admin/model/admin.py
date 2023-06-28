@@ -24,7 +24,11 @@ class CenterFeeDto(BaseModel):
 class CenterHoldDto(BaseModel):
     difficulty: str
     name: str
+
+
+class CenterHoldInfoDto(BaseModel):
     is_color: bool
+    hold_list: List[CenterHoldDto]
 
 
 class CenterWallDto(BaseModel):
@@ -49,7 +53,7 @@ class CenterResponseDto(BaseModel):
     fee_image_list: List[str]
     operating_time_list: List[CenterOperatingTimeDto]
     fee_list: List[CenterFeeDto]
-    hold_list: List[CenterHoldDto]
+    hold_list: CenterHoldInfoDto | None
     wall_list: List[CenterWallDto]
     proof_list: List[str]
 
@@ -78,10 +82,11 @@ class CenterResponseDto(BaseModel):
                 CenterFeeDto(name=e.name, price=e.price, count=e.count)
                 for e in center.fees
             ],
-            hold_list=[
-                CenterHoldDto(difficulty=e.difficulty, name=e.name, is_color=e.is_color)
-                for e in center.holds
-            ],
+            hold_info=CenterHoldInfoDto(
+                is_color=center.holds[0].is_color,
+                hold_list=[CenterHoldInfoDto(difficulty=e.difficulty, name=e.name)
+                           for e in center.holds or []]
+            ) if center.holds else None,
             wall_list=[
                 CenterWallDto(
                     wall_type=WallType.BOULDERING if e.type == "bouldering" else WallType.ENDURANCE,

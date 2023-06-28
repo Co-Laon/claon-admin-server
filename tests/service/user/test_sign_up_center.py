@@ -5,8 +5,8 @@ import pytest
 from claon_admin.common.enum import Role, WallType
 from claon_admin.common.error.exception import BadRequestException, ErrorCode
 from claon_admin.model.auth import RequestUser
-from claon_admin.model.center import CenterAuthRequestDto, CenterOperatingTimeDto, CenterFeeDto, CenterHoldDto, \
-    CenterWallDto
+from claon_admin.model.center import CenterAuthRequestDto, CenterOperatingTimeDto, CenterFeeDto, CenterHoldInfoDto, \
+    CenterWallDto, CenterHoldDto
 from claon_admin.model.user import UserProfileDto
 from claon_admin.schema.center import Center, CenterFee, CenterHold, CenterWall, CenterApprovedFile
 from claon_admin.schema.user import User
@@ -38,7 +38,7 @@ class TestSignUpCenter(object):
             fee_image_list=["https://test.fee.png"],
             operating_time_list=[CenterOperatingTimeDto(day_of_week="월", start_time="09:00", end_time="18:00")],
             fee_list=[CenterFeeDto(name="fee", price=1000, count=10)],
-            hold_list=[CenterHoldDto(name="hold", difficulty="hard", is_color=False)],
+            hold_info=CenterHoldInfoDto(is_color=False, hold_list=[CenterHoldDto(name="hold", difficulty="hard")]),
             wall_list=[CenterWallDto(name="wall", wall_type=WallType.ENDURANCE)],
             proof_list=["https://example.com/approved.jpg"]
         )
@@ -80,7 +80,7 @@ class TestSignUpCenter(object):
         assert result.image_list == center_request_dto.image_list
         assert result.utility_list == center_request_dto.utility_list
         assert result.operating_time_list == center_request_dto.operating_time_list
-        assert result.hold_list == center_request_dto.hold_list
+        assert result.hold_info == center_request_dto.hold_info
         assert result.wall_list == center_request_dto.wall_list
 
     @pytest.mark.asyncio

@@ -430,10 +430,13 @@ class CenterService:
              for e in dto.fee_list or []])
 
         [await self.center_hold_repository.delete(session, hold) for hold in center.holds]
-        holds = await self.center_hold_repository.save_all(
-            session,
-            [CenterHold(center=center, name=e.name, difficulty=e.difficulty, is_color=e.is_color)
-             for e in dto.hold_list or []])
+
+        if dto.hold_info is not None:
+            hold_is_color = dto.hold_info.is_color
+            holds = await self.center_hold_repository.save_all(
+                session,
+                [CenterHold(center=center, name=e.name, difficulty=e.difficulty, is_color=hold_is_color)
+                 for e in dto.hold_info.hold_list or []])
 
         [await self.center_wall_repository.delete(session, wall) for wall in center.walls]
         walls = await self.center_wall_repository.save_all(
