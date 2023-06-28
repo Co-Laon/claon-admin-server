@@ -1,13 +1,12 @@
 from typing import Annotated
 
 from dependency_injector.wiring import Provide, inject
-from fastapi import Header, Depends, Response
+from fastapi import Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from claon_admin.common.error.exception import UnauthorizedException, ErrorCode, InternalServerException
+from claon_admin.common.error.exception import UnauthorizedException, ErrorCode
 from claon_admin.common.util.db import db
-from claon_admin.common.util.header import add_jwt_tokens
-from claon_admin.common.util.jwt import resolve_access_token, resolve_refresh_token, is_expired, create_access_token, \
-    reissue_refresh_token
+from claon_admin.common.util.jwt import resolve_token, resolve_refresh_token
 from claon_admin.common.util.redis import find_user_id_by_refresh_token
 from claon_admin.container import Container
 from claon_admin.model.auth import RequestUser
@@ -30,79 +29,49 @@ async def __find_user_by_id(
 
 
 async def get_subject(
-    response: Response,
-    access_token: str = Header(None),
-    refresh_token: str = Header(None)
+    token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
 ) -> RequestUser:
-    try:
-        if access_token is None:
-            raise UnauthorizedException(
-                ErrorCode.NOT_SIGN_IN,
-                "Cannot find access token from request header."
-            )
+    token = token.dict().get("credentials")
+    payload = resolve_token(token)
 
-        if refresh_token is None:
-            raise UnauthorizedException(
-                ErrorCode.NOT_SIGN_IN,
-                "Cannot find refresh token from request header."
-            )
+    user = await __find_user_by_id(user_id=payload.get("sub"))
 
-        access_payload = resolve_access_token(access_token)
-        refresh_payload = resolve_refresh_token(refresh_token)
+    return RequestUser(
+        id=user.id,
+        profile_img=user.profile_img,
+        nickname=user.nickname,
+        sns=user.sns,
+        email=user.email,
+        instagram_nickname=user.instagram_name,
+        role=user.role
+    )
 
-        if is_expired(access_payload):
-            if is_expired(refresh_payload):
-                raise UnauthorizedException(
-                    ErrorCode.INVALID_JWT,
-                    "Both access token and refresh token are expired."
-                )
 
-            user_id = find_user_id_by_refresh_token(refresh_token)
-            if user_id is None:
-                raise UnauthorizedException(
-                    ErrorCode.INVALID_JWT,
-                    "Refresh token is not valid."
-                )
+async def get_refresh(
+    token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+) -> RequestUser:
+    token = token.dict().get("credentials")
+    resolve_refresh_token(token)
 
-            add_jwt_tokens(
-                response,
-                create_access_token(user_id),
-                reissue_refresh_token(refresh_token, user_id),
-            )
+    user_id = find_user_id_by_refresh_token(token)
 
-            user = await __find_user_by_id(user_id)
+    if user_id is None:
+        raise UnauthorizedException(
+            ErrorCode.EXPIRED_JWT,
+            "token is expired."
+        )
 
-            return RequestUser(
-                id=user.id,
-                profile_img=user.profile_img,
-                nickname=user.nickname,
-                email=user.email,
-                instagram_nickname=user.instagram_name,
-                role=user.role
-            )
-        else:
-            if is_expired(refresh_payload):
-                raise UnauthorizedException(
-                    ErrorCode.INVALID_JWT,
-                    "Refresh token is expired."
-                )
+    user = await __find_user_by_id(user_id=user_id)
 
-            user = await __find_user_by_id(access_payload.get("sub"))
-
-            return RequestUser(
-                id=user.id,
-                profile_img=user.profile_img,
-                nickname=user.nickname,
-                sns=user.sns,
-                email=user.email,
-                instagram_nickname=user.instagram_name,
-                role=user.role
-            )
-    except Exception as e:
-        raise InternalServerException(
-            ErrorCode.INTERNAL_SERVER_ERROR,
-            "Unexpected error occurred when getting and parsing tokens."
-        ) from e
-
+    return RequestUser(
+        id=user.id,
+        profile_img=user.profile_img,
+        nickname=user.nickname,
+        email=user.email,
+        sns=user.sns,
+        instagram_nickname=user.instagram_name,
+        role=user.role
+    )
 
 CurrentUser = Annotated[RequestUser, Depends(get_subject)]
+CurrentRefreshUser = Annotated[RequestUser, Depends(get_refresh)]

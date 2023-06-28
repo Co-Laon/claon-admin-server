@@ -1,14 +1,13 @@
 from dependency_injector.wiring import inject, Provide
-from fastapi import APIRouter, Response, Depends
+from fastapi import APIRouter, Depends
 from fastapi_utils.cbv import cbv
 
-from claon_admin.common.util import header
 from claon_admin.common.enum import OAuthProvider
-from claon_admin.common.util.auth import CurrentUser
+from claon_admin.common.util.auth import CurrentUser, CurrentRefreshUser
 from claon_admin.container import Container
 from claon_admin.model.center import CenterAuthRequestDto, CenterResponseDto
 from claon_admin.model.user import SignInRequestDto, LectorRequestDto, JwtResponseDto, \
-    IsDuplicatedNicknameResponseDto, LectorResponseDto
+    IsDuplicatedNicknameResponseDto, LectorResponseDto, JwtReissueDto
 from claon_admin.service.user import UserService
 
 router = APIRouter()
@@ -29,12 +28,14 @@ class AuthRouter:
 
     @router.post('/{provider}/sign-in', response_model=JwtResponseDto)
     async def sign_in(self,
-                      response: Response,
                       provider: OAuthProvider,
                       dto: SignInRequestDto):
-        jwt_dto: JwtResponseDto = await self.user_service.sign_in(provider, dto)
-        header.add_jwt_tokens(response, jwt_dto.access_token, jwt_dto.refresh_token)
-        return jwt_dto
+        return await self.user_service.sign_in(provider, dto)
+
+    @router.get('/reissue', response_model=JwtReissueDto)
+    async def reissue_token(self,
+                            subject: CurrentRefreshUser):
+        return await self.user_service.reissue_token(subject)
 
     @router.post('/center/sign-up', response_model=CenterResponseDto)
     async def center_sign_up(self,

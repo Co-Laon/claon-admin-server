@@ -69,6 +69,10 @@ class JwtResponseDto(BaseModel):
     profile: UserProfileResponseDto
 
 
+class JwtReissueDto(BaseModel):
+    access_token: str
+
+
 class LectorContestDto(BaseModel):
     year: int
     title: str

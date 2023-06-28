@@ -14,7 +14,7 @@ from claon_admin.model.center import CenterAuthRequestDto, CenterResponseDto
 from claon_admin.common.enum import OAuthProvider, Role, LectorUploadPurpose, UserUploadPurpose
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.user import IsDuplicatedNicknameResponseDto, LectorRequestDto, LectorResponseDto, \
-    UserProfileResponseDto
+    UserProfileResponseDto, JwtReissueDto
 from claon_admin.model.user import SignInRequestDto, JwtResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterHold, \
     CenterWall, CenterApprovedFile, CenterHoldRepository, CenterWallRepository, CenterApprovedFileRepository, \
@@ -167,6 +167,9 @@ class UserService:
             is_signed_up=user.is_signed_up(),
             profile=UserProfileResponseDto.from_entity(user)
         )
+
+    async def reissue_token(self, subject: RequestUser):
+        return JwtReissueDto(access_token=create_access_token(subject.id))
 
     async def upload_profile(self, file: UploadFile):
         purpose = UserUploadPurpose.PROFILE

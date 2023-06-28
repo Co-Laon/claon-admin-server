@@ -33,37 +33,39 @@ def reissue_refresh_token(refresh_token: str, user_id: str) -> str:
     return create_refresh_token(user_id)
 
 
-def resolve_access_token(access_token: str) -> dict:
+def resolve_token(token: str) -> dict:
     try:
         return jwt.decode(
-            access_token,
+            token,
             conf().JWT_SECRET_KEY,
             algorithms=[conf().JWT_ALGORITHM],
-            options={"verify_exp": False}
         )
+    except jwt.ExpiredSignatureError as e:
+        raise UnauthorizedException(
+            ErrorCode.EXPIRED_JWT,
+            "token is expired."
+        ) from e
     except jwt.JWTError as e:
         raise UnauthorizedException(
             ErrorCode.INVALID_JWT,
-            "Invalid access token."
+            "Invalid token."
         ) from e
 
 
-def resolve_refresh_token(refresh_token: str) -> dict:
+def resolve_refresh_token(token: str) -> dict:
     try:
         return jwt.decode(
-            refresh_token,
+            token,
             conf().JWT_REFRESH_SECRET_KEY,
             algorithms=[conf().JWT_ALGORITHM],
-            options={"verify_exp": False}
         )
+    except jwt.ExpiredSignatureError as e:
+        raise UnauthorizedException(
+            ErrorCode.EXPIRED_JWT,
+            "token is expired."
+        ) from e
     except jwt.JWTError as e:
         raise UnauthorizedException(
             ErrorCode.INVALID_JWT,
-            "Invalid refresh token."
+            "Invalid token."
         ) from e
-
-
-def is_expired(payload: dict):
-    if datetime.now(TIME_ZONE_KST) > datetime.fromtimestamp(payload.get("exp"), TIME_ZONE_KST):
-        return True
-    return False
