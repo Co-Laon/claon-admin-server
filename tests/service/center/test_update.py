@@ -5,7 +5,8 @@ import pytest
 from claon_admin.common.enum import Role, WallType
 from claon_admin.common.error.exception import BadRequestException, NotFoundException, ErrorCode, UnauthorizedException
 from claon_admin.model.auth import RequestUser
-from claon_admin.model.center import CenterResponseDto, CenterUpdateRequestDto, CenterOperatingTimeDto, CenterFeeDto, CenterHoldDto, CenterWallDto
+from claon_admin.model.center import CenterResponseDto, CenterUpdateRequestDto, CenterOperatingTimeDto, CenterFeeDto, \
+    CenterHoldInfoDto, CenterWallDto, CenterHoldDto
 from claon_admin.schema.center import Center, CenterFee, CenterHold, CenterWall
 from claon_admin.service.center import CenterService
 
@@ -24,7 +25,7 @@ class TestUpdate(object):
             fee_image_list=["https://test.fee.png"],
             operating_time_list=[CenterOperatingTimeDto(day_of_week="월", start_time="09:00", end_time="18:00")],
             fee_list=[CenterFeeDto(name="fee", price=1000, count=10)],
-            hold_list=[CenterHoldDto(name="hold", difficulty="hard", is_color=False)],
+            hold_info=CenterHoldInfoDto(is_color=False, hold_list=[CenterHoldDto(name="hold", difficulty="hard")]),
             wall_list=[CenterWallDto(name="wall", wall_type=WallType.ENDURANCE)],
         )
 

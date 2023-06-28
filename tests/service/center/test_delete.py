@@ -28,17 +28,17 @@ class TestDelete(object):
         mock_repo["center"].find_by_id.side_effect = [center_fixture]
         mock_repo["center"].remove_center.side_effect = [center_fixture]
         response = CenterResponseDto.from_entity(entity=center_fixture,
-                                            holds=center_holds_fixture,
-                                            walls=center_walls_fixture,
-                                            fees=center_fees_fixture)
-        
+                                                 holds=center_holds_fixture,
+                                                 walls=center_walls_fixture,
+                                                 fees=center_fees_fixture)
+
         # when
         result = await center_service.delete(subject=request_user, center_id=center_fixture.id)
 
         # then
         assert result.center_id == center_fixture.id
         assert result.fee_list == response.fee_list
-        assert result.hold_list == response.hold_list
+        assert result.hold_info == response.hold_info
         assert result.wall_list == response.wall_list
 
     @pytest.mark.asyncio
