@@ -6,8 +6,8 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from claon_admin.common.error.exception import UnauthorizedException, ErrorCode
 from claon_admin.common.util.db import db
-from claon_admin.common.util.jwt import resolve_token, resolve_refresh_token
-from claon_admin.common.util.redis import find_user_id_by_refresh_token
+from claon_admin.common.util.jwt import resolve_access_token
+from claon_admin.common.util.redis import find_user_id_by_refresh_key, delete_refresh_key, save_refresh_key
 from claon_admin.container import Container
 from claon_admin.model.auth import RequestUser
 from claon_admin.schema.user import UserRepository
@@ -32,7 +32,7 @@ async def get_subject(
     token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
 ) -> RequestUser:
     token = token.dict().get("credentials")
-    payload = resolve_token(token)
+    payload = resolve_access_token(token)
 
     user = await __find_user_by_id(user_id=payload.get("sub"))
 
@@ -48,20 +48,22 @@ async def get_subject(
 
 
 async def get_refresh(
-    token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+    refresh_key: HTTPAuthorizationCredentials = Depends(HTTPBearer())
 ) -> RequestUser:
-    token = token.dict().get("credentials")
-    resolve_refresh_token(token)
+    refresh_key = refresh_key.dict().get("credentials")
 
-    user_id = find_user_id_by_refresh_token(token)
+    user_id = find_user_id_by_refresh_key(refresh_key)
 
     if user_id is None:
         raise UnauthorizedException(
             ErrorCode.EXPIRED_JWT,
-            "token is expired."
+            "refresh key is expired."
         )
 
     user = await __find_user_by_id(user_id=user_id)
+
+    delete_refresh_key(refresh_key=refresh_key)
+    save_refresh_key(refresh_key=refresh_key, user_id=user_id)
 
     return RequestUser(
         id=user.id,

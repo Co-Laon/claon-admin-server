@@ -4,7 +4,7 @@ from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException, ErrorCode
-from claon_admin.common.util.jwt import create_access_token, create_refresh_token
+from claon_admin.common.util.jwt import create_access_token, create_refresh_key
 from claon_admin.common.util.transaction import transactional
 from claon_admin.service.oauth import OAuthUserInfoProviderSupplier, UserInfoProvider
 from claon_admin.common.util.s3 import upload_file
@@ -163,7 +163,7 @@ class UserService:
 
         return JwtResponseDto(
             access_token=create_access_token(user.id),
-            refresh_token=create_refresh_token(user.id),
+            refresh_key=create_refresh_key(user.id),
             is_signed_up=user.is_signed_up(),
             profile=UserProfileResponseDto.from_entity(user)
         )
@@ -212,7 +212,7 @@ class UserService:
 
         return JwtResponseDto(
             access_token=create_access_token(user.id),
-            refresh_token=create_refresh_token(user.id),
+            refresh_key=create_refresh_key(user.id),
             is_signed_up=is_signed_up,
             profile=UserProfileResponseDto.from_entity(user)
         )
