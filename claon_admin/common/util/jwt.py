@@ -1,10 +1,11 @@
+import uuid
 from datetime import datetime, timedelta
 
 from jose import jwt
 
 from claon_admin.common.error.exception import UnauthorizedException
 from claon_admin.common.error.exception import ErrorCode
-from claon_admin.common.util.redis import save_refresh_token, delete_refresh_token
+from claon_admin.common.util.redis import save_refresh_key
 from claon_admin.config.config import conf
 from claon_admin.common.consts import TIME_ZONE_KST
 
@@ -18,52 +19,26 @@ def create_access_token(user_id: str) -> str:
     return jwt.encode(to_encode, conf().JWT_SECRET_KEY, conf().JWT_ALGORITHM)
 
 
-def create_refresh_token(user_id: str) -> str:
-    to_encode = {
-        "exp": datetime.now(TIME_ZONE_KST) + timedelta(minutes=conf().REFRESH_TOKEN_EXPIRE_MINUTES)
-    }
-
-    token = jwt.encode(to_encode, conf().JWT_REFRESH_SECRET_KEY, conf().JWT_ALGORITHM)
-    save_refresh_token(token, user_id)
-    return token
+def create_refresh_key(user_id: str) -> str:
+    refresh_key = str(uuid.uuid4())
+    save_refresh_key(refresh_key=refresh_key, user_id=user_id)
+    return refresh_key
 
 
-def reissue_refresh_token(refresh_token: str, user_id: str) -> str:
-    delete_refresh_token(refresh_token)
-    return create_refresh_token(user_id)
-
-
-def resolve_access_token(access_token: str) -> dict:
+def resolve_access_token(token: str) -> dict:
     try:
         return jwt.decode(
-            access_token,
+            token,
             conf().JWT_SECRET_KEY,
             algorithms=[conf().JWT_ALGORITHM],
-            options={"verify_exp": False}
         )
+    except jwt.ExpiredSignatureError as e:
+        raise UnauthorizedException(
+            ErrorCode.EXPIRED_JWT,
+            "token is expired."
+        ) from e
     except jwt.JWTError as e:
         raise UnauthorizedException(
             ErrorCode.INVALID_JWT,
-            "Invalid access token."
+            "Invalid token."
         ) from e
-
-
-def resolve_refresh_token(refresh_token: str) -> dict:
-    try:
-        return jwt.decode(
-            refresh_token,
-            conf().JWT_REFRESH_SECRET_KEY,
-            algorithms=[conf().JWT_ALGORITHM],
-            options={"verify_exp": False}
-        )
-    except jwt.JWTError as e:
-        raise UnauthorizedException(
-            ErrorCode.INVALID_JWT,
-            "Invalid refresh token."
-        ) from e
-
-
-def is_expired(payload: dict):
-    if datetime.now(TIME_ZONE_KST) > datetime.fromtimestamp(payload.get("exp"), TIME_ZONE_KST):
-        return True
-    return False

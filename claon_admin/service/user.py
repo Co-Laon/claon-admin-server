@@ -4,7 +4,7 @@ from fastapi import UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException, ErrorCode
-from claon_admin.common.util.jwt import create_access_token, create_refresh_token
+from claon_admin.common.util.jwt import create_access_token, create_refresh_key
 from claon_admin.common.util.transaction import transactional
 from claon_admin.service.oauth import OAuthUserInfoProviderSupplier, UserInfoProvider
 from claon_admin.common.util.s3 import upload_file
@@ -14,7 +14,7 @@ from claon_admin.model.center import CenterAuthRequestDto, CenterResponseDto
 from claon_admin.common.enum import OAuthProvider, Role, LectorUploadPurpose, UserUploadPurpose
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.user import IsDuplicatedNicknameResponseDto, LectorRequestDto, LectorResponseDto, \
-    UserProfileResponseDto
+    UserProfileResponseDto, JwtReissueDto
 from claon_admin.model.user import SignInRequestDto, JwtResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterHold, \
     CenterWall, CenterApprovedFile, CenterHoldRepository, CenterWallRepository, CenterApprovedFileRepository, \
@@ -165,10 +165,13 @@ class UserService:
 
         return JwtResponseDto(
             access_token=create_access_token(user.id),
-            refresh_token=create_refresh_token(user.id),
+            refresh_key=create_refresh_key(user.id),
             is_signed_up=user.is_signed_up(),
             profile=UserProfileResponseDto.from_entity(user)
         )
+
+    async def reissue_token(self, subject: RequestUser):
+        return JwtReissueDto(access_token=create_access_token(subject.id))
 
     async def upload_profile(self, file: UploadFile):
         purpose = UserUploadPurpose.PROFILE
@@ -211,7 +214,7 @@ class UserService:
 
         return JwtResponseDto(
             access_token=create_access_token(user.id),
-            refresh_token=create_refresh_token(user.id),
+            refresh_key=create_refresh_key(user.id),
             is_signed_up=is_signed_up,
             profile=UserProfileResponseDto.from_entity(user)
         )

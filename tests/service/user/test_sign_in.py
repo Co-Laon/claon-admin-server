@@ -15,11 +15,11 @@ class TestSignIn(object):
     @pytest.mark.asyncio
     @pytest.mark.it("Success case: old user sign in with google")
     @patch("claon_admin.service.user.create_access_token")
-    @patch("claon_admin.service.user.create_refresh_token")
+    @patch("claon_admin.service.user.create_refresh_key")
     async def test_sign_in_with_google(
             self,
             mock_create_access_token,
-            mock_create_refresh_token,
+            mock_create_refresh_key,
             mock_repo: dict,
             user_fixture: User,
             mock_supplier: OAuthUserInfoProviderSupplier,
@@ -39,24 +39,24 @@ class TestSignIn(object):
         mock_supplier.get_provider.return_value = mock_provider
 
         mock_create_access_token.return_value = "test_access_token"
-        mock_create_refresh_token.return_value = "test_refresh_token"
+        mock_create_refresh_key.return_value = "test_refresh_key"
 
         # when
         result = await user_service.sign_in(provider_name, sign_in_request_dto)
 
         # then
         assert result.access_token is not None
-        assert result.refresh_token is not None
+        assert result.refresh_key is not None
         assert result.is_signed_up is True
 
     @pytest.mark.asyncio
     @pytest.mark.it("Success case: new user sign in with google")
     @patch("claon_admin.service.user.create_access_token")
-    @patch("claon_admin.service.user.create_refresh_token")
+    @patch("claon_admin.service.user.create_refresh_key")
     async def test_sign_in_with_google_new_user(
             self,
             mock_create_access_token,
-            mock_create_refresh_token,
+            mock_create_refresh_key,
             mock_repo: dict,
             user_fixture: User,
             mock_supplier: OAuthUserInfoProviderSupplier,
@@ -76,24 +76,24 @@ class TestSignIn(object):
         mock_supplier.get_provider.return_value = mock_provider
 
         mock_create_access_token.return_value = "test_access_token"
-        mock_create_refresh_token.return_value = "test_refresh_token"
+        mock_create_refresh_key.return_value = "test_refresh_key"
 
         # when
         result = await user_service.sign_in(provider_name, sign_in_request_dto)
 
         # then
         assert result.access_token is not None
-        assert result.refresh_token is not None
+        assert result.refresh_key is not None
         assert result.is_signed_up is False
 
     @pytest.mark.asyncio
     @pytest.mark.it("Success case: old user sign in with kakao")
     @patch("claon_admin.service.user.create_access_token")
-    @patch("claon_admin.service.user.create_refresh_token")
+    @patch("claon_admin.service.user.create_refresh_key")
     async def test_sign_in_with_kakao(
             self,
             mock_create_access_token,
-            mock_create_refresh_token,
+            mock_create_refresh_key,
             mock_repo: dict,
             user_fixture: User,
             mock_supplier: OAuthUserInfoProviderSupplier,
@@ -113,20 +113,20 @@ class TestSignIn(object):
         mock_supplier.get_provider.return_value = mock_provider
 
         mock_create_access_token.return_value = "test_access_token"
-        mock_create_refresh_token.return_value = "test_refresh_token"
+        mock_create_refresh_key.return_value = "test_refresh_key"
 
         # when
         result = await user_service.sign_in(provider_name, sign_in_request_dto)
 
         # then
         assert result.access_token is not None
-        assert result.refresh_token is not None
+        assert result.refresh_key is not None
         assert result.is_signed_up is True
 
     @pytest.mark.asyncio
     @pytest.mark.it("Success case: new user sign in with kakao")
     @patch("claon_admin.service.user.create_access_token")
-    @patch("claon_admin.service.user.create_refresh_token")
+    @patch("claon_admin.service.user.create_refresh_key")
     async def test_sign_in_with_kakao_new_user(
             self,
             mock_create_access_token,
@@ -150,12 +150,12 @@ class TestSignIn(object):
         mock_supplier.get_provider.return_value = mock_provider
 
         mock_create_access_token.return_value = "test_access_token"
-        mock_create_refresh_token.return_value = "test_refresh_token"
+        mock_create_refresh_token.return_value = "test_refresh_key"
 
         # when
         result = await user_service.sign_in(provider_name, sign_in_request_dto)
 
         # then
         assert result.access_token is not None
-        assert result.refresh_token is not None
+        assert result.refresh_key is not None
         assert result.is_signed_up is False

@@ -64,9 +64,13 @@ class UserProfileDto(BaseModel):
 
 class JwtResponseDto(BaseModel):
     access_token: str
-    refresh_token: str
+    refresh_key: str
     is_signed_up: bool
     profile: UserProfileResponseDto
+
+
+class JwtReissueDto(BaseModel):
+    access_token: str
 
 
 class LectorContestDto(BaseModel):
