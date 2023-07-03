@@ -9,7 +9,7 @@ from claon_admin.common.enum import Role, WallType, MembershipType, PeriodType
 from claon_admin.common.util.time import now
 from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, Center, CenterImage, \
     OperatingTime, Utility, CenterFeeImage, CenterFee, CenterHold, CenterWall, Review, ReviewTag, ReviewAnswer, \
-    CenterHoldRepository, CenterWallRepository, CenterFeeRepository
+    CenterHoldRepository, CenterWallRepository, CenterFeeRepository, CenterApprovedFileRepository, CenterApprovedFile
 from claon_admin.schema.post import PostRepository, Post, PostImage, ClimbingHistory, PostCountHistoryRepository, \
     PostCountHistory
 from claon_admin.schema.user import User
@@ -26,6 +26,7 @@ def mock_repo():
     center_fee_repository = AsyncMock(spec=CenterFeeRepository)
     center_hold_repository = AsyncMock(spec=CenterHoldRepository)
     center_wall_repository = AsyncMock(spec=CenterWallRepository)
+    center_approved_file_repository = AsyncMock(spec=CenterApprovedFileRepository)
 
     return {
         "center": center_repository,
@@ -35,7 +36,8 @@ def mock_repo():
         "review_answer": review_answer_repository,
         "center_fee": center_fee_repository,
         "center_hold": center_hold_repository,
-        "center_wall": center_wall_repository
+        "center_wall": center_wall_repository,
+        "center_approved_file": center_approved_file_repository
     }
 
 
@@ -49,7 +51,8 @@ def center_service(mock_repo: dict):
         review_answer_repository=mock_repo["review_answer"],
         center_hold_repository=mock_repo["center_hold"],
         center_wall_repository=mock_repo["center_wall"],
-        center_fee_repository=mock_repo["center_fee"]
+        center_fee_repository=mock_repo["center_fee"],
+        center_approved_file_repository=mock_repo["center_approved_file"]
     )
 
 
@@ -185,6 +188,27 @@ def another_center_fixture(user_fixture: User):
 
 
 @pytest.fixture
+def new_center_fixture(user_fixture: User):
+    yield Center(
+        id=str(uuid.uuid4()),
+        user=user_fixture,
+        name="test name",
+        profile_img="https://test.profile.png",
+        address="test_profile_image",
+        detail_address="test_detail_address",
+        tel="010-1111-1111",
+        web_url="test_web_url",
+        instagram_name="test_instagram_name",
+        youtube_url="https://www.youtube.com/@testsave",
+        center_img=[CenterImage(url="test_image")],
+        operating_time=[OperatingTime(day_of_week="월", start_time="10:00", end_time="15:00")],
+        utility=[Utility(name="test_utility")],
+        fee_img=[CenterFeeImage(url="test_fee_image")],
+        approved=False
+    )
+
+
+@pytest.fixture
 def center_fees_fixture(center_fixture: Center):
     yield [
         CenterFee(
@@ -211,6 +235,19 @@ def center_holds_fixture(center_fixture: Center):
 
 
 @pytest.fixture
+def new_center_holds_fixture(new_center_fixture: Center):
+    yield [
+        CenterHold(
+            id=str(uuid.uuid4()),
+            center=new_center_fixture,
+            name="name",
+            difficulty="red",
+            is_color=True
+        )
+    ]
+
+
+@pytest.fixture
 async def center_walls_fixture(center_fixture: Center):
     yield [
         CenterWall(
@@ -218,6 +255,30 @@ async def center_walls_fixture(center_fixture: Center):
             center=center_fixture,
             name="wall",
             type=WallType.ENDURANCE.value
+        )
+    ]
+
+
+@pytest.fixture
+async def new_center_walls_fixture(new_center_fixture: Center):
+    yield [
+        CenterWall(
+            id=str(uuid.uuid4()),
+            center=new_center_fixture,
+            name="wall",
+            type=WallType.BOULDERING.value
+        )
+    ]
+
+
+@pytest.fixture
+async def new_approved_file_fixture(user_fixture: User, new_center_fixture: Center):
+    yield [
+        CenterApprovedFile(
+            id=str(uuid.uuid4()),
+            user=user_fixture,
+            center=new_center_fixture,
+            url="url"
         )
     ]
 

@@ -55,8 +55,9 @@ class CenterRouter:
 
     @router.post('/', response_model=CenterResponseDto)
     async def create(self,
+                     subject: CurrentUser,
                      dto: CenterRequestDto):
-        pass
+        return await self.center_service.create(subject=subject, dto=dto)
 
     @router.put('/{center_id}', response_model=CenterResponseDto)
     async def update(self,

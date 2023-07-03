@@ -70,7 +70,8 @@ class Container(containers.DeclarativeContainer):
         review_answer_repository=review_answer_repository,
         center_fee_repository=center_fee_repository,
         center_hold_repository=center_hold_repository,
-        center_wall_repository=center_wall_repository
+        center_wall_repository=center_wall_repository,
+        center_approved_file_repository=center_approved_file_repository
     )
 
     membership_service = providers.Singleton(
