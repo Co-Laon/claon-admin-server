@@ -1,4 +1,5 @@
 import json
+import uuid
 from datetime import date
 from typing import List
 from uuid import uuid4
@@ -44,11 +45,30 @@ class User(Base):
     instagram_name = Column(String(length=255), unique=True)
     role = Column(Enum(Role), nullable=False)
 
+    @staticmethod
+    def join(oauth_id: str, sns_email: str):
+        return User(
+            oauth_id=oauth_id,
+            nickname=str(uuid.uuid4()),
+            sns=sns_email,
+            profile_img="",
+            role=Role.PENDING
+        )
+
+    def sign_up(self, profile_image: str, nickname: str, email: str, instagram_nickname: str | None):
+        self.profile_img = profile_image
+        self.nickname = nickname
+        self.email = email
+        self.instagram_name = instagram_nickname
+
     def is_signed_up(self):
         if self.role == Role.PENDING:
             return False
         else:
             return True
+
+    def update_role(self, role: Role):
+        self.role = role
 
 
 class Lector(Base):
@@ -62,6 +82,21 @@ class Lector(Base):
 
     user_id = Column(String(length=255), ForeignKey("tb_user.id", ondelete="CASCADE"), unique=True, nullable=False)
     user = relationship("User", backref=backref("Lector"))
+
+    @staticmethod
+    def of(user_id: str, is_setter: bool, contest_list: List[Contest], certificate_list: List[Certificate],
+           career_list: List[Career]):
+        return Lector(
+            user_id=user_id,
+            is_setter=is_setter,
+            contest=[Contest(**contest) for contest in contest_list],
+            certificate=[Certificate(**certificate) for certificate in certificate_list],
+            career=[Career(**career) for career in career_list],
+            approved=False
+        )
+
+    def approve(self):
+        self.approved = True
 
     @property
     def contest(self):
@@ -125,17 +160,11 @@ class UserRepository(Repository[User]):
         result = await session.execute(select(User).where(User.oauth_id == oauth_id))
         return result.scalars().one_or_none()
 
-    async def update_role(self, session: AsyncSession, user: User, role: Role):
-        user.role = role
-        await session.merge(user)
-        return user
-
 
 class LectorRepository(Repository[Lector]):
-    async def approve(self, session: AsyncSession, lector: Lector):
-        lector.approved = True
-        await session.merge(lector)
-        return lector
+    async def find_by_id_with_user(self, session: AsyncSession, lector_id: str):
+        result = await session.execute(select(Lector).where(Lector.id == lector_id).options(selectinload(Lector.user)))
+        return result.scalars().one_or_none()
 
     async def find_all_by_approved_false(self, session: AsyncSession):
         result = await session.execute(

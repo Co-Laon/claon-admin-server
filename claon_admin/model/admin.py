@@ -116,6 +116,7 @@ class LectorCareerDto(BaseModel):
 
 
 class LectorResponseDto(BaseModel):
+    lector_id: str
     user_profile: UserProfileResponseDto
     is_setter: bool
     approved: bool
@@ -127,6 +128,7 @@ class LectorResponseDto(BaseModel):
     @classmethod
     def from_entity(cls, lector: Lector, approved_files: List[LectorApprovedFile]):
         return LectorResponseDto(
+            lector_id=lector.id,
             user_profile=UserProfileResponseDto.from_entity(lector.user),
             is_setter=lector.is_setter,
             approved=lector.approved,

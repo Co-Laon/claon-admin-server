@@ -6,11 +6,11 @@ from fastapi import APIRouter, Depends, UploadFile, File
 from fastapi_pagination import Params
 from fastapi_utils.cbv import cbv
 
-from claon_admin.common.util.auth import CurrentUser
+from claon_admin.common.util.auth import CenterAdminUser, CurrentUser
 from claon_admin.common.util.pagination import Pagination
 from claon_admin.container import Container
 from claon_admin.model.center import CenterNameResponseDto, CenterResponseDto, CenterUpdateRequestDto, \
-    CenterBriefResponseDto, CenterRequestDto
+    CenterBriefResponseDto, CenterCreateRequestDto
 from claon_admin.common.enum import CenterUploadPurpose, MembershipUploadPurpose
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.membership import MembershipResponseDto, MembershipRequestDto
@@ -18,6 +18,8 @@ from claon_admin.model.post import PostResponseDto, PostSummaryResponseDto, Post
 from claon_admin.model.review import ReviewSummaryResponseDto, ReviewAnswerResponseDto, ReviewAnswerRequestDto, \
     ReviewBriefResponseDto
 from claon_admin.service.center import CenterService
+from claon_admin.service.post import PostService
+from claon_admin.service.review import ReviewService
 
 router = APIRouter()
 
@@ -26,8 +28,12 @@ router = APIRouter()
 class CenterRouter:
     @inject
     def __init__(self,
-                 center_service: CenterService = Depends(Provide[Container.center_service])):
+                 center_service: CenterService = Depends(Provide[Container.center_service]),
+                 post_service: PostService = Depends(Provide[Container.post_service]),
+                 review_service: ReviewService = Depends(Provide[Container.review_service])):
         self.center_service = center_service
+        self.post_service = post_service
+        self.review_service = review_service
 
     @router.get('/name/{name}', response_model=List[CenterNameResponseDto])
     async def get_name(self,
@@ -36,39 +42,39 @@ class CenterRouter:
 
     @router.get('/{center_id}', response_model=CenterResponseDto)
     async def find_by_id(self,
-                         subject: CurrentUser,
+                         subject: CenterAdminUser,
                          center_id: str):
         return await self.center_service.find_by_id(subject=subject, center_id=center_id)
 
     @router.post('/{purpose}/file', response_model=UploadFileResponseDto)
     async def upload(self,
-                     subject: CurrentUser,
+                     subject: CenterAdminUser,
                      purpose: CenterUploadPurpose,
                      file: UploadFile = File(...)):
         return await self.center_service.upload_file(purpose, file)
 
     @router.get('/', response_model=Pagination[CenterBriefResponseDto])
     async def find_centers(self,
-                           subject: CurrentUser,
+                           subject: CenterAdminUser,
                            params: Params = Depends()):
         return await self.center_service.find_centers(params=params, subject=subject)
 
     @router.post('/', response_model=CenterResponseDto)
     async def create(self,
                      subject: CurrentUser,
-                     dto: CenterRequestDto):
+                     dto: CenterCreateRequestDto):
         return await self.center_service.create(subject=subject, dto=dto)
 
     @router.put('/{center_id}', response_model=CenterResponseDto)
     async def update(self,
-                     subject: CurrentUser,
+                     subject: CenterAdminUser,
                      center_id: str,
                      request_dto: CenterUpdateRequestDto):
         return await self.center_service.update(center_id=center_id, subject=subject, dto=request_dto)
 
     @router.delete('/{center_id}', response_model=CenterResponseDto)
     async def delete(self,
-                     subject: CurrentUser,
+                     subject: CenterAdminUser,
                      center_id: str):
         return await self.center_service.delete(center_id=center_id, subject=subject)
 
@@ -86,13 +92,13 @@ class CenterRouter:
 
     @router.get('/{center_id}/posts', response_model=Pagination[PostBriefResponseDto])
     async def find_posts_by_center(self,
-                                   subject: CurrentUser,
+                                   subject: CenterAdminUser,
                                    center_id: str,
                                    start: date,
                                    end: date,
                                    hold_id: str | None = None,
                                    params: Params = Depends()):
-        return await self.center_service.find_posts_by_center(
+        return await self.post_service.find_posts_by_center(
             subject=subject,
             params=params,
             hold_id=hold_id,
@@ -103,14 +109,14 @@ class CenterRouter:
 
     @router.get('/{center_id}/reviews', response_model=Pagination[ReviewBriefResponseDto])
     async def find_reviews_by_center(self,
-                                     subject: CurrentUser,
+                                     subject: CenterAdminUser,
                                      center_id: str,
                                      start: date,
                                      end: date,
                                      tag: str | None = None,
                                      is_answered: bool | None = None,
                                      params: Params = Depends()):
-        return await self.center_service.find_reviews_by_center(
+        return await self.review_service.find_reviews_by_center(
             subject=subject,
             params=params,
             center_id=center_id,
@@ -122,56 +128,56 @@ class CenterRouter:
 
     @router.get('/{center_id}/posts/summary', response_model=PostSummaryResponseDto)
     async def find_posts_summary_by_center(self,
-                                           subject: CurrentUser,
+                                           subject: CenterAdminUser,
                                            center_id: str):
-        return await self.center_service.find_posts_summary_by_center(subject, center_id)
+        return await self.post_service.find_posts_summary_by_center(subject, center_id)
 
     @router.get('/{center_id}/reviews/summary', response_model=ReviewSummaryResponseDto)
     async def find_reviews_summary_by_center(self,
-                                             subject: CurrentUser,
+                                             subject: CenterAdminUser,
                                              center_id: str):
-        return await self.center_service.find_reviews_summary_by_center(subject, center_id)
+        return await self.review_service.find_reviews_summary_by_center(subject, center_id)
 
     @router.post('/{center_id}/reviews/{review_id}', response_model=ReviewAnswerResponseDto)
     async def create_review_answer(self,
-                                   subject: CurrentUser,
+                                   subject: CenterAdminUser,
                                    request_dto: ReviewAnswerRequestDto,
                                    center_id: str,
                                    review_id: str):
-        return await self.center_service.create_review_answer(subject, request_dto, center_id, review_id)
+        return await self.review_service.create_review_answer(subject, request_dto, center_id, review_id)
 
     @router.put('/{center_id}/reviews/{review_id}', response_model=ReviewAnswerResponseDto)
     async def update_review_answer(self,
-                                   subject: CurrentUser,
+                                   subject: CenterAdminUser,
                                    request_dto: ReviewAnswerRequestDto,
                                    center_id: str,
                                    review_id: str):
-        return await self.center_service.update_review_answer(subject, request_dto, center_id, review_id)
+        return await self.review_service.update_review_answer(subject, request_dto, center_id, review_id)
 
     @router.delete('/{center_id}/reviews/{review_id}')
     async def delete_review_answer(self,
-                                   subject: CurrentUser,
+                                   subject: CenterAdminUser,
                                    center_id: str,
                                    review_id: str):
-        return await self.center_service.delete_review_answer(subject, center_id, review_id)
+        return await self.review_service.delete_review_answer(subject, center_id, review_id)
 
     @router.post('/{center_id}/memberships', response_model=List[MembershipResponseDto])
     async def create_membership(self,
-                                subject: CurrentUser,
+                                subject: CenterAdminUser,
                                 center_id: str,
                                 request_dto: List[MembershipRequestDto]):
         pass
 
     @router.put('/{center_id}/memberships', response_model=List[MembershipResponseDto])
     async def update_membership(self,
-                                subject: CurrentUser,
+                                subject: CenterAdminUser,
                                 center_id: str,
                                 request_dto: List[MembershipRequestDto]):
         pass
 
     @router.post('/{center_id}/memberships/{purpose}/file', response_model=UploadFileResponseDto)
     async def upload_membership_image(self,
-                                      subject: CurrentUser,
+                                      subject: CenterAdminUser,
                                       center_id: str,
                                       purpose: MembershipUploadPurpose,
                                       file: UploadFile = File(...)):

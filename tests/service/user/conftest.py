@@ -6,9 +6,8 @@ import pytest
 
 from claon_admin.common.enum import Role, WallType
 from claon_admin.service.oauth import OAuthUserInfoProviderSupplier
-from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, CenterFeeRepository, \
-    CenterHoldRepository, CenterWallRepository, Center, CenterImage, OperatingTime, Utility, CenterFeeImage, \
-    CenterApprovedFile, CenterFee, CenterHold, CenterWall
+from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, CenterHoldRepository, \
+    CenterWallRepository, Center, CenterImage, OperatingTime, Utility, CenterApprovedFile, CenterHold, CenterWall
 from claon_admin.schema.user import UserRepository, LectorRepository, LectorApprovedFileRepository, User, Lector, \
     Contest, Certificate, Career, LectorApprovedFile
 from claon_admin.service.user import UserService
@@ -21,7 +20,6 @@ def mock_repo():
     lector_approved_file_repository = AsyncMock(spec=LectorApprovedFileRepository)
     center_repository = AsyncMock(spec=CenterRepository)
     center_approved_file_repository = AsyncMock(spec=CenterApprovedFileRepository)
-    center_fee_repository = AsyncMock(spec=CenterFeeRepository)
     center_hold_repository = AsyncMock(spec=CenterHoldRepository)
     center_wall_repository = AsyncMock(spec=CenterWallRepository)
 
@@ -31,7 +29,6 @@ def mock_repo():
         "lector_approved_file": lector_approved_file_repository,
         "center": center_repository,
         "center_approved_file": center_approved_file_repository,
-        "center_fee": center_fee_repository,
         "center_hold": center_hold_repository,
         "center_wall": center_wall_repository
     }
@@ -50,7 +47,6 @@ def user_service(mock_repo: dict, mock_supplier: OAuthUserInfoProviderSupplier):
         mock_repo["lector_approved_file"],
         mock_repo["center"],
         mock_repo["center_approved_file"],
-        mock_repo["center_fee"],
         mock_repo["center_hold"],
         mock_repo["center_wall"],
         mock_supplier
@@ -121,7 +117,6 @@ def center_fixture(user_fixture: User):
         center_img=[CenterImage(url="https://test.image.png")],
         operating_time=[OperatingTime(day_of_week="월", start_time="09:00", end_time="18:00")],
         utility=[Utility(name="test_utility")],
-        fee_img=[CenterFeeImage(url="https://test.fee.png")],
         approved=False
     )
 
@@ -134,19 +129,6 @@ def center_approved_files_fixture(user_fixture: User, center_fixture: Center):
             user=user_fixture,
             center=center_fixture,
             url="https://example.com/approved.jpg"
-        )
-    ]
-
-
-@pytest.fixture
-def center_fees_fixture(center_fixture: Center):
-    yield [
-        CenterFee(
-            id=str(uuid.uuid4()),
-            center=center_fixture,
-            name="fee",
-            price=1000,
-            count=10
         )
     ]
 

@@ -4,7 +4,7 @@ import pytest
 from fastapi_pagination import Params, Page
 
 from claon_admin.common.enum import Role
-from claon_admin.common.error.exception import UnauthorizedException, ErrorCode, NotFoundException
+from claon_admin.common.error.exception import ErrorCode, NotFoundException
 from claon_admin.common.util.pagination import Pagination
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.center import CenterBriefResponseDto
@@ -49,24 +49,6 @@ class TestFindCenters(object):
         assert len(pages.results) == 2
         assert pages.results[0].center_id == center_fixture.id
         assert pages.results[1].center_id == another_center_fixture.id
-
-    @pytest.mark.asyncio
-    @pytest.mark.it("Fail case: request user is not center admin")
-    async def test_find_centers_with_not_center_admin(
-            self,
-            center_service: CenterService,
-            mock_repo: dict
-    ):
-        # given
-        request_user = RequestUser(id="111111", sns="test@claon.com", role=Role.LECTOR)
-        params = Params(page=1, size=10)
-
-        with pytest.raises(UnauthorizedException) as exception:
-            # when
-            await center_service.find_centers(params, request_user)
-
-        # then
-        assert exception.value.code == ErrorCode.NOT_ACCESSIBLE
 
     @pytest.mark.asyncio
     @pytest.mark.it("Fail case: center is not found")

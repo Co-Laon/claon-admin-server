@@ -1,8 +1,7 @@
 import json
 from datetime import date
-from typing import List, TypedDict
+from typing import List
 from uuid import uuid4
-from dataclasses import dataclass
 
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate
@@ -30,7 +29,6 @@ class Utility:
         self.name = name
 
 
-@dataclass
 class CenterImage:
     def __init__(self, url: str):
         self.url = url
@@ -69,6 +67,60 @@ class Center(Base):
 
     user_id = Column(String(length=255), ForeignKey("tb_user.id", ondelete="SET NULL"))
     user = relationship("User", backref=backref("Center"))
+
+    @staticmethod
+    def of(user_id: str, name: str, profile_image: str, address: str, detail_address: str, tel: str, web_url: str,
+           instagram_name: str, youtube_code: str, image_list: List[str], utility_list: List[str],
+           operating_time_list: List[OperatingTime]):
+        return Center(
+            user_id=user_id,
+            name=name,
+            profile_img=profile_image,
+            address=address,
+            detail_address=detail_address,
+            tel=tel,
+            web_url=web_url,
+            instagram_name=instagram_name,
+            youtube_url=f"https://www.youtube.com/{str(youtube_code)}",
+            center_img=[CenterImage(url=e) for e in image_list],
+            operating_time=[OperatingTime(**e) for e in operating_time_list or []],
+            utility=[Utility(name=e) for e in utility_list or []],
+            approved=False
+        )
+
+    def approve(self):
+        self.approved = True
+
+    def relieve(self):
+        self.user_id = None
+
+    def update(self,
+               profile_image: str,
+               address: str,
+               detail_address: str | None,
+               tel: str,
+               web_url: str | None,
+               instagram_name: str | None,
+               youtube_code: str | None,
+               image_list: List[str],
+               utility_list: List[str],
+               operating_time_list: List[OperatingTime]):
+        self.profile_img = profile_image
+        self.address = address
+        self.detail_address = detail_address
+        self.tel = tel
+        self.web_url = web_url
+        self.instagram_name = instagram_name
+        self.youtube_url = f"https://www.youtube.com/{youtube_code}" if youtube_code is not None else None
+        self.center_img = [CenterImage(url=e) for e in image_list or []]
+        self.utility = [Utility(name=e) for e in utility_list or []]
+        self.operating_time = [OperatingTime(**e) for e in operating_time_list or []]
+
+    def is_owner(self, user_id: str):
+        return self.user_id == user_id
+
+    def exist_hold(self, hold_id: str):
+        return hold_id in [hold.id for hold in self.holds]
 
     @property
     def center_img(self):
@@ -193,6 +245,9 @@ class ReviewAnswer(Base):
 
     review = relationship("Review", back_populates="answer", uselist=False)
 
+    def update(self, content: str):
+        self.content = content
+
 
 class CenterRepository(Repository[Center]):
     async def find_by_id_with_details(self, session: AsyncSession, center_id: str):
@@ -206,11 +261,6 @@ class CenterRepository(Repository[Center]):
     async def exists_by_name_and_approved(self, session: AsyncSession, name: str):
         result = await session.execute(select(exists().where(Center.name == name).where(Center.approved.is_(True))))
         return result.scalar()
-
-    async def approve(self, session: AsyncSession, center: Center):
-        center.approved = True
-        await session.merge(center)
-        return center
 
     async def find_all_by_approved_false(self, session: AsyncSession):
         result = await session.execute(select(Center).where(Center.approved.is_(False))
@@ -236,37 +286,6 @@ class CenterRepository(Repository[Center]):
         result = await session.execute(select(Center.id).where(Center.approved.is_(True)))
         return result.scalars().all()
 
-    async def remove_center(self, session: AsyncSession, center: Center):
-        center.user_id = None
-        await session.merge(center)
-        return center
-
-    async def update(self, session: AsyncSession, center: Center,
-                     profile_image: str,
-                     tel: str,
-                     web_url: str | None,
-                     instagram_name: str | None,
-                     youtube_code: str | None,
-                     image_list: List[str],
-                     utility_list: List[str],
-                     fee_image_list: List[str],
-                     operating_time_list: List[TypedDict('CenterOperatingTime',
-                     {'day_of_week': str, 'start_time': str, 'end_time': str})]):
-        center.profile_img = profile_image
-        center.tel = tel
-        center.web_url = web_url
-        center.instagram_name = instagram_name
-        center.youtube_url = f"https://www.youtube.com/{youtube_code}" if youtube_code is not None else None
-        center.center_img = [CenterImage(url=e) for e in image_list or []]
-        center.utility = [Utility(name=e) for e in utility_list or []]
-        center.fee_img = [CenterFeeImage(url=e) for e in fee_image_list or []]
-        center.operating_time = [
-            OperatingTime(day_of_week=e['day_of_week'], start_time=e['start_time'], end_time=e['end_time'])
-            for e in operating_time_list or []
-        ]
-        await session.merge(center)
-        return center
-
 
 class CenterApprovedFileRepository(Repository[CenterApprovedFile]):
     async def find_all_by_center_id(self, session: AsyncSession, center_id: str):
@@ -282,11 +301,17 @@ class CenterHoldRepository(Repository[CenterHold]):
         result = await session.execute(select(CenterHold).where(CenterHold.center_id == center_id))
         return result.scalars().all()
 
+    async def delete_by_center_id(self, session: AsyncSession, center_id: str):
+        await session.execute(delete(CenterHold).where(CenterHold.center_id == center_id))
+
 
 class CenterWallRepository(Repository[CenterWall]):
     async def find_all_by_center_id(self, session: AsyncSession, center_id: str):
         result = await session.execute(select(CenterWall).where(CenterWall.center_id == center_id))
         return result.scalars().all()
+
+    async def delete_by_center_id(self, session: AsyncSession, center_id: str):
+        await session.execute(delete(CenterWall).where(CenterWall.center_id == center_id))
 
 
 class CenterFeeRepository(Repository[CenterFee]):
@@ -343,11 +368,6 @@ class ReviewRepository(Repository[Review]):
 
 
 class ReviewAnswerRepository(Repository[ReviewAnswer]):
-    async def update(self, session: AsyncSession, answer: ReviewAnswer, content: str):
-        answer.content = content
-        await session.merge(answer)
-        return answer
-
     async def find_by_review_id(self, session: AsyncSession, review_id: str):
         result = await session.execute(select(ReviewAnswer)
                                        .join(Review)

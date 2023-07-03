@@ -12,7 +12,7 @@ from claon_admin.model.auth import RequestUser
 from claon_admin.model.review import ReviewBriefResponseDto
 from claon_admin.schema.center import Center, Post, Review
 from claon_admin.schema.user import User
-from claon_admin.service.center import CenterService
+from claon_admin.service.review import ReviewService
 
 
 @pytest.mark.describe("Test case for find reviews by center")
@@ -23,7 +23,7 @@ class TestFindReviewsByCenter(object):
     async def test_find_reviews_by_center_not_filter(
             self,
             mock_paginate,
-            center_service: CenterService,
+            review_service: ReviewService,
             mock_repo: dict,
             user_fixture: User,
             pending_user_fixture: User,
@@ -51,7 +51,7 @@ class TestFindReviewsByCenter(object):
         mock_paginate.return_value = [mock_pagination]
 
         # when
-        pages: Pagination[ReviewBriefResponseDto] = await center_service.find_reviews_by_center(
+        pages: Pagination[ReviewBriefResponseDto] = await review_service.find_reviews_by_center(
             request_user,
             params,
             center_fixture.id,
@@ -81,7 +81,7 @@ class TestFindReviewsByCenter(object):
     async def test_find_reviews_by_center_not_answered(
             self,
             mock_paginate,
-            center_service: CenterService,
+            review_service: ReviewService,
             mock_repo: dict,
             pending_user_fixture: User,
             center_fixture: Center,
@@ -103,7 +103,7 @@ class TestFindReviewsByCenter(object):
         mock_paginate.return_value = [mock_pagination]
 
         # when
-        pages: Pagination[ReviewBriefResponseDto] = await center_service.find_reviews_by_center(
+        pages: Pagination[ReviewBriefResponseDto] = await review_service.find_reviews_by_center(
             request_user,
             params,
             center_fixture.id,
@@ -129,7 +129,7 @@ class TestFindReviewsByCenter(object):
     async def test_find_reviews_by_center_with_tag(
             self,
             mock_paginate,
-            center_service: CenterService,
+            review_service: ReviewService,
             mock_repo: dict,
             user_fixture: User,
             review_user_fixture: User,
@@ -155,7 +155,7 @@ class TestFindReviewsByCenter(object):
         mock_paginate.return_value = [mock_pagination]
 
         # when
-        pages: Pagination[ReviewBriefResponseDto] = await center_service.find_reviews_by_center(
+        pages: Pagination[ReviewBriefResponseDto] = await review_service.find_reviews_by_center(
             request_user,
             params,
             center_fixture.id,
@@ -183,7 +183,7 @@ class TestFindReviewsByCenter(object):
             self,
             mock_repo: dict,
             center_fixture: Center,
-            center_service: CenterService
+            review_service: ReviewService
     ):
         # given
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
@@ -192,7 +192,7 @@ class TestFindReviewsByCenter(object):
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await center_service.find_reviews_by_center(
+            await review_service.find_reviews_by_center(
                 request_user,
                 params,
                 center_fixture.id,
@@ -211,7 +211,7 @@ class TestFindReviewsByCenter(object):
             self,
             mock_repo: dict,
             center_fixture: Center,
-            center_service: CenterService
+            review_service: ReviewService
     ):
         # given
         request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.CENTER_ADMIN)
@@ -220,7 +220,7 @@ class TestFindReviewsByCenter(object):
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await center_service.find_reviews_by_center(
+            await review_service.find_reviews_by_center(
                 request_user,
                 params,
                 center_fixture.id,
@@ -239,7 +239,7 @@ class TestFindReviewsByCenter(object):
             self,
             mock_repo: dict,
             center_fixture: Center,
-            center_service: CenterService
+            review_service: ReviewService
     ):
         # given
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
@@ -248,7 +248,7 @@ class TestFindReviewsByCenter(object):
 
         with pytest.raises(BadRequestException) as exception:
             # when
-            await center_service.find_reviews_by_center(
+            await review_service.find_reviews_by_center(
                 request_user,
                 params,
                 center_fixture.id,

@@ -13,7 +13,7 @@ from claon_admin.model.auth import RequestUser
 from claon_admin.model.post import PostBriefResponseDto
 from claon_admin.schema.center import Center
 from claon_admin.schema.post import Post, ClimbingHistory
-from claon_admin.service.center import CenterService
+from claon_admin.service.post import PostService
 
 
 @pytest.mark.describe("Test case for find posts by center")
@@ -27,7 +27,7 @@ class TestFindPostsByCenter(object):
             mock_repo: dict,
             center_fixture: Center,
             post_fixture: Post,
-            center_service: CenterService
+            post_service: PostService
     ):
         # given
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
@@ -44,7 +44,7 @@ class TestFindPostsByCenter(object):
         mock_paginate.return_value = [mock_pagination]
 
         # when
-        pages: Pagination[PostBriefResponseDto] = await center_service.find_posts_by_center(
+        pages: Pagination[PostBriefResponseDto] = await post_service.find_posts_by_center(
             subject=request_user,
             params=params,
             center_id=center_fixture.id,
@@ -72,7 +72,7 @@ class TestFindPostsByCenter(object):
             center_fixture: Center,
             climbing_history_fixture: List[ClimbingHistory],
             post_fixture: Post,
-            center_service: CenterService
+            post_service: PostService
     ):
         # given
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
@@ -89,7 +89,7 @@ class TestFindPostsByCenter(object):
         mock_paginate.return_value = [mock_pagination]
 
         # when
-        pages: Pagination[PostBriefResponseDto] = await center_service.find_posts_by_center(
+        pages: Pagination[PostBriefResponseDto] = await post_service.find_posts_by_center(
             request_user,
             params,
             center_fixture.id,
@@ -113,7 +113,7 @@ class TestFindPostsByCenter(object):
             self,
             mock_repo: dict,
             center_fixture: Center,
-            center_service: CenterService
+            post_service: PostService
     ):
         # given
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
@@ -123,7 +123,7 @@ class TestFindPostsByCenter(object):
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await center_service.find_posts_by_center(
+            await post_service.find_posts_by_center(
                 request_user,
                 params,
                 center_id,
@@ -141,7 +141,7 @@ class TestFindPostsByCenter(object):
             self,
             mock_repo: dict,
             center_fixture: Center,
-            center_service: CenterService
+            post_service: PostService
     ):
         # given
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
@@ -150,7 +150,7 @@ class TestFindPostsByCenter(object):
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await center_service.find_posts_by_center(
+            await post_service.find_posts_by_center(
                 request_user,
                 params,
                 center_fixture.id,
@@ -169,7 +169,7 @@ class TestFindPostsByCenter(object):
             mock_repo: dict,
             center_fixture: Center,
             climbing_history_fixture: ClimbingHistory,
-            center_service: CenterService
+            post_service: PostService
     ):
         # given
         request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.CENTER_ADMIN)
@@ -178,7 +178,7 @@ class TestFindPostsByCenter(object):
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await center_service.find_posts_by_center(
+            await post_service.find_posts_by_center(
                 request_user,
                 params,
                 center_fixture.id,

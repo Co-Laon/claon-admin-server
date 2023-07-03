@@ -151,14 +151,3 @@ class TestUserRepository(object):
 
         # then
         assert not result
-
-    @pytest.mark.asyncio
-    async def test_update_role(self, session: AsyncSession, user_fixture: User):
-        # given
-        role = Role.LECTOR
-
-        # when
-        result = await user_repository.update_role(session, user_fixture, Role.LECTOR)
-
-        # then
-        assert result.role == role
