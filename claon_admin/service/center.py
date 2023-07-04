@@ -18,9 +18,10 @@ from claon_admin.model.post import PostBriefResponseDto, PostSummaryResponseDto
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto, \
     ReviewTagDto, ReviewSummaryResponseDto
 from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto, CenterResponseDto, \
-    CenterUpdateRequestDto
+    CenterUpdateRequestDto, CenterRequestDto
 from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, ReviewAnswer, \
-    CenterHoldRepository, CenterWallRepository, CenterFeeRepository, CenterFee, CenterHold, CenterWall
+    CenterHoldRepository, CenterWallRepository, CenterFeeRepository, CenterFee, CenterHold, CenterWall, Center, \
+    CenterImage, Utility, OperatingTime, CenterApprovedFileRepository, CenterApprovedFile
 from claon_admin.schema.post import PostRepository, PostCountHistoryRepository
 
 
@@ -33,7 +34,8 @@ class CenterService:
                  review_answer_repository: ReviewAnswerRepository,
                  center_hold_repository: CenterHoldRepository,
                  center_wall_repository: CenterWallRepository,
-                 center_fee_repository: CenterFeeRepository):
+                 center_fee_repository: CenterFeeRepository,
+                 center_approved_file_repository: CenterApprovedFileRepository):
         self.center_repository = center_repository
         self.post_repository = post_repository
         self.post_count_history_repository = post_count_history_repository
@@ -42,6 +44,57 @@ class CenterService:
         self.center_hold_repository = center_hold_repository
         self.center_wall_repository = center_wall_repository
         self.center_fee_repository = center_fee_repository
+        self.center_approved_file_repository = center_approved_file_repository
+
+    @transactional()
+    async def create(self,
+                     session: AsyncSession,
+                     subject: RequestUser,
+                     dto: CenterRequestDto):
+        if subject.role != Role.CENTER_ADMIN:
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        new_center = Center(
+            name=dto.name,
+            profile_img=dto.profile_image,
+            address=dto.address,
+            detail_address=dto.detail_address,
+            tel=dto.tel,
+            web_url=dto.web_url,
+            instagram_name=dto.instagram_name,
+            youtube_url=f"https://www.youtube.com/{dto.youtube_code}",
+            center_img=[CenterImage(url=url) for url in dto.image_list or []],
+            operating_time=[OperatingTime(day_of_week=e.day_of_week,
+                                          start_time=e.start_time,
+                                          end_time=e.end_time) for e in dto.operating_time_list or []],
+            utility=[Utility(name=name) for name in dto.utility_list]
+        )
+
+        center = await self.center_repository.save(session, new_center)
+        await self.center_approved_file_repository.save_all(
+            session,
+            [CenterApprovedFile(user_id=subject.id, center_id=center.id, url=url) for url in dto.proof_list]
+        )
+
+        return CenterResponseDto.from_entity(
+            entity=center,
+            holds=await self.center_hold_repository.save_all(
+                session,
+                [CenterHold(center=center,
+                            name=hold.name,
+                            difficulty=hold.difficulty,
+                            is_color=dto.hold_info.is_color) for hold in dto.hold_info.hold_list]
+            ) if dto.hold_info is not None else None,
+            walls=(await self.center_wall_repository.save_all(
+                session,
+                [CenterWall(center=center,
+                            name=wall.name,
+                            type=wall.wall_type.value) for wall in dto.wall_list or []]
+            ))
+        )
 
     @transactional(read_only=True)
     async def find_posts_by_center(self,
