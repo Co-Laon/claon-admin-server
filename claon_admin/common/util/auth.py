@@ -29,7 +29,7 @@ async def __find_user_by_id(
 
 
 async def get_subject(
-    token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+    token: HTTPAuthorizationCredentials
 ) -> RequestUser:
     token = token.dict().get("credentials")
     payload = resolve_access_token(token)
@@ -75,5 +75,42 @@ async def get_refresh(
         role=user.role
     )
 
-CurrentUser = Annotated[RequestUser, Depends(get_subject)]
+
+async def get_user(
+    token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+):
+    return await get_subject(token)
+
+
+async def get_center_admin(
+    token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+):
+    user = await get_subject(token)
+
+    if not user.is_center_admin():
+        raise UnauthorizedException(
+            ErrorCode.NOT_ACCESSIBLE,
+            "암장 관리자가 아닙니다."
+        )
+
+    return user
+
+
+async def get_admin(
+    token: HTTPAuthorizationCredentials = Depends(HTTPBearer())
+):
+    user = await get_subject(token)
+
+    if not user.is_admin():
+        raise UnauthorizedException(
+            ErrorCode.NONE_ADMIN_ACCOUNT,
+            "어드민 권한이 없습니다."
+        )
+
+    return user
+
+
+CurrentUser = Annotated[RequestUser, Depends(get_user)]
+AdminUser = Annotated[RequestUser, Depends(get_admin)]
+CenterAdminUser = Annotated[RequestUser, Depends(get_center_admin)]
 CurrentRefreshUser = Annotated[RequestUser, Depends(get_refresh)]

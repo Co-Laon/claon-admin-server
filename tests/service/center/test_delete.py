@@ -3,7 +3,7 @@ from typing import List
 import pytest
 
 from claon_admin.common.enum import Role
-from claon_admin.common.error.exception import BadRequestException, NotFoundException, ErrorCode, UnauthorizedException
+from claon_admin.common.error.exception import NotFoundException, ErrorCode, UnauthorizedException
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.center import CenterResponseDto
 from claon_admin.schema.center import Center, CenterFee, CenterHold, CenterWall
@@ -25,8 +25,7 @@ class TestDelete(object):
     ):
         # given
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.ADMIN)
-        mock_repo["center"].find_by_id.side_effect = [center_fixture]
-        mock_repo["center"].remove_center.side_effect = [center_fixture]
+        mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
         response = CenterResponseDto.from_entity(entity=center_fixture,
                                                  holds=center_holds_fixture,
                                                  walls=center_walls_fixture,
@@ -51,7 +50,7 @@ class TestDelete(object):
     ):
         # given
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.ADMIN)
-        mock_repo["center"].find_by_id.side_effect = [None]
+        mock_repo["center"].find_by_id_with_details.side_effect = [None]
         wrong_id = "wrong id"
 
         with pytest.raises(NotFoundException) as exception:
@@ -60,28 +59,6 @@ class TestDelete(object):
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
-
-    @pytest.mark.asyncio
-    @pytest.mark.it("Fail case: center is already deleted")
-    async def test_delete_with_none_user_id(
-            self,
-            center_service: CenterService,
-            mock_repo: dict,
-            center_fixture: Center
-    ):
-        # given
-        request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.ADMIN)
-
-        deleted_center = center_fixture
-        deleted_center.user_id = None
-        mock_repo["center"].find_by_id.side_effect = [deleted_center]
-
-        with pytest.raises(BadRequestException) as exception:
-            # when
-            await center_service.delete(subject=request_user, center_id=center_fixture.id)
-
-        # then
-        assert exception.value.code == ErrorCode.ROW_ALREADY_DETELED
 
     @pytest.mark.asyncio
     @pytest.mark.it("Fail case: request user is not admin")
@@ -93,7 +70,7 @@ class TestDelete(object):
     ):
         # given
         request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.CENTER_ADMIN)
-        mock_repo["center"].find_by_id.side_effect = [center_fixture]
+        mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
 
         with pytest.raises(UnauthorizedException) as exception:
             # when

@@ -21,28 +21,37 @@ class CenterUploadPurpose(Enum):
     FEE = "fee"
     PROOF = "proof"
 
-    def get_extensions(purpose: str):
-        if purpose == "profile" or purpose == "image" or purpose == "fee":
+    def get_extensions(self):
+        if self.value == "profile" or self.value == "image" or self.value == "fee":
             return ["jpg", "jpeg", "png"]
 
-        if purpose == "proof":
+        if self.value == "proof":
             return ["jpg", "jpeg", "png", "pdf"]
+
+    def is_valid_extension(self, extension: str):
+        return extension in self.get_extensions()
 
 
 class LectorUploadPurpose(Enum):
     PROOF = "proof"
 
-    def get_extensions(purpose: str):
-        if purpose == "proof":
+    def get_extensions(self):
+        if self.value == "proof":
             return ["jpg", "jpeg", "png", "pdf"]
+
+    def is_valid_extension(self, extension: str):
+        return extension in self.get_extensions()
 
 
 class UserUploadPurpose(Enum):
     PROFILE = "profile"
 
-    def get_extensions(purpose: str):
-        if purpose == "profile":
+    def get_extensions(self):
+        if self.value == "profile":
             return ["jpg", "jpeg", "png"]
+
+    def is_valid_extension(self, extension: str):
+        return extension in self.get_extensions()
 
 
 class WallType(Enum):
@@ -81,9 +90,12 @@ class MembershipIssuanceInfoSearchStatus(Enum):
 class MembershipUploadPurpose(Enum):
     IMAGE = "image"
 
-    def get_extensions(purpose: str):
-        if purpose == "image":
+    def get_extensions(self):
+        if self.value == "image":
             return ["jpg", "jpeg", "png"]
+
+    def is_valid_extension(self, extension: str):
+        return extension in self.get_extensions()
 
 
 class PeriodType(Enum):

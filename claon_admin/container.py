@@ -10,6 +10,8 @@ from claon_admin.service.admin import AdminService
 from claon_admin.service.center import CenterService
 from claon_admin.service.membership import MembershipService
 from claon_admin.service.oauth import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider, KakaoUserInfoProvider
+from claon_admin.service.post import PostService
+from claon_admin.service.review import ReviewService
 from claon_admin.service.user import UserService
 
 
@@ -46,7 +48,6 @@ class Container(containers.DeclarativeContainer):
         lector_approved_file_repository=lector_approved_file_repository,
         center_repository=center_repository,
         center_approved_file_repository=center_approved_file_repository,
-        center_fee_repository=center_fee_repository,
         center_hold_repository=center_hold_repository,
         center_wall_repository=center_wall_repository,
         oauth_user_info_provider_supplier=oauth_user_info_provider_supplier
@@ -66,12 +67,24 @@ class Container(containers.DeclarativeContainer):
         center_repository=center_repository,
         post_repository=post_repository,
         post_count_history_repository=post_count_history_repository,
-        review_repository=review_repository,
-        review_answer_repository=review_answer_repository,
         center_fee_repository=center_fee_repository,
         center_hold_repository=center_hold_repository,
         center_wall_repository=center_wall_repository,
         center_approved_file_repository=center_approved_file_repository
+    )
+
+    post_service = providers.Singleton(
+        PostService,
+        center_repository=center_repository,
+        post_repository=post_repository,
+        post_count_history_repository=post_count_history_repository
+    )
+
+    review_service = providers.Singleton(
+        ReviewService,
+        center_repository=center_repository,
+        review_repository=review_repository,
+        review_answer_repository=review_answer_repository
     )
 
     membership_service = providers.Singleton(

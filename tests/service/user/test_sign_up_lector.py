@@ -7,7 +7,7 @@ from claon_admin.common.enum import Role
 from claon_admin.common.error.exception import BadRequestException, ErrorCode
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.user import LectorRequestDto, LectorContestDto, LectorCertificateDto, LectorCareerDto, \
-    UserProfileDto
+    UserProfileDto, LectorCoreRequestDto
 from claon_admin.schema.user import Lector, LectorApprovedFile, User
 from claon_admin.service.user import UserService
 
@@ -24,28 +24,30 @@ class TestSignUpLector(object):
                 instagram_nickname=user_fixture.instagram_name,
                 role=user_fixture.role
             ),
-            is_setter=True,
-            contest_list=[
-                LectorContestDto(
-                    year=2021,
-                    title='testtitle',
-                    name='testname'
-                )
-            ],
-            certificate_list=[
-                LectorCertificateDto(
-                    acquisition_date=date.fromisoformat('2012-10-15'),
-                    rate=4,
-                    name='testcertificate'
-                )
-            ],
-            career_list=[
-                LectorCareerDto(
-                    start_date=date.fromisoformat('2016-01-01'),
-                    end_date=date.fromisoformat('2020-01-01'),
-                    name='testcareer'
-                )
-            ],
+            lector=LectorCoreRequestDto(
+                is_setter=True,
+                contest_list=[
+                    LectorContestDto(
+                        year=2021,
+                        title='testtitle',
+                        name='testname'
+                    )
+                ],
+                certificate_list=[
+                    LectorCertificateDto(
+                        acquisition_date=date.fromisoformat('2012-10-15'),
+                        rate=4,
+                        name='testcertificate'
+                    )
+                ],
+                career_list=[
+                    LectorCareerDto(
+                        start_date=date.fromisoformat('2016-01-01'),
+                        end_date=date.fromisoformat('2020-01-01'),
+                        name='testcareer'
+                    )
+                ],
+            ),
             proof_list=['https://test.com/test.pdf']
         )
 
@@ -55,12 +57,14 @@ class TestSignUpLector(object):
             self,
             mock_repo: dict,
             user_service: UserService,
+            user_fixture: User,
             lector_fixture: Lector,
             lector_approved_files_fixture: List[LectorApprovedFile],
             lector_request_dto: LectorRequestDto
     ):
         # given
         mock_repo["user"].exist_by_nickname.side_effect = [False]
+        mock_repo["user"].find_by_id.side_effect = [user_fixture]
         mock_repo["lector"].save.side_effect = [lector_fixture]
         mock_repo["lector_approved_file"].save_all.side_effect = [lector_approved_files_fixture]
 
@@ -70,7 +74,7 @@ class TestSignUpLector(object):
         result = await user_service.sign_up_lector(request_user, lector_request_dto)
 
         # then
-        assert result.is_setter == lector_request_dto.is_setter
+        assert result.is_setter == lector_request_dto.lector.is_setter
         assert result.total_experience == 4
         assert result.contest_list == [
             LectorContestDto(

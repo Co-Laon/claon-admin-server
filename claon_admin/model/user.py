@@ -39,7 +39,6 @@ class UserProfileDto(BaseModel):
     nickname: str
     email: EmailStr
     instagram_nickname: str | None
-    role: Role | None
 
     @validator('nickname')
     def validate_nickname(cls, value):
@@ -145,12 +144,16 @@ class LectorCareerDto(BaseModel):
         return value
 
 
-class LectorRequestDto(BaseModel):
-    profile: UserProfileDto
+class LectorCoreRequestDto(BaseModel):
     is_setter: bool
     contest_list: List[LectorContestDto]
     certificate_list: List[LectorCertificateDto]
     career_list: List[LectorCareerDto]
+
+
+class LectorRequestDto(BaseModel):
+    profile: UserProfileDto
+    lector: LectorCoreRequestDto
     proof_list: List[str]
 
     @validator('proof_list')

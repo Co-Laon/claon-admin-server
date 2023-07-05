@@ -73,18 +73,6 @@ class TestLectorRepository(object):
         assert result is None
 
     @pytest.mark.asyncio
-    async def test_approve_lector(
-            self,
-            session: AsyncSession,
-            lector_fixture: Lector
-    ):
-        # when
-        result = await lector_repository.approve(session, lector_fixture)
-
-        # then
-        assert result.approved is True
-
-    @pytest.mark.asyncio
     async def test_find_all_lector_by_approved_false(
             self,
             session: AsyncSession,

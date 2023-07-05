@@ -137,22 +137,6 @@ class TestReviewAnswerRepository(object):
         assert review_answer_fixture.created_at == datetime(2023, 1, 2)
 
     @pytest.mark.asyncio
-    async def test_update_review_answer(
-            self,
-            session: AsyncSession,
-            review_answer_fixture: ReviewAnswer
-    ):
-        # when
-        updated_answer = await review_answer_repository.update(
-            session=session,
-            answer=review_answer_fixture,
-            content="updated answer"
-        )
-
-        # then
-        assert review_answer_fixture.content == updated_answer.content
-
-    @pytest.mark.asyncio
     async def test_delete_review_answer(
             self,
             session: AsyncSession,

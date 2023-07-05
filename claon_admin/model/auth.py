@@ -12,6 +12,12 @@ class RequestUser(BaseModel):
     instagram_nickname: str | None
     role: Role | None
 
+    def is_center_admin(self):
+        return self.role == Role.CENTER_ADMIN
+
+    def is_admin(self):
+        return self.role == Role.ADMIN
+
 
 class OAuthUserInfoDto(BaseModel):
     oauth_id: str

@@ -8,6 +8,7 @@ from fastapi import UploadFile
 
 from claon_admin.common.error.exception import InternalServerException, ErrorCode
 from claon_admin.config.config import conf
+from claon_admin.config.log import logger
 from claon_admin.config.s3 import s3
 
 
@@ -37,5 +38,5 @@ async def delete_file(url: str):
 
     try:
         s3.delete_object(Bucket=conf().BUCKET, Key=key_name)
-    except Exception as e:
-        raise InternalServerException(ErrorCode.INTERNAL_SERVER_ERROR, "S3 객체 제거에 실패했습니다.") from e
+    except Exception:
+        logger.error("S3 객체 삭제를 실패했습니다. url: %s", url)
