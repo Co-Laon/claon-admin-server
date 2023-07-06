@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.common.enum import Role, MembershipType, PeriodType, WallType
+from claon_admin.common.enum import Role, CenterFeeType, PeriodType, WallType
 from claon_admin.schema.center import (
     CenterRepository,
     CenterApprovedFileRepository, CenterHoldRepository, CenterWallRepository, Center, CenterHold, CenterWall,
@@ -123,7 +123,7 @@ async def center_fee_fixture(session: AsyncSession, center_fixture: Center):
     center_fee = CenterFee(
         center=center_fixture,
         name="fee_name",
-        membership_type=MembershipType.PACKAGE,
+        fee_type=CenterFeeType.PACKAGE,
         price=1000,
         count=2,
         period=2,

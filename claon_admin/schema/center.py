@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload, backref
 from sqlalchemy.dialects.postgresql import TEXT
 
-from claon_admin.common.enum import PeriodType, MembershipType
+from claon_admin.common.enum import PeriodType, CenterFeeType
 from claon_admin.common.util.db import Base
 from claon_admin.common.util.repository import Repository
 from claon_admin.schema.post import Post
@@ -174,7 +174,7 @@ class Center(Base):
 class CenterFee(Base):
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     name = Column(String(length=50), nullable=False)
-    membership_type = Column(Enum(MembershipType), nullable=False)
+    fee_type = Column(Enum(CenterFeeType), nullable=False)
     price = Column(Integer, nullable=False)
     count = Column(Integer, nullable=False)
     period = Column(Integer, nullable=False)

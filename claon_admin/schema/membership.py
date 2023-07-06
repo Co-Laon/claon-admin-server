@@ -6,10 +6,10 @@ from sqlalchemy.orm import relationship, backref
 from claon_admin.common.util.db import Base
 
 
-class MembershipMember(Base):
+class Membership(Base):
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
     start_time = Column(DateTime, nullable=False)
-    expired_time = Column(DateTime, nullable=False)
+    expire_time = Column(DateTime, nullable=False)
 
     user_id = Column(String(length=255), ForeignKey("tb_user.id", ondelete="CASCADE"), nullable=False)
     user = relationship("User", backref=backref("MembershipMember"), uselist=False)

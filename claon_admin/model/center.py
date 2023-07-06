@@ -4,7 +4,7 @@ from typing import List
 from pydantic import BaseModel, validator
 
 from claon_admin.common.consts import KOR_BEGIN_CODE, KOR_END_CODE
-from claon_admin.common.enum import WallType
+from claon_admin.common.enum import WallType, PeriodType, CenterFeeType
 from claon_admin.model.user import UserProfileDto
 from claon_admin.schema.center import Center, CenterHold, CenterWall, CenterFee
 
@@ -33,10 +33,14 @@ class CenterOperatingTimeDto(BaseModel):
         return value
 
 
-class CenterFeeDto(BaseModel):
+class CenterFeeRequestDto(BaseModel):
+    center_fee_id: str | None
     name: str
+    fee_type: CenterFeeType
     price: int
-    count: int
+    count: int | None
+    period: int
+    period_type: PeriodType
 
     @validator('name')
     def validate_name(cls, value):
@@ -55,6 +59,38 @@ class CenterFeeDto(BaseModel):
         if value < 0:
             raise ValueError('횟수는 0회 이상으로 입력해 주세요.')
         return value
+
+    @validator('period')
+    def validate_period(cls, value):
+        if value < 0:
+            raise ValueError('기간은 0 이상으로 입력해 주세요.')
+        return value
+
+
+class CenterFeeDetailRequestDto(BaseModel):
+    fee_img: List[str]
+    center_fee: List[CenterFeeRequestDto]
+
+    @validator('fee_img')
+    def validate_fee_img(cls, value):
+        if len(value) > 5:
+            raise ValueError('이용요금 이미지는 최대 5장까지 등록 가능해요.')
+        return value
+
+
+class CenterFeeResponseDto(BaseModel):
+    center_fee_id: str
+    name: str
+    fee_type: CenterFeeType
+    price: int
+    count: int | None
+    period: int
+    period_type: PeriodType
+
+
+class CenterFeeDetailResponseDto(BaseModel):
+    fee_img: List[str]
+    center_fee: List[CenterFeeResponseDto]
 
 
 class CenterHoldDto(BaseModel):
@@ -256,7 +292,7 @@ class CenterResponseDto(BaseModel):
     utility_list: List[str]
     fee_image_list: List[str]
     operating_time_list: List[CenterOperatingTimeDto]
-    fee_list: List[CenterFeeDto]
+    fee_list: List[CenterFeeResponseDto]
     hold_info: CenterHoldInfoDto | None
     wall_list: List[CenterWallDto]
     approved: bool
@@ -284,7 +320,8 @@ class CenterResponseDto(BaseModel):
                 for e in entity.operating_time
             ],
             fee_list=[
-                CenterFeeDto(name=e.name, price=e.price, count=e.count)
+                CenterFeeResponseDto(center_fee_id=e.id, name=e.name, fee_type=e.fee_type, price=e.price, count=e.count,
+                                     period=e.period, period_type=e.period_type)
                 for e in fees or []
             ],
             hold_info=CenterHoldInfoDto(
@@ -314,7 +351,7 @@ class CenterBriefResponseDto(BaseModel):
     matching_request_count: int | None
     is_approved: bool
 
-    # TODO: Need to modify matching/membe/lector count after plan for matching and member
+    # TODO: Need to modify matching/member/lector count after plan for matching and member
     @classmethod
     def from_entity(cls, entity: Center):
         return CenterBriefResponseDto(
