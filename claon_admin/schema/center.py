@@ -179,6 +179,7 @@ class CenterFee(Base):
     count = Column(Integer, nullable=False)
     period = Column(Integer, nullable=False)
     period_type = Column(Enum(PeriodType), nullable=False)
+    is_deleted = Column(Boolean, default=False, nullable=False)
 
     center_id = Column(String(length=255), ForeignKey('tb_center.id', ondelete="CASCADE"), nullable=False)
     center = relationship("Center", back_populates="fees")
