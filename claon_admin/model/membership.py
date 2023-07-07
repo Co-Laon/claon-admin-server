@@ -78,8 +78,8 @@ class MembershipIssueResponseDto(BaseModel):
 
 
 class MembershipCountUpdateRequestDto(BaseModel):
-    membership_ids = List[str]
+    membership_ids: List[str]
 
 
 class MembershipExpireRequestDto(BaseModel):
-    membership_ids = List[str]
+    membership_ids: List[str]
