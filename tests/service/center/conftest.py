@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from claon_admin.common.enum import Role, WallType
+from claon_admin.common.enum import Role, WallType, CenterFeeType, PeriodType
 from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterFeeImage, \
     CenterFee, CenterHold, CenterWall, CenterHoldRepository, CenterWallRepository, CenterFeeRepository, \
     CenterApprovedFileRepository, CenterApprovedFile
@@ -138,8 +138,11 @@ def center_fees_fixture(center_fixture: Center):
             id=str(uuid.uuid4()),
             center=center_fixture,
             name="fee",
+            fee_type=CenterFeeType.PACKAGE,
             price=1000,
-            count=10
+            count=10,
+            period=1,
+            period_type=PeriodType.DAY
         )
     ]
 

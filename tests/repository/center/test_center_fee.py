@@ -1,7 +1,7 @@
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.common.enum import MembershipType, PeriodType
+from claon_admin.common.enum import CenterFeeType, PeriodType
 from claon_admin.schema.center import Center, CenterFee
 from tests.repository.center.conftest import center_fee_repository
 
@@ -17,7 +17,7 @@ class TestCenterFeeRepository(object):
     ):
         assert center_fee_fixture.center == center_fixture
         assert center_fee_fixture.name == "fee_name"
-        assert center_fee_fixture.membership_type == MembershipType.PACKAGE
+        assert center_fee_fixture.fee_type == CenterFeeType.PACKAGE
         assert center_fee_fixture.price == 1000
         assert center_fee_fixture.count == 2
         assert center_fee_fixture.period == 2

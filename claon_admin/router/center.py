@@ -10,10 +10,12 @@ from claon_admin.common.util.auth import CenterAdminUser, CurrentUser
 from claon_admin.common.util.pagination import Pagination
 from claon_admin.container import Container
 from claon_admin.model.center import CenterNameResponseDto, CenterResponseDto, CenterUpdateRequestDto, \
-    CenterBriefResponseDto, CenterCreateRequestDto
-from claon_admin.common.enum import CenterUploadPurpose, MembershipUploadPurpose
+    CenterBriefResponseDto, CenterCreateRequestDto, CenterFeeDetailResponseDto, CenterFeeDetailRequestDto
+from claon_admin.common.enum import CenterUploadPurpose, CenterFeeUploadPurpose, CenterMemberSearchOrder, \
+    CenterMemberStatus, MembershipStatusSearchOrder, MembershipStatus
 from claon_admin.model.file import UploadFileResponseDto
-from claon_admin.model.membership import MembershipResponseDto, MembershipRequestDto
+from claon_admin.model.membership import CenterMemberSummaryResponseDto, CenterMemberBriefResponseDto, \
+    CenterMemberDetailResponseDto, MembershipSummaryResponseDto, MembershipResponseDto
 from claon_admin.model.post import PostResponseDto, PostSummaryResponseDto, PostCommentResponseDto, PostBriefResponseDto
 from claon_admin.model.review import ReviewSummaryResponseDto, ReviewAnswerResponseDto, ReviewAnswerRequestDto, \
     ReviewBriefResponseDto
@@ -161,24 +163,60 @@ class CenterRouter:
                                    review_id: str):
         return await self.review_service.delete_review_answer(subject, center_id, review_id)
 
-    @router.post('/{center_id}/memberships', response_model=List[MembershipResponseDto])
-    async def create_membership(self,
-                                subject: CenterAdminUser,
-                                center_id: str,
-                                request_dto: List[MembershipRequestDto]):
+    @router.get('/{center_id}/fees', response_model=CenterFeeDetailResponseDto)
+    async def find_center_fees(self,
+                               subject: CenterAdminUser,
+                               center_id: str):
         pass
 
-    @router.put('/{center_id}/memberships', response_model=List[MembershipResponseDto])
-    async def update_membership(self,
-                                subject: CenterAdminUser,
-                                center_id: str,
-                                request_dto: List[MembershipRequestDto]):
+    @router.post('/{center_id}/fees', response_model=CenterFeeDetailResponseDto)
+    async def update_center_fees(self,
+                                 subject: CenterAdminUser,
+                                 center_id: str,
+                                 request_dto: CenterFeeDetailRequestDto):
         pass
 
-    @router.post('/{center_id}/memberships/{purpose}/file', response_model=UploadFileResponseDto)
+    @router.post('/{center_id}/fees/{purpose}/file', response_model=UploadFileResponseDto)
     async def upload_membership_image(self,
                                       subject: CenterAdminUser,
                                       center_id: str,
-                                      purpose: MembershipUploadPurpose,
+                                      purpose: CenterFeeUploadPurpose,
                                       file: UploadFile = File(...)):
+        pass
+
+    @router.get('/{center_id}/members/summary', response_model=CenterMemberSummaryResponseDto)
+    async def find_members_summary_by_center(self,
+                                             subject: CurrentUser,
+                                             center_id: str):
+        pass
+
+    @router.get('/{center_id}/members', response_model=Pagination[CenterMemberBriefResponseDto])
+    async def find_members_by_name(self,
+                                   subject: CurrentUser,
+                                   center_id: str,
+                                   nickname: str | None = None,
+                                   order: CenterMemberSearchOrder | None = None,
+                                   member_status: CenterMemberStatus | None = None):
+        pass
+
+    @router.get('/{center_id}/members/{nickname}', response_model=CenterMemberDetailResponseDto)
+    async def find_members_detail_by_id(self,
+                                        subject: CurrentUser,
+                                        center_id: str,
+                                        nickname: str):
+        pass
+
+    @router.get('/{center_id}/memberships/summary', response_model=MembershipSummaryResponseDto)
+    async def find_memberships_summary_by_center(self,
+                                                 subject: CurrentUser,
+                                                 center_id: str):
+        pass
+
+    @router.get('/{center_id}/memberships', response_model=Pagination[MembershipResponseDto])
+    async def find_memberships_by_center(self,
+                                         subject: CurrentUser,
+                                         center_id: str,
+                                         nickname: str | None = None,
+                                         order: MembershipStatusSearchOrder | None = None,
+                                         membership_status: MembershipStatus | None = None):
         pass

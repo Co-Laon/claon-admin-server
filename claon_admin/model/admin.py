@@ -3,7 +3,7 @@ from typing import List
 
 from pydantic import BaseModel
 
-from claon_admin.common.enum import WallType
+from claon_admin.common.enum import WallType, CenterFeeType, PeriodType
 from claon_admin.model.user import UserProfileResponseDto
 from claon_admin.schema.center import Center, CenterApprovedFile
 from claon_admin.schema.user import Lector, LectorApprovedFile
@@ -16,9 +16,13 @@ class CenterOperatingTimeDto(BaseModel):
 
 
 class CenterFeeDto(BaseModel):
+    center_fee_id: str
     name: str
+    fee_type: CenterFeeType
     price: int
-    count: int
+    count: int | None
+    period: int
+    period_type: PeriodType
 
 
 class CenterHoldDto(BaseModel):
@@ -73,26 +77,21 @@ class CenterResponseDto(BaseModel):
             approved=center.approved,
             image_list=[e.url for e in center.center_img],
             utility_list=[e.name for e in center.utility],
-            fee_image_list=[e.url for e in center.fee_img],
+            fee_image_list=[],
             operating_time_list=[
                 CenterOperatingTimeDto(day_of_week=e.day_of_week, start_time=e.start_time, end_time=e.end_time)
                 for e in center.operating_time
             ],
-            fee_list=[
-                CenterFeeDto(name=e.name, price=e.price, count=e.count)
-                for e in center.fees
-            ],
+            fee_list=[],
             hold_info=CenterHoldInfoDto(
                 is_color=center.holds[0].is_color,
                 hold_list=[CenterHoldInfoDto(difficulty=e.difficulty, name=e.name)
                            for e in center.holds or []]
             ) if center.holds else None,
-            wall_list=[
-                CenterWallDto(
-                    wall_type=WallType.BOULDERING if e.type == "bouldering" else WallType.ENDURANCE,
-                    name=e.name
-                ) for e in center.walls
-            ],
+            wall_list=[CenterWallDto(
+                wall_type=WallType.BOULDERING if e.type == "bouldering" else WallType.ENDURANCE,
+                name=e.name
+            ) for e in center.walls or []],
             proof_list=[e.url for e in approved_files]
         )
 

@@ -59,35 +59,35 @@ class WallType(Enum):
     BOULDERING = "bouldering"
 
 
-class MembershipType(Enum):
+class CenterFeeType(Enum):
     PACKAGE = "package"
     MEMBER = "member"
     COURSE = "course"
 
 
-class MemberInfoSearchStatus(Enum):
+class CenterMemberStatus(Enum):
     EXPIRED = "expired"
     USING = "using"
 
 
-class MemberInfoSearchOrder(Enum):
+class CenterMemberSearchOrder(Enum):
     LATEST = "latest"
     EXTEND = "extend"
 
 
-class MembershipIssuanceInfoSearchOrder(Enum):
+class MembershipStatusSearchOrder(Enum):
     ISSUED = "issued"
     STARTED = "started"
     EXPIRED = "expired"
 
 
-class MembershipIssuanceInfoSearchStatus(Enum):
+class MembershipStatus(Enum):
     EXPIRED = "expired"
     TO_BE_EXPIRED = "to_be_expired"
     USING = "using"
 
 
-class MembershipUploadPurpose(Enum):
+class CenterFeeUploadPurpose(Enum):
     IMAGE = "image"
 
     def get_extensions(self):

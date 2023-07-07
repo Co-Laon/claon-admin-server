@@ -5,7 +5,7 @@ import pytest
 from claon_admin.common.enum import Role, WallType
 from claon_admin.common.error.exception import BadRequestException, NotFoundException, ErrorCode, UnauthorizedException
 from claon_admin.model.auth import RequestUser
-from claon_admin.model.center import CenterResponseDto, CenterUpdateRequestDto, CenterOperatingTimeDto, CenterFeeDto, \
+from claon_admin.model.center import CenterResponseDto, CenterUpdateRequestDto, CenterOperatingTimeDto, \
     CenterHoldInfoDto, CenterWallDto, CenterHoldDto, CenterCoreUpdateRequestDto
 from claon_admin.schema.center import Center, CenterHold, CenterWall
 from claon_admin.service.center import CenterService
@@ -28,7 +28,6 @@ class TestUpdate(object):
                 utility_list=["test_utility"],
                 operating_time_list=[CenterOperatingTimeDto(day_of_week="월", start_time="09:00", end_time="18:00")],
             ),
-            fee_list=[CenterFeeDto(name="fee", price=1000, count=10)],
             hold_info=CenterHoldInfoDto(is_color=False, hold_list=[CenterHoldDto(name="hold", difficulty="hard")]),
             wall_list=[CenterWallDto(name="wall", wall_type=WallType.ENDURANCE)],
         )
