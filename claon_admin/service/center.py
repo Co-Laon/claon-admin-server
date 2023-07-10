@@ -10,7 +10,7 @@ from claon_admin.common.util.transaction import transactional
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto, CenterResponseDto, \
-    CenterCreateRequestDto, CenterUpdateRequestDto
+    CenterCreateRequestDto, CenterUpdateRequestDto, CenterFeeDetailResponseDto
 from claon_admin.schema.center import CenterRepository, CenterHoldRepository, CenterWallRepository, \
     CenterFeeRepository, CenterHold, CenterWall, CenterApprovedFileRepository, Center, CenterApprovedFile
 
@@ -174,3 +174,23 @@ class CenterService:
              for e in dto.wall_list or []])
 
         return CenterResponseDto.from_entity(entity=center, holds=holds, walls=walls)
+
+    @transactional(read_only=True)
+    async def find_center_fees(self,
+                               session: AsyncSession,
+                               subject: RequestUser,
+                               center_id: str):
+        center = await self.center_repository.find_by_id_with_details(session, center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if not center.is_owner(subject.id):
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        return CenterFeeDetailResponseDto.from_entity(entity=center)

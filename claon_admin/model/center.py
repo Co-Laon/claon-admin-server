@@ -92,6 +92,21 @@ class CenterFeeDetailResponseDto(BaseModel):
     fee_img: List[str]
     center_fee: List[CenterFeeResponseDto]
 
+    @classmethod
+    def from_entity(cls, entity: Center):
+        return CenterFeeDetailResponseDto(
+            fee_img=[e.url for e in entity.fee_img],
+            center_fee=[CenterFeeResponseDto(
+                center_fee_id=e.id,
+                name=e.name,
+                fee_type=e.fee_type,
+                price=e.price,
+                count=e.count,
+                period=e.period,
+                period_type=e.period_type
+            ) for e in entity.fees]
+        )
+
 
 class CenterHoldDto(BaseModel):
     difficulty: str
