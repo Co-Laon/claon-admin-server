@@ -167,7 +167,7 @@ class CenterRouter:
     async def find_center_fees(self,
                                subject: CenterAdminUser,
                                center_id: str):
-        pass
+        return await self.center_service.find_center_fees(subject, center_id)
 
     @router.post('/{center_id}/fees', response_model=CenterFeeDetailResponseDto)
     async def update_center_fees(self,

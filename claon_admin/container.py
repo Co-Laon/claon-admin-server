@@ -65,8 +65,6 @@ class Container(containers.DeclarativeContainer):
     center_service = providers.Singleton(
         CenterService,
         center_repository=center_repository,
-        post_repository=post_repository,
-        post_count_history_repository=post_count_history_repository,
         center_fee_repository=center_fee_repository,
         center_hold_repository=center_hold_repository,
         center_wall_repository=center_wall_repository,
