@@ -5,6 +5,7 @@ from pydantic import BaseModel, validator, EmailStr
 
 from claon_admin.common.consts import KOR_BEGIN_CODE, KOR_END_CODE
 from claon_admin.common.enum import Role
+from claon_admin.schema.center import Center
 from claon_admin.schema.user import Lector, User
 
 
@@ -203,3 +204,11 @@ class CenterNameResponseDto(BaseModel):
     center_id: str
     name: str
     is_approved: bool
+
+    @classmethod
+    def from_entity(cls, entity: Center):
+        return cls(
+            center_id=entity.id,
+            name=entity.name,
+            is_approved=entity.approved
+        )

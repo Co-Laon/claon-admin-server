@@ -140,7 +140,7 @@ class TestCenterRepository(object):
         assert result == [another_center_fixture]
 
     @pytest.mark.asyncio
-    async def test_find_centers(
+    async def test_find_details_by_user_id(
             self,
             session: AsyncSession,
             user_fixture: User,
@@ -151,7 +151,7 @@ class TestCenterRepository(object):
         params = Params(page=1, size=10)
 
         # then
-        assert await center_repository.find_all_by_user_id(
+        assert await center_repository.find_details_by_user_id(
             session, user_fixture.id, params
         ) == Page.create(items=[center_fixture], params=params, total=1)
 
@@ -163,3 +163,13 @@ class TestCenterRepository(object):
     ):
         # then
         assert await center_repository.find_all_ids_by_approved_true(session) == [center_fixture.id]
+
+    @pytest.mark.asyncio
+    async def test_find_by_user_id(
+            self,
+            session: AsyncSession,
+            user_fixture: User,
+            center_fixture: Center
+    ):
+        # then
+        assert await center_repository.find_by_user_id(session, user_id=user_fixture.id) == [center_fixture]

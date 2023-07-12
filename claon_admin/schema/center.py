@@ -277,11 +277,17 @@ class CenterRepository(Repository[Center]):
                                        .limit(5))
         return result.scalars().all()
 
-    async def find_all_by_user_id(self, session: AsyncSession, user_id: str, params: Params):
+    async def find_details_by_user_id(self, session: AsyncSession, user_id: str, params: Params):
         query = select(Center).where(Center.user_id == user_id) \
             .order_by(desc(Center.created_at)) \
             .options(selectinload(Center.user))
+
         return await paginate(query=query, conn=session, params=params)
+
+    async def find_by_user_id(self, session: AsyncSession, user_id: str):
+        result = await session.execute(select(Center).where(Center.user_id == user_id)
+                                       .order_by(desc(Center.created_at)))
+        return result.scalars().all()
 
     async def find_all_ids_by_approved_true(self, session: AsyncSession):
         result = await session.execute(select(Center.id).where(Center.approved.is_(True)))
