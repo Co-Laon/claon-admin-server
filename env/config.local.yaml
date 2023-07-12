@@ -1,0 +1,36 @@
+include:
+  optional:
+    - aws.yaml
+    - gcp.yaml
+
+security:
+  jwt:
+    algorithm: HS256
+    secret-key: 2e9ab9a49d4def94b9b8859becdc35269c732ba73fa37f71f7c2804242cf9d51
+    expire:
+      access: 43200
+      refresh: 129600
+  session:
+    secret-key: 218e9fee-8dce-4939-a93d-a7291f3b1967
+
+database:
+  driver: postgresql+asyncpg
+  host: localhost
+  port: 5432
+  name: claon_db
+  user: claon_user
+  password: claon_password
+
+sqlalchemy:
+  ddl-auto: none
+
+redis:
+  enable: true
+  host: localhost
+  port: 6379
+
+celery:
+  host: localhost
+  port: 5672
+  user: claon_user
+  password: claon_password

@@ -9,7 +9,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from claon_admin.common.error.handler import add_http_exception_handler
 from claon_admin.common.util.db import db
-from claon_admin.config.config import conf
+from claon_admin.config.config import Config
 from claon_admin.container import Container
 from claon_admin.job import post as job_post
 from claon_admin.middleware.file import LimitUploadSize
@@ -45,7 +45,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"]
     )
-    claon_app.add_middleware(SessionMiddleware, secret_key=conf().SESSION_SECRET_KEY)
+    claon_app.add_middleware(SessionMiddleware, secret_key=Config.SESSION_SECRET_KEY)
     claon_app.add_middleware(LoggerMiddleware)
     claon_app.add_middleware(LimitUploadSize)
 

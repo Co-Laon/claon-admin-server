@@ -1,6 +1,10 @@
 import redis as redis_client
 
-from claon_admin.config.config import conf
+from claon_admin.config.env import config
+
+REDIS_ENABLE = config.get("redis.enable")
+REDIS_HOST = config.get("redis.host")
+REDIS_PORT = config.get("redis.port")
 
 
 class RedisClient:
@@ -19,5 +23,5 @@ class RedisClient:
 
 
 redis = None
-if conf().REDIS_ENABLE:
-    redis = RedisClient(host=conf().REDIS_HOST, port=conf().REDIS_PORT)
+if REDIS_ENABLE:
+    redis = RedisClient(host=REDIS_HOST, port=REDIS_PORT)

@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngin
 from sqlalchemy.orm import sessionmaker, declarative_base, declared_attr
 
 from claon_admin.common.util.time import now
-from claon_admin.config.config import conf
+from claon_admin.config.config import Config
 
 
 class DeclarativeBase(object):
@@ -29,13 +29,13 @@ class Database:
 
     async def create_database(self) -> None:
         async with self._engine.begin() as conn:
-            if conf().DB_DDL_AUTO == "create":
+            if Config.DATABASE_CONFIG.DDL_AUTO == "create":
                 await conn.run_sync(Base.metadata.drop_all)
                 await conn.run_sync(Base.metadata.create_all)
-            elif conf().DB_DDL_AUTO == "none":
+            elif Config.DATABASE_CONFIG.DDL_AUTO == "none":
                 await conn.run_sync(Base.metadata.create_all)
             else:
                 await conn.run_sync(Base.metadata.create_all)
 
 
-db = Database(db_url=conf().DB_URL)
+db = Database(db_url=Config.DATABASE_CONFIG.URL)

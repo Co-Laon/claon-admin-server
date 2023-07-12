@@ -1,6 +1,11 @@
 import boto3
 
-from claon_admin.config.config import conf
+from claon_admin.config.env import config
+
+AWS_ENABLE = config.get("aws.enable")
+AWS_ACCESS_KEY = config.get("aws.access-key")
+AWS_SECRET_KEY = config.get("aws.secret-key")
+AWS_REGION = config.get("aws.region")
 
 
 class S3Client:
@@ -14,9 +19,9 @@ class S3Client:
 
 
 s3 = None
-if conf().AWS_ENABLE:
+if AWS_ENABLE:
     s3 = S3Client(
-        aws_access_key_id=conf().AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=conf().AWS_SECRET_ACCESS_KEY,
-        region_name=conf().REGION_NAME,
+        aws_access_key_id=AWS_ACCESS_KEY,
+        aws_secret_access_key=AWS_SECRET_KEY,
+        region_name=AWS_REGION,
     ).client
