@@ -11,10 +11,12 @@ poetry.lock
 Dockerfile
 deploy_*.sh
 
-*.ini
-
-!pytest.ini
-!test_config.ini
 test.db
 
 logs
+
+env/*
+
+!env/config.yaml
+!env/config.local.yaml
+!env/config.test.yaml

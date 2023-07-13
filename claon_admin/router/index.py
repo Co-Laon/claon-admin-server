@@ -4,16 +4,16 @@ from os import environ
 from fastapi import APIRouter, WebSocket, Request
 from starlette.templating import Jinja2Templates
 
-from claon_admin.config.config import conf
+from claon_admin.config.config import Config
 
 router = APIRouter()
 
-templates = Jinja2Templates(directory=conf().HTML_DIR)
+templates = Jinja2Templates(directory=Config.HTML_DIR)
 
 
 async def log_reader(log_file_name: str, n=5):
     log_lines = ""
-    with open(f"{conf().BASE_DIR}/{log_file_name}", "r", encoding="utf-8") as file:
+    with open(f"{Config.BASE_DIR}/{log_file_name}", "r", encoding="utf-8") as file:
         for line in file.readlines()[-n:]:
             if "ERROR" in line:
                 log_lines += f'<span class="text-red-400">{line}</span><br/>'

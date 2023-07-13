@@ -1,0 +1,6 @@
+database:
+  driver: sqlite+aiosqlite
+  name: test.db
+
+sqlalchemy:
+  ddl-auto: create
