@@ -23,8 +23,9 @@ class UserRouter:
         self.user_service = user_service
 
     @router.get('/centers', response_model=List[CenterNameResponseDto])
-    async def find_center(self):
-        pass
+    async def find_center(self,
+                          subject: CurrentUser):
+        return await self.user_service.find_centers(subject=subject)
 
     # s3 upload
     @router.post('/profile', response_model=UploadFileResponseDto)

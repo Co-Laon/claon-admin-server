@@ -79,7 +79,7 @@ class CenterService:
                            session: AsyncSession,
                            params: Params,
                            subject: RequestUser):
-        pages = await self.center_repository.find_all_by_user_id(session, subject.id, params)
+        pages = await self.center_repository.find_details_by_user_id(session, subject.id, params)
 
         if not pages.items:
             raise NotFoundException(

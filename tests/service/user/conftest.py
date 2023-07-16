@@ -122,6 +122,26 @@ def center_fixture(user_fixture: User):
 
 
 @pytest.fixture
+def other_center_fixture(user_fixture: User):
+    yield Center(
+        id=str(uuid.uuid4()),
+        user=user_fixture,
+        name="test other center",
+        profile_img="https://test.other.profile.png",
+        address="test_other_address",
+        detail_address="test_other_detail_address",
+        tel="010-2222-2222",
+        web_url="http://test.other.com",
+        instagram_name="test_other_instagram",
+        youtube_url="https://www.youtube.com/@othertest",
+        center_img=[CenterImage(url="https://test.other.image.png")],
+        operating_time=[OperatingTime(day_of_week="금", start_time="10:00", end_time="18:00")],
+        utility=[Utility(name="test_other_utility")],
+        approved=True
+    )
+
+
+@pytest.fixture
 def center_approved_files_fixture(user_fixture: User, center_fixture: Center):
     yield [
         CenterApprovedFile(

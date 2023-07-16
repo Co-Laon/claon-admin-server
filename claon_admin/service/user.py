@@ -12,7 +12,7 @@ from claon_admin.model.center import CenterAuthRequestDto, CenterResponseDto
 from claon_admin.common.enum import OAuthProvider, Role, LectorUploadPurpose, UserUploadPurpose
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.user import IsDuplicatedNicknameResponseDto, LectorRequestDto, LectorResponseDto, \
-    UserProfileResponseDto, JwtReissueDto
+    UserProfileResponseDto, JwtReissueDto, CenterNameResponseDto
 from claon_admin.model.user import SignInRequestDto, JwtResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterHold, CenterWall, CenterApprovedFile, \
     CenterHoldRepository, CenterWallRepository, CenterApprovedFileRepository
@@ -155,6 +155,12 @@ class UserService:
 
         url = await upload_file(file=file, domain="lector", purpose=purpose.value)
         return UploadFileResponseDto(file_url=url)
+
+    @transactional(read_only=True)
+    async def find_centers(self, session: AsyncSession, subject: RequestUser):
+        centers = await self.center_repository.find_by_user_id(session=session, user_id=subject.id)
+
+        return [CenterNameResponseDto.from_entity(entity=c) for c in centers]
 
     # TODO: Need to be removed later
     @transactional()

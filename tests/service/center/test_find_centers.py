@@ -30,7 +30,7 @@ class TestFindCenters(object):
         params = Params(page=1, size=10)
         items = [center_fixture, another_center_fixture]
         center_page = Page(items=items, params=params, total=2, page=1, pages=1)
-        mock_repo["center"].find_all_by_user_id.return_value = center_page
+        mock_repo["center"].find_details_by_user_id.return_value = center_page
         mock_pagination = Pagination(
             next_page_num=2,
             previous_page_num=0,
@@ -61,7 +61,7 @@ class TestFindCenters(object):
         request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.CENTER_ADMIN)
         params = Params(page=1, size=10)
         center_page = Page(items=[], params=params, total=0)
-        mock_repo["center"].find_all_by_user_id.return_value = center_page
+        mock_repo["center"].find_details_by_user_id.return_value = center_page
 
         with pytest.raises(NotFoundException) as exception:
             # when
