@@ -182,7 +182,12 @@ class CenterRouter:
                                       center_id: str,
                                       purpose: CenterFeeUploadPurpose,
                                       file: UploadFile = File(...)):
-        pass
+        return await self.center_service.upload_membership_image(
+            subject=subject,
+            center_id=center_id,
+            purpose=purpose,
+            file=file
+        )
 
     @router.get('/{center_id}/members/summary', response_model=CenterMemberSummaryResponseDto)
     async def find_members_summary_by_center(self,

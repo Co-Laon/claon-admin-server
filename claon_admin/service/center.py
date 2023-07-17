@@ -2,7 +2,7 @@ from fastapi import UploadFile
 from fastapi_pagination import Params
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.common.enum import CenterUploadPurpose
+from claon_admin.common.enum import CenterUploadPurpose, CenterFeeUploadPurpose
 from claon_admin.common.error.exception import BadRequestException, ErrorCode, UnauthorizedException, NotFoundException
 from claon_admin.common.util.pagination import paginate
 from claon_admin.common.util.s3 import upload_file
@@ -194,3 +194,33 @@ class CenterService:
             )
 
         return CenterFeeDetailResponseDto.from_entity(entity=center)
+
+    @transactional(read_only=True)
+    async def upload_membership_image(self,
+                                      session: AsyncSession,
+                                      subject: RequestUser,
+                                      center_id: str,
+                                      purpose: CenterFeeUploadPurpose,
+                                      file: UploadFile):
+        center = await self.center_repository.find_by_id(session=session, entity_id=center_id)
+
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if not center.is_owner(subject.id):
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        if not purpose.is_valid_extension(file.filename.split('.')[-1]):
+            raise BadRequestException(
+                ErrorCode.INVALID_FORMAT,
+                "지원하지 않는 포맷입니다."
+            )
+
+        url = await upload_file(file=file, domain="fee", purpose=purpose.value)
+        return UploadFileResponseDto(file_url=url)
