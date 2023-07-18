@@ -6,7 +6,7 @@ from uuid import uuid4
 from fastapi_pagination import Params
 from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import String, Column, ForeignKey, Boolean, select, exists, Integer, Enum, delete, and_, desc, func, \
-    null
+    null, DateTime
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload, backref
 from sqlalchemy.dialects.postgresql import TEXT
@@ -250,6 +250,26 @@ class ReviewAnswer(Base):
         self.content = content
 
 
+class CenterScheduleMember(Base):
+    id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
+
+    user_id = Column(String(length=255), ForeignKey("tb_user.id", ondelete="CASCADE"), nullable=False)
+    user = relationship("User", backref=backref("CenterScheduleMember"))
+
+    schedule_id = Column(String(length=255), ForeignKey("tb_center_schedule.id", ondelete="CASCADE"), nullable=False)
+    schedule = relationship("CenterSchedule", backref=backref("CenterScheduleMember"))
+
+
+class CenterSchedule(Base):
+    id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
+    title = Column(String(length=20), nullable=False)
+    start_time = Column(DateTime, nullable=False)
+    end_time = Column(DateTime, nullable=False)
+    description = Column(String(length=255))
+
+    members = relationship("CenterScheduleMember", back_populates="schedule")
+
+
 class CenterRepository(Repository[Center]):
     async def find_by_id_with_details(self, session: AsyncSession, center_id: str):
         result = await session.execute(select(Center).where(Center.id == center_id)
@@ -381,3 +401,11 @@ class ReviewAnswerRepository(Repository[ReviewAnswer]):
                                        .where(Review.id == review_id))
 
         return result.scalars().one_or_none()
+
+
+class CenterScheduleMemberRepository(Repository[CenterScheduleMember]):
+    pass
+
+
+class CenterScheduleRepository(Repository[CenterSchedule]):
+    pass
