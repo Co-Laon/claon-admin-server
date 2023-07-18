@@ -176,7 +176,7 @@ class CenterRouter:
                                  subject: CenterAdminUser,
                                  center_id: str,
                                  request_dto: CenterFeeDetailRequestDto):
-        pass
+        return await self.center_service.update_center_fees(subject, center_id, request_dto)
 
     @router.delete('/{center_id}/fees/{center_fee_id}', response_model=CenterFeeResponseDto)
     async def delete_center_fee(self,

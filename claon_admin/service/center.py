@@ -10,9 +10,10 @@ from claon_admin.common.util.transaction import transactional
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto, CenterResponseDto, \
-    CenterCreateRequestDto, CenterUpdateRequestDto, CenterFeeDetailResponseDto, CenterFeeResponseDto
+    CenterCreateRequestDto, CenterUpdateRequestDto, CenterFeeDetailResponseDto, CenterFeeResponseDto, \
+    CenterFeeDetailRequestDto
 from claon_admin.schema.center import CenterRepository, CenterHoldRepository, CenterWallRepository, \
-    CenterFeeRepository, CenterHold, CenterWall, CenterApprovedFileRepository, Center, CenterApprovedFile
+    CenterFeeRepository, CenterHold, CenterWall, CenterFee, CenterApprovedFileRepository, Center, CenterApprovedFile
 
 
 class CenterService:
@@ -232,3 +233,38 @@ class CenterService:
         center_fee.delete()
 
         return CenterFeeResponseDto.from_entity(entity=center_fee)
+
+    @transactional(read_only=True)
+    async def update_center_fees(self,
+                               session: AsyncSession,
+                               subject: RequestUser,
+                               center_id: str,
+                               dto: CenterFeeDetailRequestDto):
+        center = await self.center_repository.find_by_id_with_details(session, center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if not center.is_owner(subject.id):
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        fees = await self.center_fee_repository.find_all_by_center_id(session, center_id)
+        all_fee_id = [a.id for a in fees if a.id]
+        #  존재하지 않는 fee는 삭제
+        for e in fees:
+            if e.id and e.id not in all_fee_id:
+                fee = await self.center_fee_repository.find_by_id(session, e.id)
+                await self.center_fee_repository.delete(session, fee)
+        # 새로운 fee만 저장
+        fees = await self.center_fee_repository.save_all(
+            session,
+            [CenterFee(center=center, name=e.name, fee_type=e.fee_type.value, price=e.price,
+                       count=e.count, period=e.period, period_type=e.period_type)
+             for e in dto.center_fee or [] if e.id not in all_fee_id])
+
+        return CenterFeeDetailResponseDto.from_entity(entity=center)
