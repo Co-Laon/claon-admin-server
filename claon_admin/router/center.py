@@ -19,6 +19,7 @@ from claon_admin.model.membership import CenterMemberSummaryResponseDto, CenterM
 from claon_admin.model.post import PostResponseDto, PostSummaryResponseDto, PostCommentResponseDto, PostBriefResponseDto
 from claon_admin.model.review import ReviewSummaryResponseDto, ReviewAnswerResponseDto, ReviewAnswerRequestDto, \
     ReviewBriefResponseDto
+from claon_admin.model.schedule import ScheduleRequestDto, ScheduleBriefResponseDto, ScheduleResponseDto
 from claon_admin.service.center import CenterService
 from claon_admin.service.post import PostService
 from claon_admin.service.review import ReviewService
@@ -219,4 +220,39 @@ class CenterRouter:
                                          nickname: str | None = None,
                                          order: MembershipStatusSearchOrder | None = None,
                                          membership_status: MembershipStatus | None = None):
+        pass
+
+    @router.get('/{center_id}/schedules', response_model=List[ScheduleBriefResponseDto])
+    async def find_schedules_by_center(self,
+                                       subject: CenterAdminUser,
+                                       center_id: str):
+        pass
+
+    @router.get('/{center_id}/schedules/{schedule_id}', response_model=ScheduleResponseDto)
+    async def find_schedule_detail_by_id(self,
+                                         subject: CenterAdminUser,
+                                         center_id: str,
+                                         schedule_id: str):
+        pass
+
+    @router.post('/{center_id}/schedules', response_model=ScheduleResponseDto)
+    async def create_schedule(self,
+                              subject: CenterAdminUser,
+                              center_id: str,
+                              request_dto: ScheduleRequestDto):
+        pass
+
+    @router.put('/{center_id}/schedules/{schedule_id}', response_model=ScheduleResponseDto)
+    async def update_schedule(self,
+                              subject: CenterAdminUser,
+                              center_id: str,
+                              schedule_id: str,
+                              request_dto: ScheduleRequestDto):
+        pass
+
+    @router.delete('/{center_id}/schedules/{schedule_id}')
+    async def delete_schedule(self,
+                              subject: CenterAdminUser,
+                              center_id: str,
+                              schedule_id: str):
         pass
