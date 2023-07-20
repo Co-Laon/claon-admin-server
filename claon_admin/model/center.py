@@ -86,6 +86,20 @@ class CenterFeeResponseDto(BaseModel):
     count: int | None
     period: int
     period_type: PeriodType
+    is_deleted: bool
+
+    @classmethod
+    def from_entity(cls, entity: CenterFee):
+        return cls(
+            center_fee_id=entity.id,
+            name=entity.name,
+            fee_type=entity.fee_type,
+            price=entity.price,
+            count=entity.count,
+            period=entity.period,
+            period_type=entity.period_type,
+            is_deleted=entity.is_deleted
+        )
 
 
 class CenterFeeDetailResponseDto(BaseModel):
@@ -96,15 +110,7 @@ class CenterFeeDetailResponseDto(BaseModel):
     def from_entity(cls, entity: Center):
         return CenterFeeDetailResponseDto(
             fee_img=[e.url for e in entity.fee_img],
-            center_fee=[CenterFeeResponseDto(
-                center_fee_id=e.id,
-                name=e.name,
-                fee_type=e.fee_type,
-                price=e.price,
-                count=e.count,
-                period=e.period,
-                period_type=e.period_type
-            ) for e in entity.fees]
+            center_fee=[CenterFeeResponseDto.from_entity(e) for e in entity.fees]
         )
 
 
@@ -334,11 +340,7 @@ class CenterResponseDto(BaseModel):
                 CenterOperatingTimeDto(day_of_week=e.day_of_week, start_time=e.start_time, end_time=e.end_time)
                 for e in entity.operating_time
             ],
-            fee_list=[
-                CenterFeeResponseDto(center_fee_id=e.id, name=e.name, fee_type=e.fee_type, price=e.price, count=e.count,
-                                     period=e.period, period_type=e.period_type)
-                for e in fees or []
-            ],
+            fee_list=[CenterFeeResponseDto.from_entity(e) for e in fees or []],
             hold_info=CenterHoldInfoDto(
                 is_color=holds[0].is_color,
                 hold_list=[CenterHoldDto(difficulty=e.difficulty, name=e.name)

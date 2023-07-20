@@ -10,7 +10,7 @@ from claon_admin.common.util.transaction import transactional
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto, CenterResponseDto, \
-    CenterCreateRequestDto, CenterUpdateRequestDto, CenterFeeDetailResponseDto
+    CenterCreateRequestDto, CenterUpdateRequestDto, CenterFeeDetailResponseDto, CenterFeeResponseDto
 from claon_admin.schema.center import CenterRepository, CenterHoldRepository, CenterWallRepository, \
     CenterFeeRepository, CenterHold, CenterWall, CenterApprovedFileRepository, Center, CenterApprovedFile
 
@@ -194,3 +194,41 @@ class CenterService:
             )
 
         return CenterFeeDetailResponseDto.from_entity(entity=center)
+
+    @transactional()
+    async def delete_center_fee(self,
+                                session: AsyncSession,
+                                subject: RequestUser,
+                                center_id: str,
+                                center_fee_id: str):
+        center = await self.center_repository.find_by_id_with_details(session=session, center_id=center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if not center.is_owner(user_id=subject.id):
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        fee_ids = [fee.id for fee in center.fees]
+
+        if center_fee_id not in fee_ids:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "암장에 해당 회원권 정보가 존재하지 않습니다."
+            )
+
+        center_fee = center.fees[fee_ids.index(center_fee_id)]
+
+        if center_fee.is_deleted is True:
+            raise BadRequestException(
+                ErrorCode.ROW_ALREADY_DETELED,
+                "이미 삭제된 회원권 입니다."
+            )
+        center_fee.delete()
+
+        return CenterFeeResponseDto.from_entity(entity=center_fee)

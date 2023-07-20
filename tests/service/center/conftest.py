@@ -24,7 +24,7 @@ def mock_repo():
         "center_fee": center_fee_repository,
         "center_hold": center_hold_repository,
         "center_wall": center_wall_repository,
-        "center_approved_file": center_approved_file_repository
+        "center_approved_file": center_approved_file_repository,
     }
 
 
@@ -142,7 +142,19 @@ def center_fees_fixture(center_fixture: Center):
             price=1000,
             count=10,
             period=1,
-            period_type=PeriodType.DAY
+            period_type=PeriodType.DAY,
+            is_deleted=False
+        ),
+        CenterFee(
+            id=str(uuid.uuid4()),
+            center=center_fixture,
+            name="fee",
+            fee_type=CenterFeeType.PACKAGE,
+            price=1000,
+            count=10,
+            period=1,
+            period_type=PeriodType.DAY,
+            is_deleted=True
         )
     ]
 

@@ -10,7 +10,8 @@ from claon_admin.common.util.auth import CenterAdminUser, CurrentUser
 from claon_admin.common.util.pagination import Pagination
 from claon_admin.container import Container
 from claon_admin.model.center import CenterNameResponseDto, CenterResponseDto, CenterUpdateRequestDto, \
-    CenterBriefResponseDto, CenterCreateRequestDto, CenterFeeDetailResponseDto, CenterFeeDetailRequestDto
+    CenterBriefResponseDto, CenterCreateRequestDto, CenterFeeDetailResponseDto, CenterFeeDetailRequestDto, \
+    CenterFeeResponseDto
 from claon_admin.common.enum import CenterUploadPurpose, CenterFeeUploadPurpose, CenterMemberSearchOrder, \
     CenterMemberStatus, MembershipStatusSearchOrder, MembershipStatus
 from claon_admin.model.file import UploadFileResponseDto
@@ -176,6 +177,17 @@ class CenterRouter:
                                  center_id: str,
                                  request_dto: CenterFeeDetailRequestDto):
         pass
+
+    @router.delete('/{center_id}/fees/{center_fee_id}', response_model=CenterFeeResponseDto)
+    async def delete_center_fee(self,
+                                subject: CenterAdminUser,
+                                center_id: str,
+                                center_fee_id: str):
+        return await self.center_service.delete_center_fee(
+            subject=subject,
+            center_id=center_id,
+            center_fee_id=center_fee_id
+        )
 
     @router.post('/{center_id}/fees/{purpose}/file', response_model=UploadFileResponseDto)
     async def upload_membership_image(self,
