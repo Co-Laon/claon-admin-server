@@ -24,7 +24,7 @@ class TestFindCenterFees(object):
         # given
         request_user = RequestUser(id=center_fixture.user_id, sns="test@google.com", role=Role.CENTER_ADMIN)
         mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
-        response = CenterFeeDetailResponseDto.from_entity(entity=center_fixture)
+        response = CenterFeeDetailResponseDto.from_entity(entity=center_fixture, fees=center_fees_fixture)
 
         # when
         result = await center_service.find_center_fees(subject=request_user, center_id=center_fixture.id)

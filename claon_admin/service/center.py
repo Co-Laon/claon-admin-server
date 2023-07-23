@@ -10,9 +10,10 @@ from claon_admin.common.util.transaction import transactional
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto, CenterResponseDto, \
-    CenterCreateRequestDto, CenterUpdateRequestDto, CenterFeeDetailResponseDto, CenterFeeResponseDto
-from claon_admin.schema.center import CenterRepository, CenterHoldRepository, CenterWallRepository, \
-    CenterFeeRepository, CenterHold, CenterWall, CenterApprovedFileRepository, Center, CenterApprovedFile
+    CenterCreateRequestDto, CenterUpdateRequestDto, CenterFeeDetailResponseDto, CenterFeeResponseDto, \
+    CenterFeeDetailRequestDto
+from claon_admin.schema.center import CenterRepository, CenterHoldRepository, CenterWallRepository, CenterFeeImage, \
+    CenterFeeRepository, CenterHold, CenterWall, CenterFee, CenterApprovedFileRepository, Center, CenterApprovedFile
 
 
 class CenterService:
@@ -193,7 +194,7 @@ class CenterService:
                 "암장 관리자가 아닙니다."
             )
 
-        return CenterFeeDetailResponseDto.from_entity(entity=center)
+        return CenterFeeDetailResponseDto.from_entity(entity=center, fees=center.fees)
 
     @transactional()
     async def delete_center_fee(self,
@@ -232,3 +233,36 @@ class CenterService:
         center_fee.delete()
 
         return CenterFeeResponseDto.from_entity(entity=center_fee)
+
+    @transactional()
+    async def update_center_fees(self,
+                               session: AsyncSession,
+                               subject: RequestUser,
+                               center_id: str,
+                               dto: CenterFeeDetailRequestDto):
+        center = await self.center_repository.find_by_id_with_details(session, center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if not center.is_owner(subject.id):
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        fees = [CenterFee(id=e.center_fee_id, center=center, center_id=center_id, name=e.name, fee_type=e.fee_type,
+                          price=e.price, count=e.count, period=e.period, period_type=e.period_type, is_deleted=False)
+                          for e in dto.center_fee]
+
+        prev_fees = await self.center_fee_repository.find_all_by_center_id(session, center_id)
+        deleted_fees = [e for e in prev_fees if e.id not in [k.id for k in fees]]
+        [await self.center_fee_repository.delete(session, e) for e in deleted_fees]
+
+        await self.center_fee_repository.upsert(session, fees)
+
+        center.fee_img = [CenterFeeImage(e) for e in dto.fee_img]
+
+        return CenterFeeDetailResponseDto.from_entity(entity=center, fees=fees)

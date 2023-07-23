@@ -107,10 +107,10 @@ class CenterFeeDetailResponseDto(BaseModel):
     center_fee: List[CenterFeeResponseDto]
 
     @classmethod
-    def from_entity(cls, entity: Center):
+    def from_entity(cls, entity: Center, fees:CenterFee):
         return CenterFeeDetailResponseDto(
             fee_img=[e.url for e in entity.fee_img],
-            center_fee=[CenterFeeResponseDto.from_entity(e) for e in entity.fees]
+            center_fee=[CenterFeeResponseDto.from_entity(e) for e in fees]
         )
 
 
