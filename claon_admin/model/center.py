@@ -107,10 +107,22 @@ class CenterFeeDetailResponseDto(BaseModel):
     center_fee: List[CenterFeeResponseDto]
 
     @classmethod
-    def from_entity(cls, entity: Center):
+    def from_entity(cls, entity: Center, fees:CenterFee):
         return CenterFeeDetailResponseDto(
             fee_img=[e.url for e in entity.fee_img],
+<<<<<<< HEAD
             center_fee=[CenterFeeResponseDto.from_entity(e) for e in entity.fees]
+=======
+            center_fee=[CenterFeeResponseDto(
+                center_fee_id=e.id,
+                name=e.name,
+                fee_type=e.fee_type,
+                price=e.price,
+                count=e.count,
+                period=e.period,
+                period_type=e.period_type
+            ) for e in fees]
+>>>>>>> bdaadb7 (test: try upsert)
         )
 
 
