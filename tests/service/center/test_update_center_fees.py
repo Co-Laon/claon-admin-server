@@ -30,11 +30,11 @@ class TestUpdateCenterFees(object):
             center_fee_detail_request_dto: CenterFeeDetailRequestDto
     ):
         # given
-        for e in center_fees_fixture: e.is_deleted = False
+        for e in center_fees_fixture:
+            e.is_deleted = False
         center_fixture.fees = center_fees_fixture
         request_user = RequestUser(id=center_fixture.user_id, sns="test@craon.com", role=Role.CENTER_ADMIN)
         mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
-        mock_repo["center_fee"].find_all_by_center_id.side_effect = [center_fees_fixture]
 
         response = CenterFeeDetailResponseDto.from_entity(entity=center_fixture, fees=center_fees_fixture)
 

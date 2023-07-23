@@ -122,6 +122,9 @@ class Center(Base):
     def exist_hold(self, hold_id: str):
         return hold_id in [hold.id for hold in self.holds]
 
+    def update_fee_image(self, fee_image_list: List[str]):
+        self.fee_img = [CenterFeeImage(url=e) for e in fee_image_list or []]
+
     @property
     def center_img(self):
         if self._center_img is None:
@@ -176,13 +179,35 @@ class CenterFee(Base):
     name = Column(String(length=50), nullable=False)
     fee_type = Column(Enum(CenterFeeType), nullable=False)
     price = Column(Integer, nullable=False)
-    count = Column(Integer, nullable=False)
+    count = Column(Integer)
     period = Column(Integer, nullable=False)
     period_type = Column(Enum(PeriodType), nullable=False)
     is_deleted = Column(Boolean, default=False, nullable=False)
 
     center_id = Column(String(length=255), ForeignKey('tb_center.id', ondelete="CASCADE"), nullable=False)
     center = relationship("Center", back_populates="fees")
+
+    @staticmethod
+    def of(center_id: str, name: str, fee_type: CenterFeeType, price: int, count: int, period: int,
+           period_type: PeriodType, center_fee_id: str = None):
+        return CenterFee(
+            center_id=center_id,
+            name=name,
+            fee_type=fee_type,
+            price=price,
+            count=count,
+            period=period,
+            period_type=period_type
+        )
+
+    def update(self, name: str, fee_type: CenterFeeType, price: int, count: int, period: int,
+               period_type: PeriodType, center_fee_id: str = None):
+        self.name = name
+        self.fee_type = fee_type
+        self.price = price
+        self.count = count
+        self.period = period
+        self.period_type = period_type
 
     def delete(self):
         self.is_deleted = True
@@ -260,7 +285,7 @@ class CenterScheduleMember(Base):
     user = relationship("User", backref=backref("CenterScheduleMember"))
 
     schedule_id = Column(String(length=255), ForeignKey("tb_center_schedule.id", ondelete="CASCADE"), nullable=False)
-    schedule = relationship("CenterSchedule", backref=backref("CenterScheduleMember"))
+    schedule = relationship("CenterSchedule", back_populates="members")
 
 
 class CenterSchedule(Base):
@@ -271,6 +296,9 @@ class CenterSchedule(Base):
     description = Column(String(length=255))
 
     members = relationship("CenterScheduleMember", back_populates="schedule")
+
+    center_id = Column(String(length=255), ForeignKey("tb_center.id", ondelete="CASCADE"), nullable=False)
+    center = relationship("Center", backref=backref("CenterSchedule"))
 
 
 class CenterRepository(Repository[Center]):
@@ -348,11 +376,6 @@ class CenterFeeRepository(Repository[CenterFee]):
     async def find_all_by_center_id(self, session: AsyncSession, center_id: str):
         result = await session.execute(select(CenterFee).where(CenterFee.center_id == center_id))
         return result.scalars().all()
-
-    async def upsert(self, session: AsyncSession, fees: List[CenterFee]):
-        session.add_all([e for e in fees if e.id is None])
-        session.flush()
-        [await session.merge(entity) for entity in fees]
 
 
 class ReviewRepository(Repository[Review]):
