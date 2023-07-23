@@ -234,7 +234,7 @@ class CenterService:
 
         return CenterFeeResponseDto.from_entity(entity=center_fee)
 
-    @transactional(read_only=True)
+    @transactional()
     async def update_center_fees(self,
                                session: AsyncSession,
                                subject: RequestUser,
@@ -252,21 +252,17 @@ class CenterService:
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."
             )
-        
+
+        fees = [CenterFee(id=e.center_fee_id, center=center, center_id=center_id, name=e.name, fee_type=e.fee_type,
+                          price=e.price, count=e.count, period=e.period, period_type=e.period_type)
+                          for e in dto.center_fee]
+
         prev_fees = await self.center_fee_repository.find_all_by_center_id(session, center_id)
-        fees = []
-        for e in dto.center_fee:
-            if e.id is None:
-                fees.append(CenterFee(center=center, center_id=center_id, name=e.name, fee_type=e.fee_type.value, price=e.price,
-                count=e.count, period=e.period, period_type=e.period_type))
-            else:
-                fees.append(CenterFee(id=e.id, center=center, center_id=center_id, name=e.name, fee_type=e.fee_type.value, price=e.price,
-                count=e.count, period=e.period, period_type=e.period_type))
-        
-        deleted_fees = [e for e in prev_fees if e not in fees]
+        deleted_fees = [e for e in prev_fees if e.id not in [k.id for k in fees]]
         [await self.center_fee_repository.delete(session, e) for e in deleted_fees]
+
         await self.center_fee_repository.upsert(session, fees)
 
-        center.fee_img([CenterFeeImage(e['url']) for e in dto.fee_img])
+        center.fee_img = [CenterFeeImage(e) for e in dto.fee_img]
 
         return CenterFeeDetailResponseDto.from_entity(entity=center, fees=fees)
