@@ -16,15 +16,7 @@ class TestUpdateCenterFees(object):
     async def center_fee_detail_request_dto(self, center_fixture):
         yield CenterFeeDetailRequestDto(
             fee_img=[e.url for e in center_fixture.fee_img],
-            center_fee=[CenterFeeResponseDto(
-                center_fee_id=e.id,
-                name=e.name,
-                fee_type=e.fee_type,
-                price=e.price,
-                count=e.count,
-                period=e.period,
-                period_type=e.period_type
-            ) for e in center_fixture.fees]
+            center_fee=[CenterFeeResponseDto.from_entity(e) for e in center_fixture.fees]
         )
 
     @pytest.mark.asyncio
@@ -38,10 +30,11 @@ class TestUpdateCenterFees(object):
             center_fee_detail_request_dto: CenterFeeDetailRequestDto
     ):
         # given
+        for e in center_fees_fixture: e.is_deleted = False
         center_fixture.fees = center_fees_fixture
         request_user = RequestUser(id=center_fixture.user_id, sns="test@craon.com", role=Role.CENTER_ADMIN)
         mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
-        mock_repo["center_fee"].save_all.side_effect = [center_fees_fixture]
+        mock_repo["center_fee"].find_all_by_center_id.side_effect = [center_fees_fixture]
 
         response = CenterFeeDetailResponseDto.from_entity(entity=center_fixture, fees=center_fees_fixture)
 

@@ -254,7 +254,7 @@ class CenterService:
             )
 
         fees = [CenterFee(id=e.center_fee_id, center=center, center_id=center_id, name=e.name, fee_type=e.fee_type,
-                          price=e.price, count=e.count, period=e.period, period_type=e.period_type)
+                          price=e.price, count=e.count, period=e.period, period_type=e.period_type, is_deleted=False)
                           for e in dto.center_fee]
 
         prev_fees = await self.center_fee_repository.find_all_by_center_id(session, center_id)

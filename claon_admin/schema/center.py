@@ -349,8 +349,10 @@ class CenterFeeRepository(Repository[CenterFee]):
         result = await session.execute(select(CenterFee).where(CenterFee.center_id == center_id))
         return result.scalars().all()
 
-    async def delete_by_center_id(self, session: AsyncSession, center_id: str):
-        await session.execute(delete(CenterFee).where(CenterFee.center_id == center_id))
+    async def upsert(self, session: AsyncSession, fees: List[CenterFee]):
+        session.add_all([e for e in fees if e.id is None])
+        session.flush()
+        [await session.merge(entity) for entity in fees]
 
 
 class ReviewRepository(Repository[Review]):
