@@ -184,6 +184,9 @@ class CenterFee(Base):
     center_id = Column(String(length=255), ForeignKey('tb_center.id', ondelete="CASCADE"), nullable=False)
     center = relationship("Center", back_populates="fees")
 
+    def delete(self):
+        self.is_deleted = True
+
 
 class CenterHold(Base):
     id = Column(String(length=255), primary_key=True, default=lambda: str(uuid4()))
