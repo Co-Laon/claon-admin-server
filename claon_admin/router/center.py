@@ -220,7 +220,7 @@ class CenterRouter:
     async def find_schedules_by_center(self,
                                        subject: CenterAdminUser,
                                        center_id: str):
-        pass
+        return await self.center_service.find_schedules_by_center(subject, center_id)
 
     @router.get('/{center_id}/schedules/{schedule_id}', response_model=ScheduleResponseDto)
     async def find_schedule_detail_by_id(self,

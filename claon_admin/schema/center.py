@@ -439,4 +439,6 @@ class CenterScheduleMemberRepository(Repository[CenterScheduleMember]):
 
 
 class CenterScheduleRepository(Repository[CenterSchedule]):
-    pass
+    async def find_by_center(self, session: AsyncSession, center_id: str):
+        result = await session.execute(select(CenterSchedule).where(CenterSchedule.center_id == center_id))
+        return result.scalars().all()

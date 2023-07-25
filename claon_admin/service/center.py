@@ -11,7 +11,7 @@ from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto, CenterResponseDto, \
     CenterCreateRequestDto, CenterUpdateRequestDto, CenterFeeDetailResponseDto, CenterFeeDetailRequestDto
-from claon_admin.model.schedule import ScheduleRequestDto, ScheduleResponseDto
+from claon_admin.model.schedule import ScheduleRequestDto, ScheduleResponseDto, ScheduleBriefResponseDto
 from claon_admin.schema.center import CenterRepository, CenterHoldRepository, CenterWallRepository, \
     CenterFeeRepository, CenterHold, CenterWall, CenterFee, CenterApprovedFileRepository, Center, CenterApprovedFile, \
     CenterSchedule, CenterScheduleRepository, CenterScheduleMemberRepository, CenterScheduleMember
@@ -37,6 +37,7 @@ class CenterService:
         self.center_schedule_repository = center_schedule_repository
         self.center_schedule_member_repository = center_schedule_member_repository
 
+
     @transactional()
     async def create(self,
                      session: AsyncSession,
@@ -52,7 +53,6 @@ class CenterService:
                 [CenterHold(center=center, name=e.name, difficulty=e.difficulty, is_color=hold_is_color)
                  for e in dto.hold_info.hold_list]
             )
-
         walls = await self.center_wall_repository.save_all(
             session,
             [CenterWall(center=center, name=e.name, type=e.wall_type.value)
@@ -283,3 +283,22 @@ class CenterService:
         )
 
         return ScheduleResponseDto.from_entity(schedule=schedule, users=users)
+    @transactional(read_only=True)
+    async def find_schedules_by_center(self,
+                                       session: AsyncSession,
+                                       subject: RequestUser,
+                                       center_id: str):
+        center = await self.center_repository.find_by_id(session, center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if not center.is_owner(subject.id):
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+        schedules = await self.center_schedule_repository.find_by_center(session, center_id)
+        return [ScheduleBriefResponseDto(schedule) for schedule in schedules]
