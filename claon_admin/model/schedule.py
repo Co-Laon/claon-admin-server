@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import List
 
 from pydantic import BaseModel, validator
+from claon_admin.schema.center import CenterSchedule
 
 
 class ScheduleRequestDto(BaseModel):
@@ -27,6 +28,15 @@ class ScheduleBriefResponseDto(BaseModel):
     title: str
     start_time: datetime
     end_time: datetime
+
+    @classmethod
+    def from_entity(cls, entity: CenterSchedule):
+        return cls(
+            schedule_id=entity.id,
+            title=entity.title,
+            start_time=entity.start_time,
+            end_time=entity.start_time
+        )
 
 
 class MemberDto(BaseModel):

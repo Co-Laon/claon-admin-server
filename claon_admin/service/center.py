@@ -12,8 +12,9 @@ from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto, CenterResponseDto, \
     CenterCreateRequestDto, CenterUpdateRequestDto, CenterFeeDetailResponseDto, CenterFeeDetailRequestDto
 from claon_admin.schema.center import CenterRepository, CenterHoldRepository, CenterWallRepository, \
-    CenterFeeRepository, CenterHold, CenterWall, CenterFee, CenterApprovedFileRepository, Center, CenterApprovedFile
-
+    CenterFeeRepository, CenterHold, CenterWall, CenterFee, CenterApprovedFileRepository, Center, CenterApprovedFile, \
+    CenterScheduleRepository
+from claon_admin.model.schedule import ScheduleBriefResponseDto
 
 class CenterService:
     def __init__(self,
@@ -21,12 +22,14 @@ class CenterService:
                  center_hold_repository: CenterHoldRepository,
                  center_wall_repository: CenterWallRepository,
                  center_fee_repository: CenterFeeRepository,
-                 center_approved_file_repository: CenterApprovedFileRepository):
+                 center_approved_file_repository: CenterApprovedFileRepository,
+                 center_schedule_repository: CenterScheduleRepository):
         self.center_repository = center_repository
         self.center_hold_repository = center_hold_repository
         self.center_wall_repository = center_wall_repository
         self.center_fee_repository = center_fee_repository
         self.center_approved_file_repository = center_approved_file_repository
+        self.center_schedule_repository = center_schedule_repository
 
     @transactional()
     async def create(self,
@@ -43,7 +46,6 @@ class CenterService:
                 [CenterHold(center=center, name=e.name, difficulty=e.difficulty, is_color=hold_is_color)
                  for e in dto.hold_info.hold_list]
             )
-
         walls = await self.center_wall_repository.save_all(
             session,
             [CenterWall(center=center, name=e.name, type=e.wall_type.value)
@@ -236,3 +238,25 @@ class CenterService:
         center.update_fee_image(dto.fee_img)
 
         return CenterFeeDetailResponseDto.from_entity(entity=center, fees=fees)
+    
+
+    @transactional(read_only=True)
+    async def find_schedules_by_center(self,
+                                 session: AsyncSession,
+                                 subject: RequestUser,
+                                 center_id: str):
+        center = await self.center_repository.find_by_id(session, center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if not center.is_owner(subject.id):
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        schedules = await self.center_schedule_repository.find_by_center(session, center_id)
+        return [ScheduleBriefResponseDto(schedule) for schedule in schedules]

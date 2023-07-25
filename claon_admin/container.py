@@ -3,7 +3,7 @@ from dependency_injector import containers, providers
 from claon_admin import router, job
 from claon_admin.common import util
 from claon_admin.schema.center import CenterRepository, CenterApprovedFileRepository, CenterHoldRepository, \
-    CenterWallRepository, CenterFeeRepository, ReviewRepository, ReviewAnswerRepository
+    CenterWallRepository, CenterFeeRepository, ReviewRepository, ReviewAnswerRepository, CenterScheduleRepository
 from claon_admin.schema.post import PostRepository, PostCountHistoryRepository
 from claon_admin.schema.user import UserRepository, LectorRepository, LectorApprovedFileRepository
 from claon_admin.service.admin import AdminService
@@ -31,6 +31,7 @@ class Container(containers.DeclarativeContainer):
     post_count_history_repository = providers.Singleton(PostCountHistoryRepository)
     review_repository = providers.Singleton(ReviewRepository)
     review_answer_repository = providers.Singleton(ReviewAnswerRepository)
+    center_schedule_repository = providers.Singleton(CenterScheduleRepository)
 
     """ Service """
     google_user_info_provider = providers.Singleton(GoogleUserInfoProvider)
@@ -68,7 +69,8 @@ class Container(containers.DeclarativeContainer):
         center_fee_repository=center_fee_repository,
         center_hold_repository=center_hold_repository,
         center_wall_repository=center_wall_repository,
-        center_approved_file_repository=center_approved_file_repository
+        center_approved_file_repository=center_approved_file_repository,
+        center_schedule_repository=center_schedule_repository
     )
 
     post_service = providers.Singleton(
