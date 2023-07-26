@@ -5,6 +5,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
+from claon_admin.common.util.slack import slack
 from claon_admin.config.log import logger
 
 from claon_admin.common.error.exception import (
@@ -44,6 +45,9 @@ def add_http_exception_handler(app: FastAPI) -> None:
     async def conflict_exception_handler(request: Request, exc: ConflictException):
         logger.error("[REQUEST] [%s] path: %s [RESPONSE] code: %d, message: %s",
                      request.method, request.url.path, exc.code.value, exc.message)
+
+        slack.send_error_message(request, exc.message)
+
         return JSONResponse(status_code=status.HTTP_409_CONFLICT,
                             content={"code": exc.code.value, "message": exc.message})
 
@@ -71,6 +75,9 @@ def add_http_exception_handler(app: FastAPI) -> None:
         logger.error("[REQUEST] [%s] path: %s [RESPONSE] code: %d, message: %s",
                      request.method, request.url.path, exc.code.value, exc.message)
         logger.error(traceback.format_exc())
+
+        slack.send_error_message(request, exc.message)
+
         return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             content={"code": exc.code.value, "message": exc.message})
 
@@ -79,6 +86,9 @@ def add_http_exception_handler(app: FastAPI) -> None:
         logger.error("[REQUEST] [%s] path: %s [RESPONSE] code: %d",
                      request.method, request.url.path, ErrorCode.INTERNAL_SERVER_ERROR.value)
         logger.error(traceback.format_exc())
+
+        slack.send_error_message(request, repr(exc))
+
         return JSONResponse(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             content={
                                 "code": ErrorCode.INTERNAL_SERVER_ERROR.value,
