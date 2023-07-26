@@ -30,6 +30,23 @@ async def user_fixture(session: AsyncSession):
 
 
 @pytest.fixture(autouse=True)
+async def other_user_fixture(session: AsyncSession):
+    user = User(
+        oauth_id="other_oauth_id",
+        nickname="othername",
+        profile_img="other_profile_img",
+        sns="other_sns",
+        email="other.test@test.com",
+        instagram_name="other_instagram_name",
+        role=Role.USER,
+    )
+
+    user = await user_repository.save(session, user)
+    yield user
+    await session.rollback()
+
+
+@pytest.fixture(autouse=True)
 async def lector_fixture(session: AsyncSession, user_fixture: User):
     lector = Lector(
         is_setter=True,

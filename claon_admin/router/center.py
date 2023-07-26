@@ -18,7 +18,7 @@ from claon_admin.model.membership import CenterMemberSummaryResponseDto, CenterM
     CenterMemberDetailResponseDto, MembershipSummaryResponseDto, MembershipResponseDto
 from claon_admin.model.post import PostResponseDto, PostSummaryResponseDto, PostCommentResponseDto, PostBriefResponseDto
 from claon_admin.model.review import ReviewSummaryResponseDto, ReviewAnswerResponseDto, ReviewAnswerRequestDto, \
-    ReviewBriefResponseDto
+    ReviewBriefResponseDto, ReviewFindRequestDto
 from claon_admin.model.schedule import ScheduleRequestDto, ScheduleBriefResponseDto, ScheduleResponseDto
 from claon_admin.service.center import CenterService
 from claon_admin.service.post import PostService
@@ -114,19 +114,13 @@ class CenterRouter:
     async def find_reviews_by_center(self,
                                      subject: CenterAdminUser,
                                      center_id: str,
-                                     start: date,
-                                     end: date,
-                                     tag: str | None = None,
-                                     is_answered: bool | None = None,
+                                     request_dto: ReviewFindRequestDto = Depends(),
                                      params: Params = Depends()):
         return await self.review_service.find_reviews_by_center(
             subject=subject,
             params=params,
             center_id=center_id,
-            start=start,
-            end=end,
-            tag=tag,
-            is_answered=is_answered
+            dto=request_dto
         )
 
     @router.get('/{center_id}/posts/summary', response_model=PostSummaryResponseDto)
@@ -240,7 +234,7 @@ class CenterRouter:
                               subject: CenterAdminUser,
                               center_id: str,
                               request_dto: ScheduleRequestDto):
-        pass
+        return await self.center_service.create_schedule(subject=subject, center_id=center_id, dto=request_dto)
 
     @router.put('/{center_id}/schedules/{schedule_id}', response_model=ScheduleResponseDto)
     async def update_schedule(self,

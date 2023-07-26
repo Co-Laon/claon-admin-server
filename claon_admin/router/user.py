@@ -2,14 +2,16 @@ from typing import List
 
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, UploadFile, File
+from fastapi_pagination import Params
 from fastapi_utils.cbv import cbv
 
 from claon_admin.common.enum import LectorUploadPurpose
 from claon_admin.common.util.auth import CurrentUser
+from claon_admin.common.util.pagination import Pagination
 from claon_admin.container import Container
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
-from claon_admin.model.user import CenterNameResponseDto
+from claon_admin.model.user import CenterNameResponseDto, UserNameResponseDto
 from claon_admin.service.user import UserService
 
 router = APIRouter()
@@ -40,3 +42,9 @@ class UserRouter:
                      purpose: LectorUploadPurpose,
                      file: UploadFile = File(...)):
         return await self.user_service.upload_file(purpose, file)
+
+    @router.get('/nickname/{nickname}', response_model=Pagination[UserNameResponseDto])
+    async def find_all_by_nickname(self,
+                                   nickname: str,
+                                   params: Params = Depends()):
+        return await self.user_service.find_all_by_nickname(params=params, nickname=nickname)

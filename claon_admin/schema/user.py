@@ -4,6 +4,8 @@ from datetime import date
 from typing import List
 from uuid import uuid4
 
+from fastapi_pagination import Params
+from fastapi_pagination.ext.sqlalchemy import paginate
 from sqlalchemy import Column, String, Enum, Boolean, ForeignKey, select, exists, and_, delete
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, backref, selectinload
@@ -159,6 +161,14 @@ class UserRepository(Repository[User]):
     async def find_by_oauth_id(self, session: AsyncSession, oauth_id: str):
         result = await session.execute(select(User).where(User.oauth_id == oauth_id))
         return result.scalars().one_or_none()
+
+    async def find_all_by_nickname(self, session: AsyncSession, nickname: str, params: Params):
+        query = select(User).where(User.nickname.contains(nickname)).limit(5)
+        return await paginate(query=query, conn=session, params=params)
+
+    async def find_by_ids(self, session: AsyncSession, ids: List[str]):
+        result = await session.execute(select(User).where(User.id.in_(ids)))
+        return result.scalars().all()
 
 
 class LectorRepository(Repository[Lector]):

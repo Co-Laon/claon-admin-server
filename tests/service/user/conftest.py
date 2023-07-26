@@ -68,6 +68,20 @@ def user_fixture():
 
 
 @pytest.fixture
+def other_user_fixture():
+    yield User(
+        id=str(uuid.uuid4()),
+        oauth_id="other_oauth_id",
+        nickname="other_nickname",
+        profile_img="other_profile_img",
+        sns="other_sns",
+        email="other_test@test.com",
+        instagram_name="other_instagram_name",
+        role=Role.USER
+    )
+
+
+@pytest.fixture
 def lector_fixture(user_fixture: User):
     yield Lector(
         id=str(uuid.uuid4()),

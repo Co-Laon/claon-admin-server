@@ -1,15 +1,14 @@
 from collections import Counter
-from datetime import date
 
 from fastapi_pagination import Params
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.common.error.exception import NotFoundException, ErrorCode, UnauthorizedException, BadRequestException
+from claon_admin.common.error.exception import NotFoundException, ErrorCode, UnauthorizedException
 from claon_admin.common.util.pagination import paginate
 from claon_admin.common.util.transaction import transactional
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto, \
-    ReviewSummaryResponseDto, ReviewTagDto
+    ReviewSummaryResponseDto, ReviewTagDto, ReviewFindRequestDto
 from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, ReviewAnswer
 
 
@@ -28,10 +27,7 @@ class ReviewService:
                                      subject: RequestUser,
                                      params: Params,
                                      center_id: str,
-                                     start: date,
-                                     end: date,
-                                     tag: str | None,
-                                     is_answered: bool | None):
+                                     dto: ReviewFindRequestDto):
         center = await self.center_repository.find_by_id(session, center_id)
         if center is None:
             raise NotFoundException(
@@ -45,20 +41,14 @@ class ReviewService:
                 "암장 관리자가 아닙니다."
             )
 
-        if (end - start).days > 365 or (end - start).days < 0:
-            raise BadRequestException(
-                ErrorCode.WRONG_DATE_RANGE,
-                "잘못된 날짜 범위입니다."
-            )
-
         pages = await self.review_repository.find_reviews_by_center(
             session=session,
             params=params,
             center_id=center_id,
-            start=start,
-            end=end,
-            tag=tag,
-            is_answered=is_answered
+            start=dto.start_date,
+            end=dto.end_date,
+            tag=dto.tag,
+            is_answered=dto.is_answered
         )
 
         return await paginate(ReviewBriefResponseDto, pages)

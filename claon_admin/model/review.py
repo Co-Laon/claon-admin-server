@@ -1,7 +1,8 @@
 from collections import Counter
+from datetime import date
 from typing import List, Tuple
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, validator, root_validator
 
 from claon_admin.common.util.time import get_relative_time
 from claon_admin.schema.center import Review, ReviewAnswer, Center
@@ -84,3 +85,16 @@ class ReviewSummaryResponseDto(BaseModel):
             count_answered=counts[True],
             count_by_tag=count_by_tag
         )
+
+
+class ReviewFindRequestDto(BaseModel):
+    start_date: date
+    end_date: date
+    tag: str | None
+    is_answered: bool | None
+
+    @root_validator
+    def validate_time_range(cls, values):
+        if values.get('start_date') > values.get('end_date'):
+            raise ValueError("시작 날짜와 종료 날짜를 확인해 주세요.")
+        return values
