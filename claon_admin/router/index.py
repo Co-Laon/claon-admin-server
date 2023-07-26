@@ -31,7 +31,7 @@ async def websocket_endpoint_log(websocket: WebSocket):
     try:
         while True:
             await asyncio.sleep(0.1)
-            logs = await log_reader("logs/info.log", 30)
+            logs = await log_reader("logs/info.log", 50)
             await websocket.send_text(logs)
     except Exception as e:
         print(e)
@@ -43,6 +43,7 @@ async def websocket_endpoint_log(websocket: WebSocket):
 async def get(request: Request):
     context = {
         "log_file": "info.log",
-        "domain": "admin-server.claon.life" if environ.get("API_ENV") == "prod" else "localhost"
+        "env": environ.get("API_ENV"),
+        "domain": request.client.host
     }
     return templates.TemplateResponse("log.html", {"request": request, "context": context})
