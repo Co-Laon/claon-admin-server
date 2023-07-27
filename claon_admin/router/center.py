@@ -51,7 +51,7 @@ class CenterRouter:
 
     @router.post('/{purpose}/file', response_model=UploadFileResponseDto)
     async def upload(self,
-                     subject: CenterAdminUser,
+                     subject: CurrentUser,
                      purpose: CenterUploadPurpose,
                      file: UploadFile = File(...)):
         return await self.center_service.upload_file(purpose, file)
