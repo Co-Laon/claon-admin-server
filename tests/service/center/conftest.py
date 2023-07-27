@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime, timedelta
 from unittest.mock import AsyncMock
 
 import pytest
@@ -6,7 +7,7 @@ import pytest
 from claon_admin.common.enum import Role, WallType, CenterFeeType, PeriodType
 from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterFeeImage, \
     CenterFee, CenterHold, CenterWall, CenterHoldRepository, CenterWallRepository, CenterFeeRepository, \
-    CenterApprovedFileRepository, CenterApprovedFile
+    CenterApprovedFileRepository, CenterApprovedFile, CenterSchedule, CenterScheduleMember, CenterScheduleRepository
 from claon_admin.schema.user import User
 from claon_admin.service.center import CenterService
 
@@ -18,6 +19,7 @@ def mock_repo():
     center_hold_repository = AsyncMock(spec=CenterHoldRepository)
     center_wall_repository = AsyncMock(spec=CenterWallRepository)
     center_approved_file_repository = AsyncMock(spec=CenterApprovedFileRepository)
+    center_schedule_repository = AsyncMock(spec=CenterScheduleRepository)
 
     return {
         "center": center_repository,
@@ -25,6 +27,7 @@ def mock_repo():
         "center_hold": center_hold_repository,
         "center_wall": center_wall_repository,
         "center_approved_file": center_approved_file_repository,
+        "center_schedule": center_schedule_repository,
     }
 
 
@@ -35,7 +38,8 @@ def center_service(mock_repo: dict):
         center_hold_repository=mock_repo["center_hold"],
         center_wall_repository=mock_repo["center_wall"],
         center_fee_repository=mock_repo["center_fee"],
-        center_approved_file_repository=mock_repo["center_approved_file"]
+        center_approved_file_repository=mock_repo["center_approved_file"],
+        center_schedule_repository=mock_repo["center_schedule"]
     )
 
 
@@ -50,6 +54,20 @@ def user_fixture():
         email="test@test.com",
         instagram_name="instagram_name",
         role=Role.CENTER_ADMIN
+    )
+
+
+@pytest.fixture
+def client_user_fixture():
+    yield User(
+        id=str(uuid.uuid4()),
+        oauth_id="user_oauth_id",
+        nickname="user_nickname",
+        profile_img="user_profile_img",
+        sns="user_sns",
+        email="user_test@test.com",
+        instagram_name="user_instagram_name",
+        role=Role.USER
     )
 
 
@@ -219,3 +237,27 @@ async def new_approved_file_fixture(user_fixture: User, new_center_fixture: Cent
             url="url"
         )
     ]
+
+
+@pytest.fixture
+async def center_schedule_fixture(center_fixture: Center):
+    yield CenterSchedule(
+            id=str(uuid.uuid4()),
+            title="test",
+            start_time=datetime.now(),
+            end_time=datetime.now() + timedelta(days=1),
+            description="test descriptioin",
+            center_id=center_fixture.id,
+            center=center_fixture,
+        )
+
+
+@pytest.fixture
+async def center_schedule_member_fixture(client_user_fixture: User, schedule_fixture: CenterSchedule):
+    yield CenterScheduleMember(
+            id=str(uuid.uuid4()),
+            user_id=client_user_fixture.id,
+            user=client_user_fixture,
+            schedule_id=schedule_fixture.id,
+            schedule=schedule_fixture,
+        )

@@ -238,7 +238,7 @@ class CenterService:
         center.update_fee_image(dto.fee_img)
 
         return CenterFeeDetailResponseDto.from_entity(entity=center, fees=fees)
-    
+
 
     @transactional(read_only=True)
     async def find_schedules_by_center(self,
@@ -259,4 +259,4 @@ class CenterService:
             )
 
         schedules = await self.center_schedule_repository.find_by_center(session, center_id)
-        return [ScheduleBriefResponseDto(schedule) for schedule in schedules]
+        return [ScheduleBriefResponseDto.from_entity(schedule) for schedule in schedules]

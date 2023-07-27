@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -8,7 +8,7 @@ from claon_admin.schema.center import (
     CenterRepository,
     CenterApprovedFileRepository, CenterHoldRepository, CenterWallRepository, Center, CenterHold, CenterWall,
     CenterApprovedFile, CenterImage, OperatingTime, Utility, CenterFee, CenterFeeImage, CenterFeeRepository, Review,
-    ReviewRepository, ReviewAnswerRepository, ReviewTag, ReviewAnswer
+    ReviewRepository, ReviewAnswerRepository, ReviewTag, ReviewAnswer, CenterScheduleRepository, CenterSchedule
 )
 from claon_admin.schema.post import Post, PostImage, PostRepository
 from claon_admin.schema.user import User, UserRepository
@@ -22,6 +22,7 @@ center_wall_repository = CenterWallRepository()
 post_repository = PostRepository()
 review_repository = ReviewRepository()
 review_answer_repository = ReviewAnswerRepository()
+center_schedule_repository = CenterScheduleRepository()
 
 
 @pytest.fixture(autouse=True)
@@ -217,4 +218,19 @@ async def review_answer_fixture(session: AsyncSession, review_fixture: Review):
 
     review_answer = await review_answer_repository.save(session, review_answer)
     yield review_answer
+    await session.rollback()
+
+
+@pytest.fixture
+async def center_schedule_fixture(session: AsyncSession, center_fixture: Center):
+    center_schedule = CenterSchedule(
+            title="test",
+            start_time=datetime.now(),
+            end_time=datetime.now() + timedelta(days=1),
+            description="test descriptioin",
+            center=center_fixture,
+        )
+
+    center_schedule = await center_schedule_repository.save(session, center_schedule)
+    yield center_schedule
     await session.rollback()
