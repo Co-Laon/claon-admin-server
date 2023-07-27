@@ -1,4 +1,3 @@
-from claon_admin.config.config import Config
 from claon_admin.config.env import config
 from claon_admin.config.redis import redis
 

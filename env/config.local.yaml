@@ -2,6 +2,7 @@ include:
   optional:
     - aws.yaml
     - gcp.yaml
+    - slack.yaml
 
 security:
   jwt:
