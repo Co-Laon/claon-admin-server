@@ -11,7 +11,7 @@ from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto, CenterResponseDto, \
     CenterCreateRequestDto, CenterUpdateRequestDto, CenterFeeDetailResponseDto, CenterFeeDetailRequestDto
-from claon_admin.model.schedule import ScheduleRequestDto, ScheduleResponseDto, ScheduleBriefResponseDto
+from claon_admin.model.schedule import ScheduleRequestDto, ScheduleResponseDto
 from claon_admin.schema.center import CenterRepository, CenterHoldRepository, CenterWallRepository, \
     CenterFeeRepository, CenterHold, CenterWall, CenterFee, CenterApprovedFileRepository, Center, CenterApprovedFile, \
     CenterSchedule, CenterScheduleRepository, CenterScheduleMemberRepository, CenterScheduleMember
@@ -283,11 +283,13 @@ class CenterService:
         )
 
         return ScheduleResponseDto.from_entity(schedule=schedule, users=users)
+
     @transactional(read_only=True)
-    async def find_schedules_by_center(self,
+    async def find_schedule_detail_by_id(self,
                                        session: AsyncSession,
                                        subject: RequestUser,
-                                       center_id: str):
+                                       center_id: str,
+                                       schedule_id: str):
         center = await self.center_repository.find_by_id(session, center_id)
         if center is None:
             raise NotFoundException(
@@ -300,5 +302,12 @@ class CenterService:
                 ErrorCode.NOT_ACCESSIBLE,
                 "암장 관리자가 아닙니다."
             )
-        schedules = await self.center_schedule_repository.find_by_center(session, center_id)
-        return [ScheduleBriefResponseDto(schedule) for schedule in schedules]
+
+        schedule = await self.center_schedule_repository.find_by_id_and_center_id(session, schedule_id, center_id)
+        if schedule is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 스케쥴이 암장에 존재하지 않습니다."
+            )
+
+        return ScheduleResponseDto.from_entity(schedule=schedule, users=[member.user for member in schedule.members])

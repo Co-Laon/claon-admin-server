@@ -65,6 +65,20 @@ def user_fixture():
 
 
 @pytest.fixture
+def client_user_fixture():
+    yield User(
+        id=str(uuid.uuid4()),
+        oauth_id="user_oauth_id",
+        nickname="user_nickname",
+        profile_img="user_profile_img",
+        sns="user_sns",
+        email="user_test@test.com",
+        instagram_name="user_instagram_name",
+        role=Role.USER
+    )
+
+
+@pytest.fixture
 def pending_user_fixture():
     yield User(
         id=str(uuid.uuid4()),
