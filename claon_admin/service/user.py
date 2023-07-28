@@ -6,7 +6,7 @@ from claon_admin.common.error.exception import BadRequestException, ErrorCode
 from claon_admin.common.util.jwt import create_access_token, create_refresh_key
 from claon_admin.common.util.pagination import paginate
 from claon_admin.common.util.transaction import transactional
-from claon_admin.service.oauth import OAuthUserInfoProviderSupplier, UserInfoProvider
+from claon_admin.service.oauth import OAuthUserInfoProviderSupplier
 from claon_admin.common.util.s3 import upload_file
 from claon_admin.model.auth import OAuthUserInfoDto
 from claon_admin.model.auth import RequestUser
@@ -120,8 +120,7 @@ class UserService:
                       session: AsyncSession,
                       provider: OAuthProvider,
                       dto: SignInRequestDto):
-        provider: UserInfoProvider = await self.supplier.get_provider(provider=provider)
-        oauth_dto: OAuthUserInfoDto = await provider.get_user_info(token=dto.id_token)
+        oauth_dto: OAuthUserInfoDto = await self.supplier.get_user_info(provider, dto.id_token)
 
         user = await self.user_repository.find_by_oauth_id_and_sns(session, oauth_dto.oauth_id, oauth_dto.sns_email)
         if user is None:

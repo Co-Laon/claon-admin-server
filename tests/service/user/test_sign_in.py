@@ -1,9 +1,9 @@
-from unittest.mock import patch, AsyncMock
+from unittest.mock import patch
 
 import pytest
 
 from claon_admin.common.enum import Role, OAuthProvider
-from claon_admin.service.oauth import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider, KakaoUserInfoProvider
+from claon_admin.service.oauth import OAuthUserInfoProviderSupplier
 from claon_admin.model.auth import OAuthUserInfoDto
 from claon_admin.model.user import SignInRequestDto
 from claon_admin.schema.user import User
@@ -33,10 +33,7 @@ class TestSignIn(object):
         provider_name = OAuthProvider.GOOGLE
 
         oauth_user_info_dto = OAuthUserInfoDto(oauth_id="oauth_id", sns_email="test_sns")
-        mock_provider = AsyncMock(spec=GoogleUserInfoProvider)
-        mock_provider.get_user_info.return_value = oauth_user_info_dto
-
-        mock_supplier.get_provider.return_value = mock_provider
+        mock_supplier.get_user_info.return_value = oauth_user_info_dto
 
         mock_create_access_token.return_value = "test_access_token"
         mock_create_refresh_key.return_value = "test_refresh_key"
@@ -70,10 +67,7 @@ class TestSignIn(object):
         provider_name = OAuthProvider.GOOGLE
 
         oauth_user_info_dto = OAuthUserInfoDto(oauth_id="oauth_id", sns_email="test_sns")
-        mock_provider = AsyncMock(spec=GoogleUserInfoProvider)
-        mock_provider.get_user_info.return_value = oauth_user_info_dto
-
-        mock_supplier.get_provider.return_value = mock_provider
+        mock_supplier.get_user_info.return_value = oauth_user_info_dto
 
         mock_create_access_token.return_value = "test_access_token"
         mock_create_refresh_key.return_value = "test_refresh_key"
@@ -107,10 +101,7 @@ class TestSignIn(object):
         provider_name = OAuthProvider.KAKAO
 
         oauth_user_info_dto = OAuthUserInfoDto(oauth_id="oauth_id", sns_email="test_sns")
-        mock_provider = AsyncMock(spec=KakaoUserInfoProvider)
-        mock_provider.get_user_info.return_value = oauth_user_info_dto
-
-        mock_supplier.get_provider.return_value = mock_provider
+        mock_supplier.get_user_info.return_value = oauth_user_info_dto
 
         mock_create_access_token.return_value = "test_access_token"
         mock_create_refresh_key.return_value = "test_refresh_key"
@@ -144,10 +135,7 @@ class TestSignIn(object):
         provider_name = OAuthProvider.KAKAO
 
         oauth_user_info_dto = OAuthUserInfoDto(oauth_id="oauth_id", sns_email="test_sns")
-        mock_provider = AsyncMock(spec=KakaoUserInfoProvider)
-        mock_provider.get_user_info.return_value = oauth_user_info_dto
-
-        mock_supplier.get_provider.return_value = mock_provider
+        mock_supplier.get_user_info.return_value = oauth_user_info_dto
 
         mock_create_access_token.return_value = "test_access_token"
         mock_create_refresh_token.return_value = "test_refresh_key"
