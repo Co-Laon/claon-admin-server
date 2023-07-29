@@ -10,7 +10,7 @@ from claon_admin.schema.user import UserRepository, LectorRepository, LectorAppr
 from claon_admin.service.admin import AdminService
 from claon_admin.service.center import CenterService
 from claon_admin.service.membership import MembershipService
-from claon_admin.service.oauth import OAuthUserInfoProviderSupplier, GoogleUserInfoProvider, KakaoUserInfoProvider
+from claon_admin.service.oauth import OAuthUserInfoProviderSupplier
 from claon_admin.service.post import PostService
 from claon_admin.service.review import ReviewService
 from claon_admin.service.user import UserService
@@ -36,13 +36,7 @@ class Container(containers.DeclarativeContainer):
     center_schedule_member_repository = providers.Singleton(CenterScheduleMemberRepository)
 
     """ Service """
-    google_user_info_provider = providers.Singleton(GoogleUserInfoProvider)
-    kakao_user_info_provider = providers.Singleton(KakaoUserInfoProvider)
-    oauth_user_info_provider_supplier = providers.Singleton(
-        OAuthUserInfoProviderSupplier,
-        google_user_info_provider=google_user_info_provider,
-        kakao_user_info_provider=kakao_user_info_provider
-    )
+    oauth_user_info_provider_supplier = providers.Singleton(OAuthUserInfoProviderSupplier)
 
     user_service = providers.Singleton(
         UserService,

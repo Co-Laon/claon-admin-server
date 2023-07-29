@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import Dict
 
 import requests
@@ -12,7 +13,8 @@ from claon_admin.common.enum import OAuthProvider
 GOOGLE_CLIENT_ID = config.get("gcp.client-id")
 
 
-class UserInfoProvider:
+class UserInfoProvider(ABC):
+    @abstractmethod
     async def get_user_info(self, token: str):
         pass
 
@@ -60,15 +62,13 @@ class KakaoUserInfoProvider(UserInfoProvider):
 
 
 class OAuthUserInfoProviderSupplier:
-    def __init__(self,
-                 google_user_info_provider: GoogleUserInfoProvider,
-                 kakao_user_info_provider: KakaoUserInfoProvider):
+    def __init__(self):
         self.supplier: Dict[OAuthProvider, UserInfoProvider] = {
-            OAuthProvider.GOOGLE: google_user_info_provider,
-            OAuthProvider.KAKAO: kakao_user_info_provider
+            OAuthProvider.GOOGLE: GoogleUserInfoProvider(),
+            OAuthProvider.KAKAO: KakaoUserInfoProvider()
         }
 
-    async def get_provider(self, provider: OAuthProvider):
+    def get_provider(self, provider: OAuthProvider):
         try:
             return self.supplier.get(provider)
         except Exception as e:
@@ -76,3 +76,8 @@ class OAuthUserInfoProviderSupplier:
                 ErrorCode.INTERNAL_SERVER_ERROR,
                 "Failed to get provider because of incorrect provider name"
             ) from e
+
+    async def get_user_info(self, provider: OAuthProvider, token: str):
+        provider = self.get_provider(provider)
+
+        return await provider.get_user_info(token)
