@@ -1,8 +1,10 @@
 from fastapi import UploadFile
+from fastapi_pagination import Params
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.error.exception import BadRequestException, ErrorCode
 from claon_admin.common.util.jwt import create_access_token, create_refresh_key
+from claon_admin.common.util.pagination import paginate
 from claon_admin.common.util.transaction import transactional
 from claon_admin.service.oauth import OAuthUserInfoProviderSupplier, UserInfoProvider
 from claon_admin.common.util.s3 import upload_file
@@ -12,7 +14,7 @@ from claon_admin.model.center import CenterAuthRequestDto, CenterResponseDto
 from claon_admin.common.enum import OAuthProvider, Role, LectorUploadPurpose, UserUploadPurpose
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.user import IsDuplicatedNicknameResponseDto, LectorRequestDto, LectorResponseDto, \
-    UserProfileResponseDto, JwtReissueDto, CenterNameResponseDto
+    UserProfileResponseDto, JwtReissueDto, CenterNameResponseDto, UserNameResponseDto
 from claon_admin.model.user import SignInRequestDto, JwtResponseDto
 from claon_admin.schema.center import CenterRepository, Center, CenterHold, CenterWall, CenterApprovedFile, \
     CenterHoldRepository, CenterWallRepository, CenterApprovedFileRepository
@@ -161,6 +163,12 @@ class UserService:
         centers = await self.center_repository.find_by_user_id(session=session, user_id=subject.id)
 
         return [CenterNameResponseDto.from_entity(entity=c) for c in centers]
+
+    @transactional(read_only=True)
+    async def find_all_by_nickname(self, session: AsyncSession, params: Params, nickname: str):
+        pages = await self.user_repository.find_all_by_nickname(session=session, nickname=nickname, params=params)
+
+        return await paginate(UserNameResponseDto, pages)
 
     # TODO: Need to be removed later
     @transactional()

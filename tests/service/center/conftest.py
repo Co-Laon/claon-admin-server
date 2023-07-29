@@ -1,4 +1,5 @@
 import uuid
+from datetime import datetime
 from unittest.mock import AsyncMock
 
 import pytest
@@ -6,36 +7,46 @@ import pytest
 from claon_admin.common.enum import Role, WallType, CenterFeeType, PeriodType
 from claon_admin.schema.center import CenterRepository, Center, CenterImage, OperatingTime, Utility, CenterFeeImage, \
     CenterFee, CenterHold, CenterWall, CenterHoldRepository, CenterWallRepository, CenterFeeRepository, \
-    CenterApprovedFileRepository, CenterApprovedFile
-from claon_admin.schema.user import User
+    CenterApprovedFileRepository, CenterApprovedFile, CenterScheduleMemberRepository, CenterScheduleRepository, \
+    CenterSchedule, CenterScheduleMember
+from claon_admin.schema.user import User, UserRepository
 from claon_admin.service.center import CenterService
 
 
 @pytest.fixture
 def mock_repo():
+    user_repository = AsyncMock(spec=UserRepository)
     center_repository = AsyncMock(spec=CenterRepository)
     center_fee_repository = AsyncMock(spec=CenterFeeRepository)
     center_hold_repository = AsyncMock(spec=CenterHoldRepository)
     center_wall_repository = AsyncMock(spec=CenterWallRepository)
     center_approved_file_repository = AsyncMock(spec=CenterApprovedFileRepository)
+    center_schedule_repository = AsyncMock(spec=CenterScheduleRepository)
+    center_schedule_member_repository = AsyncMock(spec=CenterScheduleMemberRepository)
 
     return {
+        "user": user_repository,
         "center": center_repository,
         "center_fee": center_fee_repository,
         "center_hold": center_hold_repository,
         "center_wall": center_wall_repository,
         "center_approved_file": center_approved_file_repository,
+        "center_schedule": center_schedule_repository,
+        "center_schedule_member": center_schedule_member_repository
     }
 
 
 @pytest.fixture
 def center_service(mock_repo: dict):
     return CenterService(
+        user_repository=mock_repo["user"],
         center_repository=mock_repo["center"],
         center_hold_repository=mock_repo["center_hold"],
         center_wall_repository=mock_repo["center_wall"],
         center_fee_repository=mock_repo["center_fee"],
-        center_approved_file_repository=mock_repo["center_approved_file"]
+        center_approved_file_repository=mock_repo["center_approved_file"],
+        center_schedule_repository=mock_repo["center_schedule"],
+        center_schedule_member_repository=mock_repo["center_schedule_member"]
     )
 
 
@@ -217,5 +228,28 @@ async def new_approved_file_fixture(user_fixture: User, new_center_fixture: Cent
             user=user_fixture,
             center=new_center_fixture,
             url="url"
+        )
+    ]
+
+
+@pytest.fixture
+async def new_schedule_fixture(center_fixture: Center):
+    yield CenterSchedule(
+        id=str(uuid.uuid4()),
+        title="title",
+        start_time=datetime(2023, 1, 1, 10, 0),
+        end_time=datetime(2023, 1, 2, 10, 0),
+        description="description",
+        center=center_fixture
+    )
+
+
+@pytest.fixture
+async def new_schedule_member_fixture(user_fixture: User, new_schedule_fixture: CenterSchedule):
+    yield [
+        CenterScheduleMember(
+            id=str(uuid.uuid4()),
+            user=user_fixture,
+            schedule=new_schedule_fixture
         )
     ]

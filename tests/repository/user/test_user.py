@@ -1,4 +1,5 @@
 import pytest
+from fastapi_pagination import Params, Page
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from claon_admin.common.enum import Role
@@ -151,3 +152,29 @@ class TestUserRepository(object):
 
         # then
         assert not result
+
+    @pytest.mark.asyncio
+    async def test_find_all_by_nickname(self, session: AsyncSession, user_fixture: User, other_user_fixture: User):
+        # given
+        nickname = "name"
+        other_name = "wrong"
+        params = Params(page=1, size=10)
+
+        # then
+        assert await user_repository.find_all_by_nickname(
+            session, nickname=nickname, params=params
+        ) == Page.create(items=[user_fixture, other_user_fixture], params=params, total=2)
+        assert await user_repository.find_all_by_nickname(
+            session, nickname=other_name, params=params
+        ) == Page.create(items=[], params=params, total=0)
+
+    @pytest.mark.asyncio
+    async def test_find_by_ids(self, session: AsyncSession, user_fixture: User, other_user_fixture: User):
+        # given
+        ids = [user_fixture.id, other_user_fixture.id]
+
+        # when
+        result = await user_repository.find_by_ids(session, ids=ids)
+
+        # then
+        assert set(result) == {user_fixture, other_user_fixture}

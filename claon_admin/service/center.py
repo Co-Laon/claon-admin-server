@@ -11,22 +11,31 @@ from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto, CenterResponseDto, \
     CenterCreateRequestDto, CenterUpdateRequestDto, CenterFeeDetailResponseDto, CenterFeeDetailRequestDto
+from claon_admin.model.schedule import ScheduleRequestDto, ScheduleResponseDto
 from claon_admin.schema.center import CenterRepository, CenterHoldRepository, CenterWallRepository, \
-    CenterFeeRepository, CenterHold, CenterWall, CenterFee, CenterApprovedFileRepository, Center, CenterApprovedFile
+    CenterFeeRepository, CenterHold, CenterWall, CenterFee, CenterApprovedFileRepository, Center, CenterApprovedFile, \
+    CenterSchedule, CenterScheduleRepository, CenterScheduleMemberRepository, CenterScheduleMember
+from claon_admin.schema.user import UserRepository
 
 
 class CenterService:
     def __init__(self,
+                 user_repository: UserRepository,
                  center_repository: CenterRepository,
                  center_hold_repository: CenterHoldRepository,
                  center_wall_repository: CenterWallRepository,
                  center_fee_repository: CenterFeeRepository,
-                 center_approved_file_repository: CenterApprovedFileRepository):
+                 center_approved_file_repository: CenterApprovedFileRepository,
+                 center_schedule_repository: CenterScheduleRepository,
+                 center_schedule_member_repository: CenterScheduleMemberRepository):
+        self.user_repository = user_repository
         self.center_repository = center_repository
         self.center_hold_repository = center_hold_repository
         self.center_wall_repository = center_wall_repository
         self.center_fee_repository = center_fee_repository
         self.center_approved_file_repository = center_approved_file_repository
+        self.center_schedule_repository = center_schedule_repository
+        self.center_schedule_member_repository = center_schedule_member_repository
 
     @transactional()
     async def create(self,
@@ -236,3 +245,41 @@ class CenterService:
         center.update_fee_image(dto.fee_img)
 
         return CenterFeeDetailResponseDto.from_entity(entity=center, fees=fees)
+
+    @transactional()
+    async def create_schedule(self,
+                              session: AsyncSession,
+                              subject: RequestUser,
+                              center_id: str,
+                              dto: ScheduleRequestDto):
+        center = await self.center_repository.find_by_id_with_details(session=session, center_id=center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if not center.is_owner(subject.id):
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        schedule = await self.center_schedule_repository.save(
+            session=session,
+            entity=CenterSchedule(
+                title=dto.title,
+                start_time=dto.start_time,
+                end_time=dto.end_time,
+                description=dto.description,
+                center=center
+            )
+        )
+
+        users = await self.user_repository.find_by_ids(session=session, ids=dto.member_list)
+        await self.center_schedule_member_repository.save_all(
+            session=session,
+            entity_list=[CenterScheduleMember(user=user, schedule=schedule) for user in users]
+        )
+
+        return ScheduleResponseDto.from_entity(schedule=schedule, users=users)

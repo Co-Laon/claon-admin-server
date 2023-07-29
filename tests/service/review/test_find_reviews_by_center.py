@@ -9,7 +9,7 @@ from claon_admin.common.error.exception import NotFoundException, ErrorCode, Una
 from claon_admin.common.util.pagination import Pagination
 from claon_admin.common.util.time import get_relative_time
 from claon_admin.model.auth import RequestUser
-from claon_admin.model.review import ReviewBriefResponseDto
+from claon_admin.model.review import ReviewBriefResponseDto, ReviewFindRequestDto
 from claon_admin.schema.center import Center, Post, Review
 from claon_admin.schema.user import User
 from claon_admin.service.review import ReviewService
@@ -17,12 +17,22 @@ from claon_admin.service.review import ReviewService
 
 @pytest.mark.describe("Test case for find reviews by center")
 class TestFindReviewsByCenter(object):
+    @pytest.fixture
+    async def review_find_request_dto(self):
+        yield ReviewFindRequestDto(
+            start_date=datetime(2022, 4, 1),
+            end_date=datetime(2023, 3, 31),
+            tag=None,
+            is_answered=None
+        )
+
     @pytest.mark.asyncio
     @pytest.mark.it("Success case")
     @patch("claon_admin.common.util.pagination.paginate")
     async def test_find_reviews_by_center_not_filter(
             self,
             mock_paginate,
+            review_find_request_dto: ReviewFindRequestDto,
             review_service: ReviewService,
             mock_repo: dict,
             user_fixture: User,
@@ -55,10 +65,7 @@ class TestFindReviewsByCenter(object):
             request_user,
             params,
             center_fixture.id,
-            datetime(2022, 4, 1),
-            datetime(2023, 3, 31),
-            None,
-            None
+            review_find_request_dto
         )
 
         # then
@@ -81,6 +88,7 @@ class TestFindReviewsByCenter(object):
     async def test_find_reviews_by_center_not_answered(
             self,
             mock_paginate,
+            review_find_request_dto: ReviewFindRequestDto,
             review_service: ReviewService,
             mock_repo: dict,
             pending_user_fixture: User,
@@ -107,10 +115,7 @@ class TestFindReviewsByCenter(object):
             request_user,
             params,
             center_fixture.id,
-            datetime(2022, 4, 1),
-            datetime(2023, 3, 31),
-            None,
-            False
+            review_find_request_dto
         )
 
         # then
@@ -129,6 +134,7 @@ class TestFindReviewsByCenter(object):
     async def test_find_reviews_by_center_with_tag(
             self,
             mock_paginate,
+            review_find_request_dto: ReviewFindRequestDto,
             review_service: ReviewService,
             mock_repo: dict,
             user_fixture: User,
@@ -159,10 +165,7 @@ class TestFindReviewsByCenter(object):
             request_user,
             params,
             center_fixture.id,
-            datetime(2022, 4, 1),
-            datetime(2023, 3, 31),
-            "tag",
-            None,
+            review_find_request_dto
         )
 
         # then
@@ -182,6 +185,7 @@ class TestFindReviewsByCenter(object):
     async def test_find_reviews_by_center_not_exist_center(
             self,
             mock_repo: dict,
+            review_find_request_dto: ReviewFindRequestDto,
             center_fixture: Center,
             review_service: ReviewService
     ):
@@ -196,10 +200,7 @@ class TestFindReviewsByCenter(object):
                 request_user,
                 params,
                 center_fixture.id,
-                datetime(2022, 4, 1),
-                datetime(2023, 3, 31),
-                None,
-                None,
+                review_find_request_dto
             )
 
         # then
@@ -210,6 +211,7 @@ class TestFindReviewsByCenter(object):
     async def test_find_reviews_by_center_not_center_admin(
             self,
             mock_repo: dict,
+            review_find_request_dto: ReviewFindRequestDto,
             center_fixture: Center,
             review_service: ReviewService
     ):
@@ -224,39 +226,8 @@ class TestFindReviewsByCenter(object):
                 request_user,
                 params,
                 center_fixture.id,
-                datetime(2022, 4, 1),
-                datetime(2023, 3, 31),
-                None,
-                None,
+                review_find_request_dto
             )
 
         # then
         assert exception.value.code == ErrorCode.NOT_ACCESSIBLE
-
-    @pytest.mark.asyncio
-    @pytest.mark.it("Fail case: invalid date range")
-    async def test_find_reviews_by_center_with_invalid_date(
-            self,
-            mock_repo: dict,
-            center_fixture: Center,
-            review_service: ReviewService
-    ):
-        # given
-        request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
-        mock_repo["center"].find_by_id.side_effect = [center_fixture]
-        params = Params(page=1, size=10)
-
-        with pytest.raises(BadRequestException) as exception:
-            # when
-            await review_service.find_reviews_by_center(
-                request_user,
-                params,
-                center_fixture.id,
-                datetime(2023, 4, 1),
-                datetime(2022, 3, 31),
-                None,
-                None,
-            )
-
-        # then
-        assert exception.value.code == ErrorCode.WRONG_DATE_RANGE

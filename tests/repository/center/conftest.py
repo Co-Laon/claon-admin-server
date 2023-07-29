@@ -8,7 +8,8 @@ from claon_admin.schema.center import (
     CenterRepository,
     CenterApprovedFileRepository, CenterHoldRepository, CenterWallRepository, Center, CenterHold, CenterWall,
     CenterApprovedFile, CenterImage, OperatingTime, Utility, CenterFee, CenterFeeImage, CenterFeeRepository, Review,
-    ReviewRepository, ReviewAnswerRepository, ReviewTag, ReviewAnswer
+    ReviewRepository, ReviewAnswerRepository, ReviewTag, ReviewAnswer, CenterSchedule, CenterScheduleRepository,
+    CenterScheduleMemberRepository, CenterScheduleMember
 )
 from claon_admin.schema.post import Post, PostImage, PostRepository
 from claon_admin.schema.user import User, UserRepository
@@ -22,6 +23,8 @@ center_wall_repository = CenterWallRepository()
 post_repository = PostRepository()
 review_repository = ReviewRepository()
 review_answer_repository = ReviewAnswerRepository()
+center_schedule_repository = CenterScheduleRepository()
+center_schedule_member_repository = CenterScheduleMemberRepository()
 
 
 @pytest.fixture(autouse=True)
@@ -217,4 +220,31 @@ async def review_answer_fixture(session: AsyncSession, review_fixture: Review):
 
     review_answer = await review_answer_repository.save(session, review_answer)
     yield review_answer
+    await session.rollback()
+
+
+@pytest.fixture
+async def schedule_fixture(session: AsyncSession, center_fixture: Center):
+    schedule = CenterSchedule(
+        center=center_fixture,
+        title="title",
+        start_time=datetime(2023, 10, 1, 10, 0),
+        end_time=datetime(2023, 10, 2, 10, 0),
+        description="test"
+    )
+
+    schedule = await center_schedule_repository.save(session, schedule)
+    yield schedule
+    await session.rollback()
+
+
+@pytest.fixture
+async def schedule_member_fixture(session: AsyncSession, user_fixture: User, schedule_fixture: CenterSchedule):
+    schedule_member = CenterScheduleMember(
+        user=user_fixture,
+        schedule=schedule_fixture,
+    )
+
+    schedule_member = await center_schedule_member_repository.save(session, schedule_member)
+    yield schedule_member
     await session.rollback()

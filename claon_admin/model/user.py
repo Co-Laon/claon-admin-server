@@ -212,3 +212,12 @@ class CenterNameResponseDto(BaseModel):
             name=entity.name,
             is_approved=entity.approved
         )
+
+
+class UserNameResponseDto(BaseModel):
+    user_id: str
+    nickname: str
+
+    @classmethod
+    def from_entity(cls, entity: User):
+        return cls(user_id=entity.id, nickname=entity.nickname)
