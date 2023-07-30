@@ -10,7 +10,7 @@ from claon_admin.common.error.exception import NotFoundException, ErrorCode, Una
 from claon_admin.common.util.pagination import Pagination
 from claon_admin.common.util.time import get_relative_time
 from claon_admin.model.auth import RequestUser
-from claon_admin.model.post import PostBriefResponseDto
+from claon_admin.model.post import PostBriefResponseDto, PostFinder
 from claon_admin.schema.center import Center
 from claon_admin.schema.post import Post, ClimbingHistory
 from claon_admin.service.post import PostService
@@ -42,15 +42,14 @@ class TestFindPostsByCenter(object):
             results=[PostBriefResponseDto.from_entity(post_fixture)]
         )
         mock_paginate.return_value = [mock_pagination]
+        finder = PostFinder(start_date=datetime(2022, 4, 1), end_date=datetime(2023, 3, 31), hold_id=None)
 
         # when
         pages: Pagination[PostBriefResponseDto] = await post_service.find_posts_by_center(
-            subject=request_user,
-            params=params,
-            center_id=center_fixture.id,
-            hold_id=None,
-            start=datetime(2022, 4, 1),
-            end=datetime(2023, 3, 31)
+            request_user,
+            params,
+            center_fixture.id,
+            finder
         )
 
         # then
@@ -87,15 +86,14 @@ class TestFindPostsByCenter(object):
             results=[PostBriefResponseDto.from_entity(post_fixture)]
         )
         mock_paginate.return_value = [mock_pagination]
+        finder = PostFinder(start_date=datetime(2022, 4, 1), end_date=datetime(2023, 3, 31), hold_id=climbing_history_fixture[0].hold_id)
 
         # when
         pages: Pagination[PostBriefResponseDto] = await post_service.find_posts_by_center(
             request_user,
             params,
             center_fixture.id,
-            climbing_history_fixture[0].hold_id,
-            datetime(2022, 4, 1),
-            datetime(2023, 3, 31)
+            finder
         )
 
         # then
@@ -120,17 +118,11 @@ class TestFindPostsByCenter(object):
         center_id = "not_existing_id"
         mock_repo["center"].find_by_id_with_details.side_effect = [None]
         params = Params(page=1, size=10)
+        finder = PostFinder(start_date=datetime(2022, 4, 1), end_date=datetime(2023, 3, 31), hold_id=None)
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await post_service.find_posts_by_center(
-                request_user,
-                params,
-                center_id,
-                None,
-                datetime(2022, 4, 1),
-                datetime(2023, 3, 31)
-            )
+            await post_service.find_posts_by_center(request_user, params, center_id, finder)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
@@ -147,17 +139,11 @@ class TestFindPostsByCenter(object):
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.CENTER_ADMIN)
         mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
         params = Params(page=1, size=10)
+        finder = PostFinder(start_date=datetime(2022, 4, 1), end_date=datetime(2023, 3, 31), hold_id="not included hold")
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await post_service.find_posts_by_center(
-                request_user,
-                params,
-                center_fixture.id,
-                "not included hold",
-                datetime(2022, 4, 1),
-                datetime(2023, 3, 31)
-            )
+            await post_service.find_posts_by_center(request_user, params, center_fixture.id, finder)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
@@ -175,17 +161,12 @@ class TestFindPostsByCenter(object):
         request_user = RequestUser(id="123456", sns="test@claon.com", role=Role.CENTER_ADMIN)
         mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
         params = Params(page=1, size=10)
+        finder = PostFinder(start_date=datetime(2022, 4, 1), end_date=datetime(2023, 3, 31),
+                            hold_id=climbing_history_fixture[0].hold_id)
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await post_service.find_posts_by_center(
-                request_user,
-                params,
-                center_fixture.id,
-                climbing_history_fixture[0].hold_id,
-                datetime(2022, 4, 1),
-                datetime(2023, 3, 31)
-            )
+            await post_service.find_posts_by_center(request_user, params, center_fixture.id, finder)
 
         # then
         assert exception.value.code == ErrorCode.NOT_ACCESSIBLE

@@ -2,7 +2,7 @@ from datetime import timedelta, date
 from typing import List
 
 import pandas as pd
-from pydantic import BaseModel
+from pydantic import BaseModel, root_validator
 
 from claon_admin.common.util.time import get_relative_time, get_weekday
 from claon_admin.schema.center import Post, Center
@@ -20,7 +20,7 @@ class PostBriefResponseDto(BaseModel):
 
     @classmethod
     def from_entity(cls, entity: Post):
-        return PostBriefResponseDto(
+        return cls(
             post_id=entity.id,
             content=entity.content,
             image=entity.img[0].url,
@@ -53,7 +53,7 @@ class PostSummaryResponseDto(BaseModel):
                     count_total: int,
                     count_history_by_year: List[PostCountHistory]):
         if not count_history_by_year:
-            return PostSummaryResponseDto(
+            return cls(
                 center_id=center.id,
                 center_name=center.name,
                 count_today=0,
@@ -67,7 +67,7 @@ class PostSummaryResponseDto(BaseModel):
         count_by_month, count_by_week, count_by_day = cls.__count_history(end_date, count_history_by_year)
         data_per_day, data_per_week = cls.__get_data_per_period(end_date, count_history_by_year)
 
-        return PostSummaryResponseDto(
+        return cls(
             center_id=center.id,
             center_name=center.name,
             count_today=sum([history.count for history in count_by_day]),
@@ -143,3 +143,15 @@ class PostResponseDto(BaseModel):
     user_id: str
     user_nickname: str
     user_profile_image: str
+
+
+class PostFinder(BaseModel):
+    start_date: date
+    end_date: date
+    hold_id: str | None = None
+
+    @root_validator
+    def validate_time_range(cls, values):
+        if values.get('start_date') > values.get('end_date'):
+            raise ValueError("시작 날짜와 종료 날짜를 확인해 주세요.")
+        return values

@@ -53,14 +53,10 @@ class TestSave(object):
         mock_repo["center_wall"].save_all.side_effect = [new_center_walls_fixture]
         mock_repo["center_approved_file"].save_all.side_effect = [new_approved_file_fixture]
 
-        response = CenterResponseDto.from_entity(
-            entity=new_center_fixture,
-            holds=new_center_holds_fixture,
-            walls=new_center_walls_fixture
-        )
+        response = CenterResponseDto.from_entity(new_center_fixture, new_center_holds_fixture, new_center_walls_fixture)
 
         # when
-        result = await center_service.create(subject=request_user, dto=center_save_request_dto)
+        result = await center_service.create(request_user, center_save_request_dto)
 
         # then
         assert result == response

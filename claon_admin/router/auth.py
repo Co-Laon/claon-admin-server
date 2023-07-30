@@ -23,14 +23,14 @@ class AuthRouter:
     # TODO: Need to be removed later
     @router.post('/test-sign-in', response_model=JwtResponseDto)
     async def test_sign_in(self,
-                           dto: SignInRequestDto):
-        return await self.user_service.test_sign_in(dto)
+                           req: SignInRequestDto):
+        return await self.user_service.test_sign_in(req)
 
     @router.post('/{provider}/sign-in', response_model=JwtResponseDto)
     async def sign_in(self,
                       provider: OAuthProvider,
-                      dto: SignInRequestDto):
-        return await self.user_service.sign_in(provider, dto)
+                      req: SignInRequestDto):
+        return await self.user_service.sign_in(provider, req)
 
     @router.get('/reissue', response_model=JwtReissueDto)
     async def reissue_token(self,
@@ -40,14 +40,14 @@ class AuthRouter:
     @router.post('/center/sign-up', response_model=CenterResponseDto)
     async def center_sign_up(self,
                              subject: CurrentUser,
-                             dto: CenterAuthRequestDto):
-        return await self.user_service.sign_up_center(subject, dto)
+                             req: CenterAuthRequestDto):
+        return await self.user_service.sign_up_center(subject, req)
 
     @router.post('/lector/sign-up', response_model=LectorResponseDto)
     async def lector_sign_up(self,
                              subject: CurrentUser,
-                             dto: LectorRequestDto):
-        return await self.user_service.sign_up_lector(subject, dto)
+                             req: LectorRequestDto):
+        return await self.user_service.sign_up_lector(subject, req)
 
     @router.get('/nickname/{nickname}/is-duplicated', response_model=IsDuplicatedNicknameResponseDto)
     async def is_duplicated_nickname(self,

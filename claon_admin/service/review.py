@@ -8,7 +8,7 @@ from claon_admin.common.util.pagination import paginate
 from claon_admin.common.util.transaction import transactional
 from claon_admin.model.auth import RequestUser
 from claon_admin.model.review import ReviewBriefResponseDto, ReviewAnswerRequestDto, ReviewAnswerResponseDto, \
-    ReviewSummaryResponseDto, ReviewTagDto, ReviewFindRequestDto
+    ReviewSummaryResponseDto, ReviewTagDto, ReviewFinder
 from claon_admin.schema.center import CenterRepository, ReviewRepository, ReviewAnswerRepository, ReviewAnswer
 
 
@@ -27,7 +27,7 @@ class ReviewService:
                                      subject: RequestUser,
                                      params: Params,
                                      center_id: str,
-                                     dto: ReviewFindRequestDto):
+                                     finder: ReviewFinder):
         center = await self.center_repository.find_by_id(session, center_id)
         if center is None:
             raise NotFoundException(
@@ -42,13 +42,13 @@ class ReviewService:
             )
 
         pages = await self.review_repository.find_reviews_by_center(
-            session=session,
-            params=params,
-            center_id=center_id,
-            start=dto.start_date,
-            end=dto.end_date,
-            tag=dto.tag,
-            is_answered=dto.is_answered
+            session,
+            params,
+            center_id,
+            finder.start_date,
+            finder.end_date,
+            finder.tag,
+            finder.is_answered
         )
 
         return await paginate(ReviewBriefResponseDto, pages)
@@ -57,9 +57,9 @@ class ReviewService:
     async def create_review_answer(self,
                                    session: AsyncSession,
                                    subject: RequestUser,
-                                   dto: ReviewAnswerRequestDto,
                                    center_id: str,
-                                   review_id: str):
+                                   review_id: str,
+                                   req: ReviewAnswerRequestDto):
         center = await self.center_repository.find_by_id(session, center_id)
         if center is None:
             raise NotFoundException(
@@ -80,15 +80,14 @@ class ReviewService:
                 "해당 리뷰가 암장에 존재하지 않습니다."
             )
 
-        answer = await self.review_answer_repository.find_by_review_id(session, review.id)
-        if answer is not None:
+        if review.answer is not None:
             raise NotFoundException(
                 ErrorCode.ROW_ALREADY_EXIST,
                 "이미 작성된 답변이 존재합니다."
             )
 
         new_answer = ReviewAnswer(
-            content=dto.answer_content,
+            content=req.answer_content,
             review=review
         )
 
@@ -100,9 +99,9 @@ class ReviewService:
     async def update_review_answer(self,
                                    session: AsyncSession,
                                    subject: RequestUser,
-                                   dto: ReviewAnswerRequestDto,
                                    center_id: str,
-                                   review_id: str):
+                                   review_id: str,
+                                   req: ReviewAnswerRequestDto):
         center = await self.center_repository.find_by_id(session, center_id)
         if center is None:
             raise NotFoundException(
@@ -123,16 +122,15 @@ class ReviewService:
                 "암장에 해당 리뷰가 존재하지 않습니다."
             )
 
-        answer = await self.review_answer_repository.find_by_review_id(session, review.id)
-        if answer is None:
+        if review.answer is None:
             raise NotFoundException(
                 ErrorCode.DATA_DOES_NOT_EXIST,
                 "해당 리뷰에 답변이 존재하지 않습니다."
             )
 
-        answer.update(dto.answer_content)
+        review.answer.update(req.answer_content)
 
-        return ReviewAnswerResponseDto.from_entity(answer)
+        return ReviewAnswerResponseDto.from_entity(review.answer)
 
     @transactional()
     async def delete_review_answer(self,
@@ -160,14 +158,13 @@ class ReviewService:
                 "암장에 해당 리뷰가 존재하지 않습니다."
             )
 
-        answer = await self.review_answer_repository.find_by_review_id(session, review.id)
-        if answer is None:
+        if review.answer is None:
             raise NotFoundException(
                 ErrorCode.DATA_DOES_NOT_EXIST,
                 "해당 리뷰에 답변이 존재하지 않습니다."
             )
 
-        return await self.review_answer_repository.delete(session, answer)
+        return await self.review_answer_repository.delete(session, review.answer)
 
     @transactional(read_only=True)
     async def find_reviews_summary_by_center(self,

@@ -96,6 +96,21 @@ class TestCenterRepository(object):
         assert result is None
 
     @pytest.mark.asyncio
+    async def test_exists_by_name_and_approved(
+            self,
+            session: AsyncSession,
+            center_fixture: Center
+    ):
+        # given
+        center_name = center_fixture.name
+
+        # when
+        result = await center_repository.exists_by_name_and_approved(session, center_name)
+
+        # then
+        assert result == True
+
+    @pytest.mark.asyncio
     async def test_delete_center(
             self,
             session: AsyncSession,

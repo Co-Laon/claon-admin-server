@@ -63,7 +63,7 @@ class CenterResponseDto(BaseModel):
 
     @classmethod
     def from_entity(cls, center: Center, approved_files: List[CenterApprovedFile]):
-        return CenterResponseDto(
+        return cls(
             user_profile=UserProfileResponseDto.from_entity(center.user),
             center_id=center.id,
             profile_image=center.profile_img,
@@ -126,7 +126,7 @@ class LectorResponseDto(BaseModel):
 
     @classmethod
     def from_entity(cls, lector: Lector, approved_files: List[LectorApprovedFile]):
-        return LectorResponseDto(
+        return cls(
             lector_id=lector.id,
             user_profile=UserProfileResponseDto.from_entity(lector.user),
             is_setter=lector.is_setter,

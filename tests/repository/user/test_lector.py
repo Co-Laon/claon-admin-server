@@ -59,6 +59,21 @@ class TestLectorRepository(object):
         assert result == lector_fixture
 
     @pytest.mark.asyncio
+    async def test_find_lector_by_id(
+            self,
+            session: AsyncSession,
+            lector_fixture: Lector
+    ):
+        # given
+        lector_id = lector_fixture.id
+
+        # when
+        result = await lector_repository.find_by_id_with_user(session, lector_id)
+
+        # then
+        assert result == lector_fixture
+
+    @pytest.mark.asyncio
     async def test_find_lector_by_invalid_id(
             self,
             session: AsyncSession

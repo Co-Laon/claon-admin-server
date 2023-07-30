@@ -410,13 +410,10 @@ class ReviewRepository(Repository[Review]):
 
         return await paginate(query=query, conn=session, params=params)
 
-    async def find_by_id_and_center_id(self,
-                                       session: AsyncSession,
-                                       review_id: str,
-                                       center_id: str):
+    async def find_by_id_and_center_id(self, session: AsyncSession, review_id: str, center_id: str):
         result = await session.execute(select(Review)
-                                       .where(and_(Review.center_id == center_id, Review.id == review_id)))
-
+                                       .where(and_(Review.center_id == center_id, Review.id == review_id))
+                                       .options(selectinload(Review.answer)))
         return result.scalars().one_or_none()
 
     async def find_all_by_center(self, session: AsyncSession, center_id: str):

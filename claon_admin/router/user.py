@@ -27,7 +27,7 @@ class UserRouter:
     @router.get('/centers', response_model=List[CenterNameResponseDto])
     async def find_center(self,
                           subject: CurrentUser):
-        return await self.user_service.find_centers(subject=subject)
+        return await self.user_service.find_centers(subject)
 
     # s3 upload
     @router.post('/profile', response_model=UploadFileResponseDto)
@@ -47,4 +47,4 @@ class UserRouter:
     async def find_all_by_nickname(self,
                                    nickname: str,
                                    params: Params = Depends()):
-        return await self.user_service.find_all_by_nickname(params=params, nickname=nickname)
+        return await self.user_service.find_all_by_nickname(params, nickname)

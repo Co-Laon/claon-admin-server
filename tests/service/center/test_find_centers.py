@@ -40,10 +40,7 @@ class TestFindCenters(object):
         mock_paginate.return_value = [mock_pagination]
 
         # when
-        pages = await center_service.find_centers(
-            params=params,
-            subject=request_user
-        )
+        pages = await center_service.find_centers(request_user, params)
 
         # then
         assert len(pages.results) == 2
@@ -65,7 +62,7 @@ class TestFindCenters(object):
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await center_service.find_centers(params, request_user)
+            await center_service.find_centers(request_user, params)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST

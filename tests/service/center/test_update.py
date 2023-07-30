@@ -54,13 +54,10 @@ class TestUpdate(object):
         mock_repo["center_hold"].save_all.side_effect = [center_holds_fixture]
         mock_repo["center_wall"].save_all.side_effect = [center_walls_fixture]
 
-        response = CenterResponseDto.from_entity(entity=center_fixture,
-                                                 holds=center_holds_fixture,
-                                                 walls=center_walls_fixture)
+        response = CenterResponseDto.from_entity(center_fixture, center_holds_fixture, center_walls_fixture)
 
         # when
-        result = await center_service.update(center_id=center_fixture.id, subject=request_user,
-                                             dto=center_update_request_dto)
+        result = await center_service.update(request_user, center_fixture.id, center_update_request_dto)
         # then
         assert result == response
 
@@ -80,7 +77,7 @@ class TestUpdate(object):
         # when
         with pytest.raises(NotFoundException) as exception:
             # when
-            await center_service.update(center_id="wrong id", subject=request_user, dto=center_update_request_dto)
+            await center_service.update(request_user, "wrong id", center_update_request_dto)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
@@ -101,8 +98,7 @@ class TestUpdate(object):
 
         with pytest.raises(BadRequestException) as exception:
             # when
-            await center_service.update(center_id=center_fixture.id, subject=request_user,
-                                        dto=center_update_request_dto)
+            await center_service.update(request_user, center_fixture.id, center_update_request_dto)
 
         # then
         assert exception.value.code == ErrorCode.ROW_ALREADY_DETELED
@@ -122,8 +118,7 @@ class TestUpdate(object):
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await center_service.update(center_id=center_fixture.id, subject=request_user,
-                                        dto=center_update_request_dto)
+            await center_service.update(request_user, center_fixture.id, center_update_request_dto)
 
         # then
         assert exception.value.code == ErrorCode.NOT_ACCESSIBLE

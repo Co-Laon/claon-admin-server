@@ -95,6 +95,29 @@ class TestReviewRepository(object):
         ) == Page.create(items=[], params=params, total=0)
 
     @pytest.mark.asyncio
+    async def test_find_reviews_with_by_center_only_answered(
+            self,
+            session: AsyncSession,
+            center_fixture: Center,
+            review_fixture: Review,
+            post_fixture: Post,
+            review_answer_fixture: ReviewAnswer
+    ):
+        # given
+        params = Params(page=1, size=10)
+
+        # then
+        assert await review_repository.find_reviews_by_center(
+            session=session,
+            params=params,
+            center_id=center_fixture.id,
+            start=datetime(2022, 3, 1),
+            end=datetime(2023, 2, 28),
+            tag=None,
+            is_answered=True
+        ) == Page.create(items=[(review_fixture, 1)], params=params, total=1)
+
+    @pytest.mark.asyncio
     async def test_find_review_by_id_and_center_id(
             self,
             session: AsyncSession,

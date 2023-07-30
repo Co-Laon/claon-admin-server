@@ -21,13 +21,13 @@ def get_relative_time(time: datetime = datetime.now(TIME_ZONE_KST)):
     elif diff.total_seconds() < min_in_sec:
         return str(int(diff.total_seconds())) + "초 전"
     elif diff.total_seconds() < hour_in_sec:
-        return str(diff.total_seconds() // min_in_sec) + "분 전"
+        return str(int(diff.total_seconds() // min_in_sec)) + "분 전"
     elif diff.total_seconds() < day_in_sec:
-        return str(diff.total_seconds() // hour_in_sec) + "시간 전"
+        return str(int(diff.total_seconds() // hour_in_sec)) + "시간 전"
     elif diff.total_seconds() < week_in_sec:
-        return str(diff.total_seconds() // day_in_sec) + "일 전"
+        return str(int(diff.total_seconds() // day_in_sec)) + "일 전"
     elif diff.total_seconds() < month_in_sec:
-        return str(diff.total_seconds() // week_in_sec) + "주 전"
+        return str(int(diff.total_seconds() // week_in_sec)) + "주 전"
     else:
         return time.strftime("%Y-%m-%d")
 

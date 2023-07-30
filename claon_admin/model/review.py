@@ -26,7 +26,7 @@ class ReviewAnswerResponseDto(BaseModel):
 
     @classmethod
     def from_entity(cls, entity: ReviewAnswer):
-        return ReviewAnswerResponseDto(
+        return cls(
             review_answer_id=entity.id,
             content=entity.content,
             created_at=get_relative_time(entity.created_at),
@@ -47,9 +47,8 @@ class ReviewBriefResponseDto(BaseModel):
 
     @classmethod
     def from_entity(cls, entity: Tuple[Review, int]):
-        review = entity[0]
-        visit_count = entity[1]
-        return ReviewBriefResponseDto(
+        review, visit_count = entity
+        return cls(
             review_id=review.id,
             content=review.content,
             created_at=get_relative_time(review.created_at),
@@ -77,7 +76,7 @@ class ReviewSummaryResponseDto(BaseModel):
 
     @classmethod
     def from_entity(cls, center: Center, counts: Counter, count_by_tag: List[ReviewTagDto]):
-        return ReviewSummaryResponseDto(
+        return cls(
             center_id=center.id,
             center_name=center.name,
             count_total=counts[False] + counts[True],
@@ -87,7 +86,7 @@ class ReviewSummaryResponseDto(BaseModel):
         )
 
 
-class ReviewFindRequestDto(BaseModel):
+class ReviewFinder(BaseModel):
     start_date: date
     end_date: date
     tag: str | None
