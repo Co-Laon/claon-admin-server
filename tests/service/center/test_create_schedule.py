@@ -28,8 +28,8 @@ class TestCreateSchedule(object):
     @pytest.mark.it("Success case for creating center schedule")
     async def test_create_schedule(
             self,
-            mock_repo: dict,
             center_service: CenterService,
+            mock_repo: dict,
             user_fixture: User,
             center_fixture: Center,
             new_schedule_fixture: CenterSchedule,
@@ -44,24 +44,20 @@ class TestCreateSchedule(object):
         mock_repo["user"].find_by_ids.side_effect = [[user_fixture]]
         mock_repo["center_schedule_member"].save_all.side_effect = [new_schedule_member_fixture]
 
-        response = ScheduleResponseDto.from_entity(schedule=new_schedule_fixture, users=[user_fixture])
+        response = ScheduleResponseDto.from_entity(new_schedule_fixture, [user_fixture])
 
         # when
-        result = await center_service.create_schedule(
-            subject=request_user,
-            center_id=center_fixture.id,
-            dto=schedule_create_request_dto
-        )
+        result = await center_service.create_schedule(request_user, center_fixture.id, schedule_create_request_dto)
 
         # then
         assert result == response
 
     @pytest.mark.asyncio
     @pytest.mark.it('Fail case: center is not exist')
-    async def test_create_schedule(
+    async def test_create_schedule_with_not_exist_center(
             self,
-            mock_repo: dict,
             center_service: CenterService,
+            mock_repo: dict,
             user_fixture: User,
             schedule_create_request_dto: ScheduleRequestDto
     ):
@@ -71,21 +67,17 @@ class TestCreateSchedule(object):
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await center_service.create_schedule(
-                subject=request_user,
-                center_id="wrong_id",
-                dto=schedule_create_request_dto
-            )
+            await center_service.create_schedule(request_user, "wrong_id", schedule_create_request_dto)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
 
     @pytest.mark.asyncio
     @pytest.mark.it('Fail case: user is not center owner')
-    async def test_create_schedule(
+    async def test_create_schedule_with_not_center_admin(
             self,
-            mock_repo: dict,
             center_service: CenterService,
+            mock_repo: dict,
             center_fixture: Center,
             schedule_create_request_dto: ScheduleRequestDto
     ):
@@ -95,11 +87,7 @@ class TestCreateSchedule(object):
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await center_service.create_schedule(
-                subject=request_user,
-                center_id=center_fixture.id,
-                dto=schedule_create_request_dto
-            )
+            await center_service.create_schedule(request_user, center_fixture.id, schedule_create_request_dto)
 
         # then
         assert exception.value.code == ErrorCode.NOT_ACCESSIBLE

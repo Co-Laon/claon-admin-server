@@ -9,7 +9,7 @@ from claon_admin.common.error.exception import NotFoundException, ErrorCode, Una
 from claon_admin.common.util.pagination import Pagination
 from claon_admin.common.util.time import get_relative_time
 from claon_admin.model.auth import RequestUser
-from claon_admin.model.review import ReviewBriefResponseDto, ReviewFindRequestDto
+from claon_admin.model.review import ReviewBriefResponseDto, ReviewFinder
 from claon_admin.schema.center import Center, Post, Review
 from claon_admin.schema.user import User
 from claon_admin.service.review import ReviewService
@@ -19,7 +19,7 @@ from claon_admin.service.review import ReviewService
 class TestFindReviewsByCenter(object):
     @pytest.fixture
     async def review_find_request_dto(self):
-        yield ReviewFindRequestDto(
+        yield ReviewFinder(
             start_date=datetime(2022, 4, 1),
             end_date=datetime(2023, 3, 31),
             tag=None,
@@ -32,7 +32,7 @@ class TestFindReviewsByCenter(object):
     async def test_find_reviews_by_center_not_filter(
             self,
             mock_paginate,
-            review_find_request_dto: ReviewFindRequestDto,
+            review_find_request_dto: ReviewFinder,
             review_service: ReviewService,
             mock_repo: dict,
             user_fixture: User,
@@ -88,7 +88,7 @@ class TestFindReviewsByCenter(object):
     async def test_find_reviews_by_center_not_answered(
             self,
             mock_paginate,
-            review_find_request_dto: ReviewFindRequestDto,
+            review_find_request_dto: ReviewFinder,
             review_service: ReviewService,
             mock_repo: dict,
             pending_user_fixture: User,
@@ -134,7 +134,7 @@ class TestFindReviewsByCenter(object):
     async def test_find_reviews_by_center_with_tag(
             self,
             mock_paginate,
-            review_find_request_dto: ReviewFindRequestDto,
+            review_find_request_dto: ReviewFinder,
             review_service: ReviewService,
             mock_repo: dict,
             user_fixture: User,
@@ -185,7 +185,7 @@ class TestFindReviewsByCenter(object):
     async def test_find_reviews_by_center_not_exist_center(
             self,
             mock_repo: dict,
-            review_find_request_dto: ReviewFindRequestDto,
+            review_find_request_dto: ReviewFinder,
             center_fixture: Center,
             review_service: ReviewService
     ):
@@ -211,7 +211,7 @@ class TestFindReviewsByCenter(object):
     async def test_find_reviews_by_center_not_center_admin(
             self,
             mock_repo: dict,
-            review_find_request_dto: ReviewFindRequestDto,
+            review_find_request_dto: ReviewFinder,
             center_fixture: Center,
             review_service: ReviewService
     ):

@@ -23,17 +23,17 @@ class MembershipRouter:
     @router.put('/subtract', response_model=List[MembershipResponseDto])
     async def update_membership_count(self,
                                       subject: CurrentUser,
-                                      request_dto: MembershipCountUpdateRequestDto):
+                                      req: MembershipCountUpdateRequestDto):
         pass
 
     @router.put('/expire', response_model=List[MembershipResponseDto])
     async def expire_membership(self,
                                 subject: CurrentUser,
-                                request_dto: MembershipExpireRequestDto):
+                                req: MembershipExpireRequestDto):
         pass
 
     @router.post('/issue', response_model=MembershipIssueResponseDto)
     async def issue_membership(self,
                                subject: CurrentUser,
-                               request_dto: MembershipIssueRequestDto):
+                               req: MembershipIssueRequestDto):
         pass

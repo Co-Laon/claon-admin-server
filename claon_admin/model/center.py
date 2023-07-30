@@ -4,7 +4,7 @@ from typing import List
 from pydantic import BaseModel, validator
 
 from claon_admin.common.consts import KOR_BEGIN_CODE, KOR_END_CODE
-from claon_admin.common.enum import WallType, PeriodType, CenterFeeType
+from claon_admin.common.enum import WallType, PeriodType, CenterFeeType, CenterMemberSearchOrder, CenterMemberStatus
 from claon_admin.model.user import UserProfileDto
 from claon_admin.schema.center import Center, CenterHold, CenterWall, CenterFee
 
@@ -108,7 +108,7 @@ class CenterFeeDetailResponseDto(BaseModel):
 
     @classmethod
     def from_entity(cls, entity: Center, fees: List[CenterFee]):
-        return CenterFeeDetailResponseDto(
+        return cls(
             fee_img=[e.url for e in entity.fee_img],
             center_fee=[CenterFeeResponseDto.from_entity(e) for e in fees]
         )
@@ -155,7 +155,7 @@ class CenterNameResponseDto(BaseModel):
 
     @classmethod
     def from_entity(cls, entity: Center):
-        return CenterNameResponseDto(
+        return cls(
             center_id=entity.id,
             profile_image=entity.profile_img,
             name=entity.name,
@@ -319,11 +319,12 @@ class CenterResponseDto(BaseModel):
     approved: bool
 
     @classmethod
-    def from_entity(cls, entity: Center,
+    def from_entity(cls,
+                    entity: Center,
                     holds: List[CenterHold] | None = None,
                     walls: List[CenterWall] | None = None,
                     fees: List[CenterFee] | None = None):
-        return CenterResponseDto(
+        return cls(
             center_id=entity.id,
             profile_image=entity.profile_img,
             name=entity.name,
@@ -371,7 +372,7 @@ class CenterBriefResponseDto(BaseModel):
     # TODO: Need to modify matching/member/lector count after plan for matching and member
     @classmethod
     def from_entity(cls, entity: Center):
-        return CenterBriefResponseDto(
+        return cls(
             center_id=entity.id,
             profile_image=entity.profile_img,
             name=entity.name,
@@ -397,3 +398,9 @@ class CenterAuthRequestDto(BaseModel):
         if len(value) > 5:
             raise ValueError('증빙자료는 5개 이하로 입력해 주세요.')
         return value
+
+
+class CenterMemberFinder(BaseModel):
+    nickname: str | None
+    order: CenterMemberSearchOrder | None
+    member_status: CenterMemberStatus | None

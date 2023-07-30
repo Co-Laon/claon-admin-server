@@ -26,13 +26,10 @@ class TestDelete(object):
         # given
         request_user = RequestUser(id=center_fixture.user.id, sns="test@claon.com", role=Role.ADMIN)
         mock_repo["center"].find_by_id_with_details.side_effect = [center_fixture]
-        response = CenterResponseDto.from_entity(entity=center_fixture,
-                                                 holds=center_holds_fixture,
-                                                 walls=center_walls_fixture,
-                                                 fees=center_fees_fixture)
+        response = CenterResponseDto.from_entity(center_fixture, center_holds_fixture, center_walls_fixture, center_fees_fixture)
 
         # when
-        result = await center_service.delete(subject=request_user, center_id=center_fixture.id)
+        result = await center_service.delete(request_user, center_fixture.id)
 
         # then
         assert result.center_id == center_fixture.id
@@ -55,7 +52,7 @@ class TestDelete(object):
 
         with pytest.raises(NotFoundException) as exception:
             # when
-            await center_service.delete(subject=request_user, center_id=wrong_id)
+            await center_service.delete(request_user, wrong_id)
 
         # then
         assert exception.value.code == ErrorCode.DATA_DOES_NOT_EXIST
@@ -74,7 +71,7 @@ class TestDelete(object):
 
         with pytest.raises(UnauthorizedException) as exception:
             # when
-            await center_service.delete(subject=request_user, center_id=center_fixture.id)
+            await center_service.delete(request_user, center_fixture.id)
 
         # then
         assert exception.value.code == ErrorCode.NOT_ACCESSIBLE

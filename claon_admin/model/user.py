@@ -26,7 +26,7 @@ class UserProfileResponseDto(BaseModel):
 
     @classmethod
     def from_entity(cls, entity: User):
-        return UserProfileResponseDto(
+        return cls(
             profile_image=entity.profile_img,
             nickname=entity.nickname,
             email=entity.email,
@@ -181,7 +181,7 @@ class LectorResponseDto(BaseModel):
                     datetime.strptime(career.end_date, "%Y-%m-%d") - datetime.strptime(career.start_date, "%Y-%m-%d")
             ).days
 
-        return LectorResponseDto(
+        return cls(
             lector_id=entity.id,
             is_setter=entity.is_setter,
             total_experience=total_experience // 365,

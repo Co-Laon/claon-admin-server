@@ -2,7 +2,7 @@ from typing import List
 
 from pydantic import BaseModel, validator
 
-from claon_admin.common.enum import MembershipStatus, CenterFeeType
+from claon_admin.common.enum import MembershipStatus, CenterFeeType, MembershipStatusSearchOrder
 from claon_admin.model.center import CenterFeeResponseDto
 
 
@@ -83,3 +83,9 @@ class MembershipCountUpdateRequestDto(BaseModel):
 
 class MembershipExpireRequestDto(BaseModel):
     membership_ids: List[str]
+
+
+class MembershipFinder(BaseModel):
+    nickname: str | None
+    order: MembershipStatusSearchOrder | None
+    membership_status: MembershipStatus | None

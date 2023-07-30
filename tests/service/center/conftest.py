@@ -185,6 +185,21 @@ def center_fees_fixture(center_fixture: Center):
 
 
 @pytest.fixture
+def new_center_fees_fixture(center_fixture: Center):
+    yield CenterFee(
+        id=str(uuid.uuid4()),
+        center=center_fixture,
+        name="new_fee",
+        fee_type=CenterFeeType.PACKAGE,
+        price=1000,
+        count=10,
+        period=1,
+        period_type=PeriodType.DAY,
+        is_deleted=False
+    )
+
+
+@pytest.fixture
 def center_holds_fixture(center_fixture: Center):
     yield [
         CenterHold(

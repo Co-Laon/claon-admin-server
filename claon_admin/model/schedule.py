@@ -56,16 +56,13 @@ class ScheduleResponseDto(BaseModel):
 
     @classmethod
     def from_entity(cls, schedule: CenterSchedule, users: List[User]):
-        print("LOG user:", users)
         return cls(
             schedule_id=schedule.id,
             title=schedule.title,
             start_time=schedule.start_time,
             end_time=schedule.end_time,
-            member_list=[
-                MemberDto(user_id=user.id,
-                          nickname=user.nickname,
-                          profile_image=user.profile_img) for user in users
-            ],
+            member_list=[MemberDto(user_id=user.id,
+                                   nickname=user.nickname,
+                                   profile_image=user.profile_img) for user in users],
             description=schedule.description
         )

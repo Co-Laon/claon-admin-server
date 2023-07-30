@@ -1,4 +1,3 @@
-from datetime import date
 from typing import List
 
 from dependency_injector.wiring import inject, Provide
@@ -10,15 +9,16 @@ from claon_admin.common.util.auth import CenterAdminUser, CurrentUser
 from claon_admin.common.util.pagination import Pagination
 from claon_admin.container import Container
 from claon_admin.model.center import CenterNameResponseDto, CenterResponseDto, CenterUpdateRequestDto, \
-    CenterBriefResponseDto, CenterCreateRequestDto, CenterFeeDetailResponseDto, CenterFeeDetailRequestDto
-from claon_admin.common.enum import CenterUploadPurpose, CenterFeeUploadPurpose, CenterMemberSearchOrder, \
-    CenterMemberStatus, MembershipStatusSearchOrder, MembershipStatus
+    CenterBriefResponseDto, CenterCreateRequestDto, CenterFeeDetailResponseDto, CenterFeeDetailRequestDto, \
+    CenterMemberFinder
+from claon_admin.common.enum import CenterUploadPurpose, CenterFeeUploadPurpose
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.membership import CenterMemberSummaryResponseDto, CenterMemberBriefResponseDto, \
-    CenterMemberDetailResponseDto, MembershipSummaryResponseDto, MembershipResponseDto
-from claon_admin.model.post import PostResponseDto, PostSummaryResponseDto, PostCommentResponseDto, PostBriefResponseDto
+    CenterMemberDetailResponseDto, MembershipSummaryResponseDto, MembershipResponseDto, MembershipFinder
+from claon_admin.model.post import PostResponseDto, PostSummaryResponseDto, PostCommentResponseDto, \
+    PostBriefResponseDto, PostFinder
 from claon_admin.model.review import ReviewSummaryResponseDto, ReviewAnswerResponseDto, ReviewAnswerRequestDto, \
-    ReviewBriefResponseDto, ReviewFindRequestDto
+    ReviewBriefResponseDto, ReviewFinder
 from claon_admin.model.schedule import ScheduleRequestDto, ScheduleBriefResponseDto, ScheduleResponseDto
 from claon_admin.service.center import CenterService
 from claon_admin.service.post import PostService
@@ -41,13 +41,13 @@ class CenterRouter:
     @router.get('/name/{name}', response_model=List[CenterNameResponseDto])
     async def get_name(self,
                        name: str):
-        return await self.center_service.find_centers_by_name(name=name)
+        return await self.center_service.find_centers_by_name(name)
 
     @router.get('/{center_id}', response_model=CenterResponseDto)
     async def find_by_id(self,
                          subject: CenterAdminUser,
                          center_id: str):
-        return await self.center_service.find_by_id(subject=subject, center_id=center_id)
+        return await self.center_service.find_by_id(subject, center_id)
 
     @router.post('/{purpose}/file', response_model=UploadFileResponseDto)
     async def upload(self,
@@ -60,26 +60,26 @@ class CenterRouter:
     async def find_centers(self,
                            subject: CenterAdminUser,
                            params: Params = Depends()):
-        return await self.center_service.find_centers(params=params, subject=subject)
+        return await self.center_service.find_centers(subject, params)
 
     @router.post('/', response_model=CenterResponseDto)
     async def create(self,
                      subject: CurrentUser,
-                     dto: CenterCreateRequestDto):
-        return await self.center_service.create(subject=subject, dto=dto)
+                     req: CenterCreateRequestDto):
+        return await self.center_service.create(subject, req)
 
     @router.put('/{center_id}', response_model=CenterResponseDto)
     async def update(self,
                      subject: CenterAdminUser,
                      center_id: str,
-                     request_dto: CenterUpdateRequestDto):
-        return await self.center_service.update(center_id=center_id, subject=subject, dto=request_dto)
+                     req: CenterUpdateRequestDto):
+        return await self.center_service.update(subject, center_id, req)
 
     @router.delete('/{center_id}', response_model=CenterResponseDto)
     async def delete(self,
                      subject: CenterAdminUser,
                      center_id: str):
-        return await self.center_service.delete(center_id=center_id, subject=subject)
+        return await self.center_service.delete(subject, center_id)
 
     @router.get('/{center_id}/posts/{post_id}', response_model=PostResponseDto)
     async def find_post(self,
@@ -97,31 +97,17 @@ class CenterRouter:
     async def find_posts_by_center(self,
                                    subject: CenterAdminUser,
                                    center_id: str,
-                                   start: date,
-                                   end: date,
-                                   hold_id: str | None = None,
+                                   finder: PostFinder = Depends(),
                                    params: Params = Depends()):
-        return await self.post_service.find_posts_by_center(
-            subject=subject,
-            params=params,
-            hold_id=hold_id,
-            center_id=center_id,
-            start=start,
-            end=end
-        )
+        return await self.post_service.find_posts_by_center(subject, params, center_id, finder)
 
     @router.get('/{center_id}/reviews', response_model=Pagination[ReviewBriefResponseDto])
     async def find_reviews_by_center(self,
                                      subject: CenterAdminUser,
                                      center_id: str,
-                                     request_dto: ReviewFindRequestDto = Depends(),
+                                     finder: ReviewFinder = Depends(),
                                      params: Params = Depends()):
-        return await self.review_service.find_reviews_by_center(
-            subject=subject,
-            params=params,
-            center_id=center_id,
-            dto=request_dto
-        )
+        return await self.review_service.find_reviews_by_center(subject, params, center_id, finder)
 
     @router.get('/{center_id}/posts/summary', response_model=PostSummaryResponseDto)
     async def find_posts_summary_by_center(self,
@@ -138,18 +124,18 @@ class CenterRouter:
     @router.post('/{center_id}/reviews/{review_id}', response_model=ReviewAnswerResponseDto)
     async def create_review_answer(self,
                                    subject: CenterAdminUser,
-                                   request_dto: ReviewAnswerRequestDto,
                                    center_id: str,
-                                   review_id: str):
-        return await self.review_service.create_review_answer(subject, request_dto, center_id, review_id)
+                                   review_id: str,
+                                   req: ReviewAnswerRequestDto):
+        return await self.review_service.create_review_answer(subject, center_id, review_id, req)
 
     @router.put('/{center_id}/reviews/{review_id}', response_model=ReviewAnswerResponseDto)
     async def update_review_answer(self,
                                    subject: CenterAdminUser,
-                                   request_dto: ReviewAnswerRequestDto,
                                    center_id: str,
-                                   review_id: str):
-        return await self.review_service.update_review_answer(subject, request_dto, center_id, review_id)
+                                   review_id: str,
+                                   req: ReviewAnswerRequestDto):
+        return await self.review_service.update_review_answer(subject, center_id, review_id, req)
 
     @router.delete('/{center_id}/reviews/{review_id}')
     async def delete_review_answer(self,
@@ -168,8 +154,8 @@ class CenterRouter:
     async def update_center_fees(self,
                                  subject: CenterAdminUser,
                                  center_id: str,
-                                 request_dto: CenterFeeDetailRequestDto):
-        return await self.center_service.update_center_fees(subject, center_id, request_dto)
+                                 req: CenterFeeDetailRequestDto):
+        return await self.center_service.update_center_fees(subject, center_id, req)
 
     @router.post('/{center_id}/fees/{purpose}/file', response_model=UploadFileResponseDto)
     async def upload_membership_image(self,
@@ -189,9 +175,7 @@ class CenterRouter:
     async def find_members_by_name(self,
                                    subject: CurrentUser,
                                    center_id: str,
-                                   nickname: str | None = None,
-                                   order: CenterMemberSearchOrder | None = None,
-                                   member_status: CenterMemberStatus | None = None):
+                                   finder: CenterMemberFinder = Depends()):
         pass
 
     @router.get('/{center_id}/members/{nickname}', response_model=CenterMemberDetailResponseDto)
@@ -211,9 +195,7 @@ class CenterRouter:
     async def find_memberships_by_center(self,
                                          subject: CurrentUser,
                                          center_id: str,
-                                         nickname: str | None = None,
-                                         order: MembershipStatusSearchOrder | None = None,
-                                         membership_status: MembershipStatus | None = None):
+                                         finder: MembershipFinder = Depends()):
         pass
 
     @router.get('/{center_id}/schedules', response_model=List[ScheduleBriefResponseDto])
@@ -233,15 +215,15 @@ class CenterRouter:
     async def create_schedule(self,
                               subject: CenterAdminUser,
                               center_id: str,
-                              request_dto: ScheduleRequestDto):
-        return await self.center_service.create_schedule(subject=subject, center_id=center_id, dto=request_dto)
+                              req: ScheduleRequestDto):
+        return await self.center_service.create_schedule(subject, center_id, req)
 
     @router.put('/{center_id}/schedules/{schedule_id}', response_model=ScheduleResponseDto)
     async def update_schedule(self,
                               subject: CenterAdminUser,
                               center_id: str,
                               schedule_id: str,
-                              request_dto: ScheduleRequestDto):
+                              req: ScheduleRequestDto):
         pass
 
     @router.delete('/{center_id}/schedules/{schedule_id}')

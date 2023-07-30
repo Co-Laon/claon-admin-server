@@ -197,13 +197,11 @@ def review_fixture(user_fixture: User, center_fixture: Center, review_answer_fix
 
 
 @pytest.fixture
-def not_answered_review_fixture(user_fixture: User, center_fixture: Center, new_review_answer_fixture: ReviewAnswer):
+def not_answered_review_fixture(user_fixture: User, center_fixture: Center):
     yield Review(
         id=str(uuid.uuid4()),
         user=user_fixture,
         center=center_fixture,
-        answer_id=new_review_answer_fixture.id,
-        answer=new_review_answer_fixture,
         content="content",
         created_at=datetime(2023, 2, 5),
         tag=[ReviewTag(word="tag")]
@@ -255,10 +253,11 @@ def another_review_answer_fixture():
 
 
 @pytest.fixture
-def new_review_answer_fixture():
+def new_review_answer_fixture(review_fixture: Review):
     yield ReviewAnswer(
         id=str(uuid.uuid4()),
         content="new answer",
+        review=review_fixture,
         created_at=datetime(2023, 2, 7)
     )
 
