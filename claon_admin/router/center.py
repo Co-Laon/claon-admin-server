@@ -227,7 +227,7 @@ class CenterRouter:
                                          subject: CenterAdminUser,
                                          center_id: str,
                                          schedule_id: str):
-        pass
+        return await self.center_service.find_schedule_detail_by_id(subject, center_id, schedule_id)
 
     @router.post('/{center_id}/schedules', response_model=ScheduleResponseDto)
     async def create_schedule(self,

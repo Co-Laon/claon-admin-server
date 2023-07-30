@@ -56,6 +56,7 @@ class ScheduleResponseDto(BaseModel):
 
     @classmethod
     def from_entity(cls, schedule: CenterSchedule, users: List[User]):
+        print("LOG user:", users)
         return cls(
             schedule_id=schedule.id,
             title=schedule.title,

@@ -37,6 +37,7 @@ class CenterService:
         self.center_schedule_repository = center_schedule_repository
         self.center_schedule_member_repository = center_schedule_member_repository
 
+
     @transactional()
     async def create(self,
                      session: AsyncSession,
@@ -52,7 +53,6 @@ class CenterService:
                 [CenterHold(center=center, name=e.name, difficulty=e.difficulty, is_color=hold_is_color)
                  for e in dto.hold_info.hold_list]
             )
-
         walls = await self.center_wall_repository.save_all(
             session,
             [CenterWall(center=center, name=e.name, type=e.wall_type.value)
@@ -283,3 +283,31 @@ class CenterService:
         )
 
         return ScheduleResponseDto.from_entity(schedule=schedule, users=users)
+
+    @transactional(read_only=True)
+    async def find_schedule_detail_by_id(self,
+                                       session: AsyncSession,
+                                       subject: RequestUser,
+                                       center_id: str,
+                                       schedule_id: str):
+        center = await self.center_repository.find_by_id(session, center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if not center.is_owner(subject.id):
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        schedule = await self.center_schedule_repository.find_by_id_and_center_id(session, schedule_id, center_id)
+        if schedule is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 스케쥴이 암장에 존재하지 않습니다."
+            )
+
+        return ScheduleResponseDto.from_entity(schedule=schedule, users=[member.user for member in schedule.members])

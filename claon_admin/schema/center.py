@@ -439,4 +439,10 @@ class CenterScheduleMemberRepository(Repository[CenterScheduleMember]):
 
 
 class CenterScheduleRepository(Repository[CenterSchedule]):
-    pass
+    async def find_by_id_and_center_id(self, session: AsyncSession, schedule_id:str, center_id: str):
+        result = await session.execute(select(CenterSchedule)
+                                       .where(and_(CenterSchedule.id == schedule_id,
+                                                   CenterSchedule.center_id == center_id))
+                                       .options(selectinload(CenterSchedule.members)
+                                                .subqueryload(CenterScheduleMember.user)))
+        return result.scalars().one_or_none()
