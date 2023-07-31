@@ -295,7 +295,7 @@ class CenterSchedule(Base):
     end_time = Column(DateTime, nullable=False)
     description = Column(String(length=255))
 
-    members = relationship("CenterScheduleMember", back_populates="schedule")
+    members = relationship("CenterScheduleMember", back_populates="schedule", cascade="all, delete-orphan")
 
     center_id = Column(String(length=255), ForeignKey("tb_center.id", ondelete="CASCADE"), nullable=False)
     center = relationship("Center", backref=backref("CenterSchedule"))

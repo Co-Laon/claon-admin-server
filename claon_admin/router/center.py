@@ -231,4 +231,4 @@ class CenterRouter:
                               subject: CenterAdminUser,
                               center_id: str,
                               schedule_id: str):
-        pass
+        return await self.center_service.delete_schedule(subject, center_id, schedule_id)

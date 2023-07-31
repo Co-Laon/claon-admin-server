@@ -310,3 +310,31 @@ class CenterService:
             )
 
         return ScheduleResponseDto.from_entity(schedule, [member.user for member in schedule.members])
+
+    @transactional()
+    async def delete_schedule(self,
+                              session: AsyncSession,
+                              subject: RequestUser,
+                              center_id: str,
+                              schedule_id: str):
+        center = await self.center_repository.find_by_id(session, center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if not center.is_owner(subject.id):
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        schedule = await self.center_schedule_repository.find_by_id(session, schedule_id)
+        if schedule is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 스케줄이 존재하지 않습니다."
+            )
+
+        return await self.center_schedule_repository.delete(session, schedule)
