@@ -262,6 +262,18 @@ async def new_approved_file_fixture(user_fixture: User, new_center_fixture: Cent
 
 
 @pytest.fixture
+async def schedule_fixture(center_fixture: Center):
+    yield CenterSchedule(
+        id=str(uuid.uuid4()),
+        title="schedule_title",
+        start_time=datetime(2023, 8, 1, 10, 0),
+        end_time=datetime(2023, 8, 2, 10, 0),
+        description="test_description",
+        center=center_fixture
+    )
+
+
+@pytest.fixture
 async def new_schedule_fixture(center_fixture: Center):
     yield CenterSchedule(
         id=str(uuid.uuid4()),
