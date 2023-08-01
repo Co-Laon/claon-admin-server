@@ -7,25 +7,27 @@
 </head>
 
 <body class="dark:bg-gray-900">
-<div class="flex items-center py-2 px-3">
-    <h2 class="text-2xl text-slate-300">
-        Streaming Log Viewer over WebSockets
-    </h2>
-</div>
 
-<div class="flex flex-row items-center py-2 px-3">
+<div class="items-center py-2 px-3 h-screen">
+    <input id="length" style="display: none" type="hidden" value=0>
     <div class="flex items-center py-2 px-3">
-        <h2 id="env" class="text-2xl text-slate-400 overline decoration-4 decoration-red-500">{{ context.env }}</h2>
-    </div>
-    <div class="flex items-center py-2 px-3">
-        <h2 class="text-2xl text-slate-400 overline decoration-4 decoration-pink-500">
-            {{ context.log_file }}
+        <h2 class="text-2xl text-slate-300">
+            Streaming Log Viewer over WebSockets
         </h2>
     </div>
-</div>
 
-<div class="flex items-center py-2 px-3">
-    <div id="logs" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+    <div class="flex flex-row items-center py-2 px-3">
+        <div class="flex items-center py-2 px-3">
+            <h2 id="env" class="text-2xl text-slate-400 overline decoration-4 decoration-red-500">{{ context.env }}</h2>
+        </div>
+        <div class="flex items-center py-2 px-3">
+            <h2 class="text-2xl text-slate-400 overline decoration-4 decoration-pink-500">
+                {{ context.log_file }}
+            </h2>
+        </div>
+    </div>
+
+    <div id="logs" style="margin-top: 32px; flex-direction: column-reverse;" class="max-h-[80vh] block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 overflow-y-auto">
         reading logs...
     </div>
 </div>
@@ -39,8 +41,27 @@
 
     ws_log.onmessage = function (event) {
         let logs = document.getElementById("logs");
-        logs.innerHTML = event.data;
+        let length = document.getElementById("length");
+        let isFirst = false;
+        if (logs.innerText === "reading logs...") {
+            logs.innerHTML = "";
+            isFirst = true;
+        }
+
+        let data = JSON.parse(event.data);
+
+        length.value = data.file_size;
+        logs.innerHTML += data.context;
+
+        if (isFirst) {
+            logs.scrollTop = logs.scrollHeight;
+        }
     };
+
+    setInterval(function() {
+        let length = document.getElementById("length");
+        ws_log.send(length.value);
+    }, 5000);
 </script>
 </body>
 </html>
