@@ -267,10 +267,7 @@ class CenterService:
         schedule = await self.center_schedule_repository.save(
             session,
             CenterSchedule(
-                title=req.title,
-                start_time=req.start_time,
-                end_time=req.end_time,
-                description=req.description,
+                **req.schedule_info.dict(),
                 center=center
             )
         )
@@ -338,3 +335,51 @@ class CenterService:
             )
 
         return await self.center_schedule_repository.delete(session, schedule)
+
+    @transactional()
+    async def update_schedule(self,
+                              session: AsyncSession,
+                              subject: RequestUser,
+                              center_id: str,
+                              schedule_id: str,
+                              req: ScheduleRequestDto):
+        center = await self.center_repository.find_by_id(session, center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if not center.is_owner(subject.id):
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        schedule = await self.center_schedule_repository.find_by_id_and_center_id(session, schedule_id, center_id)
+        if schedule is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 스케줄이 존재하지 않습니다."
+            )
+
+        await self.center_schedule_member_repository.delete_by_schedule_id(session, schedule_id)
+
+        updated_members = []
+        for member_id in req.member_list:
+            user = await self.user_repository.find_by_id(session, member_id)
+            if user is None:
+                raise NotFoundException(
+                    ErrorCode.DATA_DOES_NOT_EXIST,
+                    "존재하지 않는 사용자가 포함되어 있습니다."
+                )
+
+            await self.center_schedule_member_repository.save(
+                session,
+                CenterScheduleMember(user=user, schedule=schedule)
+            )
+
+            updated_members.append(user)
+
+        schedule.update(**req.schedule_info.dict())
+        return ScheduleResponseDto.from_entity(schedule, updated_members)

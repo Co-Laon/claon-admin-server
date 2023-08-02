@@ -1,5 +1,5 @@
 import json
-from datetime import date
+from datetime import date, datetime
 from typing import List
 from uuid import uuid4
 
@@ -300,6 +300,12 @@ class CenterSchedule(Base):
     center_id = Column(String(length=255), ForeignKey("tb_center.id", ondelete="CASCADE"), nullable=False)
     center = relationship("Center", backref=backref("CenterSchedule"))
 
+    def update(self, title: str, start_time: datetime, end_time: datetime, description: str = None):
+        self.title = title
+        self.start_time = start_time
+        self.end_time = end_time
+        self.description = description
+
 
 class CenterRepository(Repository[Center]):
     async def find_by_id_with_details(self, session: AsyncSession, center_id: str):
@@ -432,7 +438,8 @@ class ReviewAnswerRepository(Repository[ReviewAnswer]):
 
 
 class CenterScheduleMemberRepository(Repository[CenterScheduleMember]):
-    pass
+    async def delete_by_schedule_id(self, session: AsyncSession, schedule_id: str):
+        await session.execute(delete(CenterScheduleMember).where(CenterScheduleMember.schedule_id == schedule_id))
 
 
 class CenterScheduleRepository(Repository[CenterSchedule]):

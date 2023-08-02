@@ -7,11 +7,10 @@ from claon_admin.schema.center import CenterSchedule
 from claon_admin.schema.user import User
 
 
-class ScheduleRequestDto(BaseModel):
+class ScheduleInfoDto(BaseModel):
     title: str
     start_time: datetime
     end_time: datetime
-    member_list: List[str]
     description: str | None
 
     @root_validator
@@ -31,6 +30,11 @@ class ScheduleRequestDto(BaseModel):
         if len(value) > 255:
             raise ValueError("설명은 255자 이하로 입력해 주세요.")
         return value
+
+
+class ScheduleRequestDto(BaseModel):
+    member_list: List[str]
+    schedule_info: ScheduleInfoDto
 
 
 class ScheduleBriefResponseDto(BaseModel):
