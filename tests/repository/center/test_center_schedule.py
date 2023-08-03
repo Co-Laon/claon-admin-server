@@ -35,3 +35,16 @@ class TestCenterScheduleRepository(object):
 
         # then
         assert center_schedule == schedule_fixture
+
+    @pytest.mark.asyncio
+    async def test_find_by_center_id(
+            self,
+            session: AsyncSession,
+            center_fixture: Center,
+            schedule_fixture: CenterSchedule
+    ):
+         # when
+        schedules = await center_schedule_repository.find_by_center_id(session, center_fixture.id)
+
+        # then
+        assert schedules == [schedule_fixture]

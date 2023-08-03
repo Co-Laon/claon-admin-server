@@ -450,3 +450,9 @@ class CenterScheduleRepository(Repository[CenterSchedule]):
                                        .options(selectinload(CenterSchedule.members)
                                                 .subqueryload(CenterScheduleMember.user)))
         return result.scalars().one_or_none()
+
+    async def find_by_center_id(self, session: AsyncSession, center_id: str):
+        result = await session.execute(select(CenterSchedule)
+                                       .where(CenterSchedule.center_id == center_id)
+                                       .order_by(CenterSchedule.start_time.asc(), CenterSchedule.end_time.desc()))
+        return result.scalars().all()

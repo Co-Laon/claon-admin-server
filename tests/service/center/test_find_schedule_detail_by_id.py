@@ -9,8 +9,8 @@ from claon_admin.schema.center import Center, CenterSchedule, CenterScheduleMemb
 from claon_admin.service.center import CenterService
 
 
-@pytest.mark.describe("Test case for find schedules by center")
-class TestFindSchedulesByCenter(object):
+@pytest.mark.describe("Test case for find schedule detail by id")
+class TestFindScheduleDetailByID(object):
     @pytest.mark.asyncio
     @pytest.mark.it("Success case")
     async def test_find_schedule_detail_by_id(

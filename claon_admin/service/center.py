@@ -11,7 +11,7 @@ from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto, CenterResponseDto, \
     CenterCreateRequestDto, CenterUpdateRequestDto, CenterFeeDetailResponseDto, CenterFeeDetailRequestDto
-from claon_admin.model.schedule import ScheduleRequestDto, ScheduleResponseDto
+from claon_admin.model.schedule import ScheduleRequestDto, ScheduleResponseDto, ScheduleBriefResponseDto
 from claon_admin.schema.center import CenterRepository, CenterHoldRepository, CenterWallRepository, \
     CenterFeeRepository, CenterHold, CenterWall, CenterFee, CenterApprovedFileRepository, Center, CenterApprovedFile, \
     CenterSchedule, CenterScheduleRepository, CenterScheduleMemberRepository, CenterScheduleMember

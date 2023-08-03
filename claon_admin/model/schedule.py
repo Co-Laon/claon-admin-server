@@ -43,6 +43,15 @@ class ScheduleBriefResponseDto(BaseModel):
     start_time: datetime
     end_time: datetime
 
+    @classmethod
+    def from_entity(cls, entity: CenterSchedule):
+        return cls(
+            schedule_id=entity.id,
+            title=entity.title,
+            start_time=entity.start_time,
+            end_time=entity.start_time
+        )
+
 
 class MemberDto(BaseModel):
     user_id: str
