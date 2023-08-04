@@ -2,7 +2,7 @@ from fastapi import UploadFile
 from fastapi_pagination import Params
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from claon_admin.common.error.exception import BadRequestException, ErrorCode
+from claon_admin.common.error.exception import BadRequestException, ErrorCode, NotFoundException
 from claon_admin.common.util.jwt import create_access_token, create_refresh_key
 from claon_admin.common.util.pagination import paginate
 from claon_admin.common.util.transaction import transactional
@@ -157,6 +157,12 @@ class UserService:
     @transactional(read_only=True)
     async def find_centers(self, session: AsyncSession, subject: RequestUser):
         centers = await self.center_repository.find_by_user_id(session, subject.id)
+
+        if not centers and subject.role == Role.CENTER_ADMIN:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "{name} 관리자님\n먼저 암장을 등록해주세요.".format(name=subject.nickname)
+            )
 
         return [CenterNameResponseDto.from_entity(center) for center in centers]
 

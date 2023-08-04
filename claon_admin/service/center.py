@@ -92,7 +92,7 @@ class CenterService:
         if not pages.items:
             raise NotFoundException(
                 ErrorCode.DATA_DOES_NOT_EXIST,
-                "등록된 암장이 존재하지 않습니다."
+                "{name} 관리자님\n먼저 암장을 등록해주세요.".format(name=subject.nickname)
             )
 
         return await paginate(CenterBriefResponseDto, pages)
