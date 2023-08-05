@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import UploadFile
 from fastapi_pagination import Params
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,8 +13,7 @@ from claon_admin.model.auth import RequestUser
 from claon_admin.model.file import UploadFileResponseDto
 from claon_admin.model.center import CenterNameResponseDto, CenterBriefResponseDto, CenterResponseDto, \
     CenterCreateRequestDto, CenterUpdateRequestDto, CenterFeeDetailResponseDto, CenterFeeDetailRequestDto
-from claon_admin.model.schedule import ScheduleRequestDto, ScheduleResponseDto, ScheduleBriefResponseDto, \
-    ScheduleViewRequestDto
+from claon_admin.model.schedule import ScheduleRequestDto, ScheduleResponseDto, ScheduleBriefResponseDto, ScheduleFinder
 from claon_admin.schema.center import CenterRepository, CenterHoldRepository, CenterWallRepository, \
     CenterFeeRepository, CenterHold, CenterWall, CenterFee, CenterApprovedFileRepository, Center, CenterApprovedFile, \
     CenterSchedule, CenterScheduleRepository, CenterScheduleMemberRepository, CenterScheduleMember
@@ -384,3 +385,26 @@ class CenterService:
 
         schedule.update(**req.schedule_info.dict())
         return ScheduleResponseDto.from_entity(schedule, updated_members)
+
+    @transactional(read_only=True)
+    async def find_schedules_by_center(self,
+                                       session: AsyncSession,
+                                       subject: RequestUser,
+                                       center_id: str,
+                                       finder: ScheduleFinder):
+        center = await self.center_repository.find_by_id(session, center_id)
+        if center is None:
+            raise NotFoundException(
+                ErrorCode.DATA_DOES_NOT_EXIST,
+                "해당 암장이 존재하지 않습니다."
+            )
+
+        if not center.is_owner(subject.id):
+            raise UnauthorizedException(
+                ErrorCode.NOT_ACCESSIBLE,
+                "암장 관리자가 아닙니다."
+            )
+
+        __from = datetime.strptime(finder.date_from, "%Y-%m-%d").date()
+        schedules = await self.center_schedule_repository.find_by_center_id_and_date_from(session, center_id, __from)
+        return [ScheduleBriefResponseDto.from_entity(schedule) for schedule in schedules or []]

@@ -43,8 +43,11 @@ class TestCenterScheduleRepository(object):
             center_fixture: Center,
             schedule_fixture: CenterSchedule
     ):
-         # when
-        schedules = await center_schedule_repository.find_by_center_id_and_date_from(session, center_fixture.id, "2023-07-30")
+        # given
+        date_from = datetime.strptime("2023-07-30", "%Y-%m-%d").date()
+
+        # when
+        schedules = await center_schedule_repository.find_by_center_id_and_date_from(session, center_fixture.id, date_from)
 
         # then
         assert schedules == [schedule_fixture]

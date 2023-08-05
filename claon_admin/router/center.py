@@ -19,8 +19,7 @@ from claon_admin.model.post import PostResponseDto, PostSummaryResponseDto, Post
     PostBriefResponseDto, PostFinder
 from claon_admin.model.review import ReviewSummaryResponseDto, ReviewAnswerResponseDto, ReviewAnswerRequestDto, \
     ReviewBriefResponseDto, ReviewFinder
-from claon_admin.model.schedule import ScheduleRequestDto, ScheduleBriefResponseDto, ScheduleResponseDto, \
-    ScheduleViewRequestDto
+from claon_admin.model.schedule import ScheduleRequestDto, ScheduleBriefResponseDto, ScheduleResponseDto, ScheduleFinder
 from claon_admin.service.center import CenterService
 from claon_admin.service.post import PostService
 from claon_admin.service.review import ReviewService
@@ -203,8 +202,8 @@ class CenterRouter:
     async def find_schedules_by_center(self,
                                        subject: CenterAdminUser,
                                        center_id: str,
-                                       req: ScheduleViewRequestDto):
-        return await self.center_service.find_schedules_by_center(subject, center_id, req)
+                                       finder: ScheduleFinder = Depends()):
+        return await self.center_service.find_schedules_by_center(subject, center_id, finder)
 
     @router.get('/{center_id}/schedules/{schedule_id}', response_model=ScheduleResponseDto)
     async def find_schedule_detail_by_id(self,
