@@ -6,7 +6,7 @@ import pytest
 from claon_admin.common.enum import Role
 from claon_admin.common.error.exception import NotFoundException, ErrorCode, UnauthorizedException
 from claon_admin.model.auth import RequestUser
-from claon_admin.model.schedule import ScheduleRequestDto, ScheduleResponseDto
+from claon_admin.model.schedule import ScheduleRequestDto, ScheduleResponseDto, ScheduleInfoDto
 from claon_admin.schema.center import Center, CenterScheduleMember, CenterSchedule
 from claon_admin.schema.user import User
 from claon_admin.service.center import CenterService
@@ -17,11 +17,13 @@ class TestCreateSchedule(object):
     @pytest.fixture
     async def schedule_create_request_dto(self, user_fixture: User):
         yield ScheduleRequestDto(
-            title="title",
-            start_time=datetime(2023, 1, 1, 10, 0),
-            end_time=datetime(2023, 1, 2, 10, 0),
             member_list=[user_fixture.id],
-            description="description",
+            schedule_info=ScheduleInfoDto(
+                title="title",
+                start_time=datetime(2023, 1, 1, 10, 0),
+                end_time=datetime(2023, 1, 2, 10, 0),
+                description="description"
+            )
         )
 
     @pytest.mark.asyncio

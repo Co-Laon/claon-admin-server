@@ -224,7 +224,7 @@ class CenterRouter:
                               center_id: str,
                               schedule_id: str,
                               req: ScheduleRequestDto):
-        pass
+        return await self.center_service.update_schedule(subject, center_id, schedule_id, req)
 
     @router.delete('/{center_id}/schedules/{schedule_id}')
     async def delete_schedule(self,

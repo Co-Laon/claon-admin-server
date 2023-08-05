@@ -274,6 +274,28 @@ async def schedule_fixture(center_fixture: Center):
 
 
 @pytest.fixture
+async def schedule_member_fixture(user_fixture: User, schedule_fixture: CenterSchedule):
+    yield [
+        CenterScheduleMember(
+            id=str(uuid.uuid4()),
+            user=user_fixture,
+            schedule=schedule_fixture
+        )
+    ]
+
+
+@pytest.fixture
+async def updated_schedule_member_fixture(client_user_fixture: User, schedule_fixture: CenterSchedule):
+    yield [
+        CenterScheduleMember(
+            id=str(uuid.uuid4()),
+            user=client_user_fixture,
+            schedule=schedule_fixture
+        )
+    ]
+
+
+@pytest.fixture
 async def new_schedule_fixture(center_fixture: Center):
     yield CenterSchedule(
         id=str(uuid.uuid4()),
