@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from typing import List
 
@@ -79,3 +80,14 @@ class ScheduleResponseDto(BaseModel):
                                    profile_image=user.profile_img) for user in users],
             description=schedule.description
         )
+
+
+class ScheduleViewRequestDto(BaseModel):
+    date_from: str
+
+    @validator('date_from')
+    def validate_date_from(cls, value):
+        print("LOGLOGLL::", value)
+        if not re.match(r'^(\d{4}-\d{2}-\d{2})$', value):
+            raise ValueError('올바른 날짜 형식으로 입력해 주세요.')
+        return value

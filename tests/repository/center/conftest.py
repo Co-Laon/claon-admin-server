@@ -228,8 +228,8 @@ async def schedule_fixture(session: AsyncSession, center_fixture: Center):
     schedule = CenterSchedule(
         center=center_fixture,
         title="title",
-        start_time=datetime(2023, 10, 1, 10, 0),
-        end_time=datetime(2023, 10, 2, 10, 0),
+        start_time=datetime(2023, 8, 1, 10, 0),
+        end_time=datetime(2023, 8, 2, 10, 0),
         description="test"
     )
 
