@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from fastapi import UploadFile
 from fastapi_pagination import Params
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -405,6 +403,7 @@ class CenterService:
                 "암장 관리자가 아닙니다."
             )
 
-        __from = datetime.strptime(finder.date_from, "%Y-%m-%d").date()
-        schedules = await self.center_schedule_repository.find_by_center_id_and_date_from(session, center_id, __from)
+        schedules = await self.center_schedule_repository.find_by_center_id_and_date_from(session,
+                                                                                          center_id,
+                                                                                          finder.date_from)
         return [ScheduleBriefResponseDto.from_entity(schedule) for schedule in schedules or []]

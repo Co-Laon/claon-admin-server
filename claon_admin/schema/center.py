@@ -443,7 +443,7 @@ class CenterScheduleMemberRepository(Repository[CenterScheduleMember]):
 
 
 class CenterScheduleRepository(Repository[CenterSchedule]):
-    async def find_by_id_and_center_id(self, session: AsyncSession, schedule_id:str, center_id: str):
+    async def find_by_id_and_center_id(self, session: AsyncSession, schedule_id: str, center_id: str):
         result = await session.execute(select(CenterSchedule)
                                        .where(and_(CenterSchedule.id == schedule_id,
                                                    CenterSchedule.center_id == center_id))
@@ -455,6 +455,6 @@ class CenterScheduleRepository(Repository[CenterSchedule]):
         result = await session.execute(select(CenterSchedule)
                                        .where(and_(CenterSchedule.center_id == center_id,
                                                    func.date(CenterSchedule.start_time)
-                                                   .between(date_from, date_from+timedelta(days=41))))
+                                                   .between(date_from, date_from + timedelta(days=42))))
                                        .order_by(CenterSchedule.start_time.asc(), CenterSchedule.end_time.desc()))
         return result.scalars().all()
