@@ -19,8 +19,8 @@ class TestCenterScheduleRepository(object):
         # then
         assert schedule_fixture.center == center_fixture
         assert schedule_fixture.title == "title"
-        assert schedule_fixture.start_time == datetime(2023, 10, 1, 10, 0)
-        assert schedule_fixture.end_time == datetime(2023, 10, 2, 10, 0)
+        assert schedule_fixture.start_time == datetime(2023, 8, 1, 10, 0)
+        assert schedule_fixture.end_time == datetime(2023, 8, 2, 10, 0)
         assert schedule_fixture.description == "test"
 
     @pytest.mark.asyncio
@@ -35,3 +35,19 @@ class TestCenterScheduleRepository(object):
 
         # then
         assert center_schedule == schedule_fixture
+
+    @pytest.mark.asyncio
+    async def test_find_by_center_id_and_date_from(
+            self,
+            session: AsyncSession,
+            center_fixture: Center,
+            schedule_fixture: CenterSchedule
+    ):
+        # given
+        date_from = datetime.strptime("2023-07-30", "%Y-%m-%d").date()
+
+        # when
+        schedules = await center_schedule_repository.find_by_center_id_and_date_from(session, center_fixture.id, date_from)
+
+        # then
+        assert schedules == [schedule_fixture]

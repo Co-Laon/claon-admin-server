@@ -1,5 +1,5 @@
 import json
-from datetime import date, datetime
+from datetime import datetime, date, timedelta
 from typing import List
 from uuid import uuid4
 
@@ -450,3 +450,11 @@ class CenterScheduleRepository(Repository[CenterSchedule]):
                                        .options(selectinload(CenterSchedule.members)
                                                 .subqueryload(CenterScheduleMember.user)))
         return result.scalars().one_or_none()
+
+    async def find_by_center_id_and_date_from(self, session: AsyncSession, center_id: str, date_from: date):
+        result = await session.execute(select(CenterSchedule)
+                                       .where(and_(CenterSchedule.center_id == center_id,
+                                                   func.date(CenterSchedule.start_time)
+                                                   .between(date_from, date_from+timedelta(days=41))))
+                                       .order_by(CenterSchedule.start_time.asc(), CenterSchedule.end_time.desc()))
+        return result.scalars().all()

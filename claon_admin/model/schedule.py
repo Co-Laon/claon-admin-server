@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List
+import re
 
 from pydantic import BaseModel, validator, root_validator
 
@@ -43,6 +44,15 @@ class ScheduleBriefResponseDto(BaseModel):
     start_time: datetime
     end_time: datetime
 
+    @classmethod
+    def from_entity(cls, entity: CenterSchedule):
+        return cls(
+            schedule_id=entity.id,
+            title=entity.title,
+            start_time=entity.start_time,
+            end_time=entity.end_time
+        )
+
 
 class MemberDto(BaseModel):
     user_id: str
@@ -70,3 +80,13 @@ class ScheduleResponseDto(BaseModel):
                                    profile_image=user.profile_img) for user in users],
             description=schedule.description
         )
+
+
+class ScheduleFinder(BaseModel):
+    date_from: str
+
+    @root_validator
+    def validate_date_from(cls, values):
+        if not re.match(r'^(\d{4}-\d{2}-\d{2})$', values.get('date_from')):
+            raise ValueError("올바른 날짜 형식으로 입력해 주세요.")
+        return values
