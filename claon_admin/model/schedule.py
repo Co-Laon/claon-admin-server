@@ -1,6 +1,5 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import List
-import re
 
 from pydantic import BaseModel, validator, root_validator
 
@@ -83,10 +82,4 @@ class ScheduleResponseDto(BaseModel):
 
 
 class ScheduleFinder(BaseModel):
-    date_from: str
-
-    @root_validator
-    def validate_date_from(cls, values):
-        if not re.match(r'^(\d{4}-\d{2}-\d{2})$', values.get('date_from')):
-            raise ValueError("올바른 날짜 형식으로 입력해 주세요.")
-        return values
+    date_from: date
